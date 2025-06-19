@@ -11,8 +11,12 @@
         @dblclick="resetSize"
       ></div>
       <div class="preview-panel">
-        <iframe ref="previewFrame" class="preview-frame"></iframe>
-      </div>
+        <iframe 
+          ref="previewFrame" 
+          class="preview-frame"
+          :class="{ 'no-pointer-events': isResizing }"
+        ></iframe>
+  </div>
     </div>
     <Footer />
     <SettingsDialog v-if="showSettings" @close="showSettings = false" />
@@ -112,7 +116,7 @@ watch([htmlCode, cssCode, jsCode], updatePreview, { deep: true })
 onMounted(() => {
   updatePreview()
   
-  // 防止iframe捕获鼠标事件
+  // 仅在调整大小时禁用 iframe 事件
   const iframe = document.querySelector('.preview-frame') as HTMLIFrameElement
   iframe?.addEventListener('mouseover', () => {
     if (isResizing.value) {
@@ -186,7 +190,7 @@ onMounted(() => {
   min-width: 300px;
   display: flex;
   height: 100%;
-  overflow: hidden;
+  overflow: auto; /* 改为auto以显示滚动条 */
 }
 
 .preview-frame {
@@ -194,11 +198,11 @@ onMounted(() => {
   height: 100%;
   border: none;
   background: white;
-  pointer-events: none;
+  /* 默认启用指针事件 */
+  pointer-events: auto;
 }
-
-/* 防止iframe干扰鼠标事件 */
-.preview-frame {
+/* 仅在调整大小时禁用指针事件 */
+.preview-frame.no-pointer-events {
   pointer-events: none;
 }
 
