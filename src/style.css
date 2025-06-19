@@ -1,0 +1,17 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Lato', sans-serif;
+  background: #1e1e1e;
+  color: white;
+}
+
+#app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
