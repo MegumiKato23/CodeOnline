@@ -15,7 +15,7 @@ datasource db {
 }
 
 model User {
-  id      Int      @id @default(autoincrement())
+  id      String   @id @default(uuid())
   account   String   @unique
   name    String
   password String
@@ -27,10 +27,10 @@ model User {
 }
 
 model Project {
-  id     Int     @id @default(autoincrement())
+  id     String   @id @default(uuid())
   name  String?
-  owner User  @relation(fields: [ownerId], references: [id])
-  ownerId Int
+  owner User  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId String
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   files File[]
@@ -38,10 +38,10 @@ model Project {
 }
 
 model File {
-  id      Int      @id @default(autoincrement())
+  id      String   @id @default(uuid())
   name  String?
-  owner Project  @relation(fields: [ownerId], references: [id])
-  ownerId Int
+  owner Project  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId String
   path  String
   content String? @db.LongText
   type  FileType
@@ -50,9 +50,9 @@ model File {
 }
 
 model Share {
-  id      Int      @id @default(autoincrement())
-  project Project @relation(fields: [projectId], references: [id])
-  projectId Int
+  id      String   @id @default(uuid())
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
   createdAt DateTime  @default(now())
   keeptime  DateTime
 }
