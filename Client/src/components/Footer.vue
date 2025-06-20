@@ -7,6 +7,7 @@
       >
         Console
       </button>
+      <!-- 目前是关闭窗口之后可以改为切换 -->
       <button @click="closeConsole">
         Assets
       </button>
