@@ -40,9 +40,14 @@ DATABASE_URL="mysql://username:password@localhost:3306/your_database_name"
 
 ### 4. 数据库初始化
 
+```bash
+npx prisma generate \
+npx prisma migrate deploy 
 ```
-npx prisma migrate deploy \
-npx prisma generate
+
+### 5. 启动服务
+```bash
+npm start
 ```
 
 ## 数据库操作
