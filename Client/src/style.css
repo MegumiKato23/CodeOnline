@@ -28,7 +28,11 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: #333;
+<<<<<<< HEAD
   border-radius: 5px;
+=======
+  border-radius: 4px;
+>>>>>>> a364ff2eefb9b6c55d27bcdfca9909df2fc1af8e
 }
 
 ::-webkit-scrollbar-thumb:hover {
