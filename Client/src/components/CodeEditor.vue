@@ -35,7 +35,7 @@ import { oneDark } from '@codemirror/theme-one-dark'
 import { html } from '@codemirror/lang-html'
 import { css } from '@codemirror/lang-css'
 import { javascript } from '@codemirror/lang-javascript'
-import { defaultKeymap } from '@codemirror/commands'
+import { defaultKeymap, undo, redo, history  } from '@codemirror/commands'
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language'
 import { tags } from '@lezer/highlight'
 import { useEditorStore } from '@/stores/editor'
@@ -66,8 +66,14 @@ const myHighlightStyle = HighlightStyle.define([
 
 // 基础扩展
 const baseExtensions = [
+  history(), // 历史记录必须放在前面
   oneDark,
-  keymap.of(defaultKeymap),
+  keymap.of([
+    ...defaultKeymap,
+    { key: "Mod-z", run: undo, preventDefault: true },
+    { key: "Mod-y", run: redo, preventDefault: true },
+    { key: "Mod-Shift-z", run: redo, preventDefault: true }
+  ]),
   syntaxHighlighting(myHighlightStyle),
   EditorView.theme({
     "&": { height: "100%" },
@@ -103,8 +109,9 @@ const initializeEditor = () => {
   const state = EditorState.create({
     doc: currentCode,
     extensions: [
-      getLanguageExtension(),
-      ...baseExtensions
+      ...baseExtensions,
+      getLanguageExtension()
+      
     ]
   })
 
