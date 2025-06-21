@@ -54,7 +54,8 @@
     "id": "string, 用户ID",
     "username": "string, 用户名",
     "account": "string, 账户",
-    "avatar": "string, 头像URL"
+    "avatar": "string, 头像URL",
+    "status": "string, 状态栏"
   }
 }
 ```
