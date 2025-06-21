@@ -105,7 +105,8 @@ const login = async (req, res) => {
         id: user.id,
         username: user.name,
         account: user.account,
-        avatar: user.avatar || null
+        avatar: user.avatar || null,
+        status: user.status
       }
     });
 
