@@ -19,8 +19,8 @@
 ```json
 {
   "username": "string, 必填, 3-20字符",
-  "account": "string, 必填, 邮箱格式",
-  "password": "string, 必填, 6-30字符",
+  "account": "string, 必填, 手机号格式",
+  "password": "string, 必填, 6-30字符，必须包含大小写",
   "confirmPassword": "string, 必填, 需与password一致"
 }
 ```

@@ -5,7 +5,7 @@
       <CodePenLogo class="logo" />
       <div class="title-area">
         <h1 class="title">{{ title }}</h1>
-        <div class="username">by {{ username }}</div>
+        <div class="teamname">by {{ teamname }}</div>
       </div>
     </div>
 
@@ -30,8 +30,12 @@
         <span>Download</span>
       </button>
       
-      <button class="btn login-btn" @click="login">
+      <button v-if="!isLoggedIn" class="btn login-btn" @click="login">
         <span>Log In</span>
+      </button>
+      
+      <button v-else class="btn user-btn">
+        <span>{{ username }}</span>
       </button>
     </div>
   </nav>
@@ -39,14 +43,17 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
 import { useEditorStore } from '@/stores/editor'
 import CodePenLogo from './icons/CodePenLogo.vue'
 import DownloadIcon from './icons/DownloadIcon.vue'
 import CloudIcon from './icons/CloudIcon.vue'
 import SettingsIcon from './icons/SettingsIcon.vue'
 
+const emit = defineEmits(['login'])
+
 const editorStore = useEditorStore()
-const { saved, username, title } = storeToRefs(editorStore)
+const { saved, username, title, isLoggedIn, teamname } = storeToRefs(editorStore)
 
 const saveCode = () => {
   editorStore.saveCode()
@@ -63,7 +70,7 @@ const download = () => {
 }
 
 const login = () => {
-  console.log('Login')
+  emit('login')
 }
 </script>
 
@@ -101,7 +108,7 @@ const login = () => {
   font-weight: normal;
 }
 
-.username {
+.teamname {
   font-size: 12px;
   color: #999;
 }
@@ -146,6 +153,17 @@ const login = () => {
 .login-btn {
   background: #5a5f73;
   color: white;
+}
+
+.user-btn {
+  background-color: #333;
+  color: white;
+  border: 1px solid #444;
+}
+
+.username {
+  font-size: 12px;
+  color: #999;
 }
 
 .icon {

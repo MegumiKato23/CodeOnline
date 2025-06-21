@@ -1,6 +1,6 @@
 <template>
   <div class="app">
-    <Navbar />
+    <Navbar @login="showLoginDialog = true" />
     <div class="main-content">
       <div class="editor-panel" ref="editorPanel">
         <CodeEditor :activeTab="activeTab" />
@@ -20,6 +20,16 @@
     </div>
     <Footer />
     <SettingsDialog v-if="showSettings" @close="showSettings = false" />
+    <LoginDialog 
+      :visible="showLoginDialog" 
+      @close="showLoginDialog = false" 
+      @register="switchToRegister()"
+    />
+    <RegisterDialog 
+      :visible="showRegisterDialog" 
+      @close="showRegisterDialog = false" 
+      @login="switchToLogin()"
+    />
   </div>
 </template>
 
@@ -31,17 +41,33 @@ import Navbar from '@/components/Navbar.vue'
 import CodeEditor from '@/components/CodeEditor.vue'
 import Footer from '@/components/Footer.vue'
 import SettingsDialog from '@/components/icons/SettingsIcon.vue'
+import LoginDialog from '@/components/login/LoginDialog.vue'
+import RegisterDialog from '@/components/login/RegisterDialog.vue'
 
 const editorStore = useEditorStore()
 const { htmlCode, cssCode, jsCode, activeTab } = storeToRefs(editorStore)
 const previewFrame = ref<HTMLIFrameElement | null>(null)
 const showSettings = ref(false)
+const showLoginDialog = ref(false)
+const showRegisterDialog = ref(false)
 const isResizing = ref(false)
 // 存储鼠标按下时的 X 坐标
 const startX = ref(0)
 // 存储编辑器面板的初始宽度
 const startWidth = ref(0)
 const editorPanel = ref<HTMLElement | null>(null)
+
+// 切换到注册界面
+const switchToRegister = () => {
+  showLoginDialog.value = false
+  showRegisterDialog.value = true
+}
+
+// 切换到登录界面
+const switchToLogin = () => {
+  showRegisterDialog.value = false
+  showLoginDialog.value = true
+}
 
 const updatePreview = () => {
   if (!previewFrame.value) return
