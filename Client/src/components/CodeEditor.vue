@@ -35,10 +35,11 @@ import { oneDark } from '@codemirror/theme-one-dark'
 import { html } from '@codemirror/lang-html'
 import { css } from '@codemirror/lang-css'
 import { javascript } from '@codemirror/lang-javascript'
-import { defaultKeymap, undo, redo, history  } from '@codemirror/commands'
+import { defaultKeymap, undo, redo, history } from '@codemirror/commands'
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language'
 import { tags } from '@lezer/highlight'
 import { useEditorStore } from '@/stores/editor'
+import { createCompletions } from '@/utils/codeCompletions/index'
 import HtmlIcon from './icons/HtmlIcon.vue'
 import CssIcon from './icons/CssIcon.vue'
 import JsIcon from './icons/JsIcon.vue'
@@ -52,7 +53,7 @@ const editorStore = useEditorStore()
 const editorElement = ref<HTMLElement | null>(null)
 const editorView = ref<EditorView | null>(null)
 
-// 自定义高亮样式
+// 增强的高亮样式
 const myHighlightStyle = HighlightStyle.define([
   { tag: tags.keyword, color: '#c678dd' },
   { tag: tags.comment, color: '#5c6370', fontStyle: 'italic' },
@@ -64,9 +65,9 @@ const myHighlightStyle = HighlightStyle.define([
   { tag: tags.className, color: '#61afef' },
 ])
 
-// 基础扩展
+// 基础扩展配置
 const baseExtensions = [
-  history(), // 历史记录必须放在前面
+  history(),
   oneDark,
   keymap.of([
     ...defaultKeymap,
@@ -75,12 +76,18 @@ const baseExtensions = [
     { key: "Mod-Shift-z", run: redo, preventDefault: true }
   ]),
   syntaxHighlighting(myHighlightStyle),
+  createCompletions(), // 使用自动语言检测的补全
   EditorView.theme({
     "&": { height: "100%" },
     ".cm-scroller": { overflow: "auto" },
     ".cm-content": { padding: "10px 0" },
-    ".cm-gutters": { backgroundColor: "#282c34", color: "#abb2bf" },
+    ".cm-gutters": { 
+      backgroundColor: "#282c34", 
+      color: "#abb2bf",
+      borderRight: "1px solid #3a3f4b"
+    },
   }),
+  EditorView.lineWrapping,
   EditorView.updateListener.of((update) => {
     if (update.docChanged) {
       const code = update.state.doc.toString()
@@ -89,15 +96,17 @@ const baseExtensions = [
   })
 ]
 
+// 获取当前语言扩展
 const getLanguageExtension = () => {
   switch (activeTab.value) {
-    case 'html': return html()
+    case 'html': return html({ matchClosingTags: true })
     case 'css': return css()
     case 'js': return javascript()
     default: return javascript()
   }
 }
 
+// 初始化编辑器
 const initializeEditor = () => {
   if (!editorElement.value) return
 
@@ -111,7 +120,6 @@ const initializeEditor = () => {
     extensions: [
       ...baseExtensions,
       getLanguageExtension()
-      
     ]
   })
 
@@ -121,33 +129,27 @@ const initializeEditor = () => {
   })
 }
 
+// 销毁编辑器实例
 const destroyEditor = () => {
-  if (editorView.value) {
-    editorView.value.destroy()
-    editorView.value = null
-  }
+  editorView.value?.destroy()
+  editorView.value = null
 }
 
+// 重新创建编辑器
 const recreateEditor = () => {
   destroyEditor()
   initializeEditor()
 }
 
+// 切换标签页
 const setActiveTab = (tab: 'html' | 'css' | 'js') => {
   editorStore.setActiveTab(tab)
 }
 
-onMounted(() => {
-  initializeEditor()
-})
-
-watch(activeTab, () => {
-  recreateEditor()
-})
-
-onBeforeUnmount(() => {
-  destroyEditor()
-})
+// 生命周期钩子
+onMounted(initializeEditor)
+watch(activeTab, recreateEditor)
+onBeforeUnmount(destroyEditor)
 </script>
 
 <style scoped>
@@ -156,6 +158,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: #282c34;
 }
 
 .tabs {
@@ -164,6 +167,7 @@ onBeforeUnmount(() => {
   padding: 0.5rem;
   gap: 0.5rem;
   flex-shrink: 0;
+  border-bottom: 1px solid #3a3f4b;
 }
 
 .tabs button {
@@ -177,11 +181,13 @@ onBeforeUnmount(() => {
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
+  transition: all 0.2s ease;
 }
 
 .tabs button.active {
   background: #333;
   color: white;
+  box-shadow: 0 0 0 1px #61afef;
 }
 
 .tabs button:hover {
@@ -197,5 +203,6 @@ onBeforeUnmount(() => {
 .icon {
   width: 16px;
   height: 16px;
+  fill: currentColor;
 }
 </style>
