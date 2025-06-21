@@ -1,68 +1,75 @@
 <template>
   <div class="editor-container">
     <div class="tabs">
-      <button 
-        :class="{ active: activeTab === 'html' }" 
+      <UnifiedButton
+        type="tab"
+        :active="activeTab === 'html'"
+        :icon="HtmlIcon"
         @click="setActiveTab('html')"
       >
-        <HtmlIcon class="icon" />
+        <!-- <HtmlIcon class="icon" /> -->
         HTML
-      </button>
-      <button 
-        :class="{ active: activeTab === 'css' }" 
+      </UnifiedButton>
+      <UnifiedButton
+        type="tab"
+        :active="activeTab === 'css'"
+        :icon="CssIcon"
         @click="setActiveTab('css')"
       >
-        <CssIcon class="icon" />
+        <!-- <CssIcon class="icon" /> -->
         CSS
-      </button>
-      <button 
-        :class="{ active: activeTab === 'js' }" 
+      </UnifiedButton>
+      <UnifiedButton
+        type="tab"
+        :active="activeTab === 'js'"
+        :icon="JsIcon"
         @click="setActiveTab('js')"
       >
-        <JsIcon class="icon" />
+        <!-- <JsIcon class="icon" /> -->
         JS
-      </button>
+      </UnifiedButton>
     </div>
     <div ref="editorElement" class="editor"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, toRefs, onBeforeUnmount } from 'vue'
-import { EditorState } from '@codemirror/state'
-import { EditorView, keymap } from '@codemirror/view'
-import { oneDark } from '@codemirror/theme-one-dark'
-import { html } from '@codemirror/lang-html'
-import { css } from '@codemirror/lang-css'
-import { javascript } from '@codemirror/lang-javascript'
-import { defaultKeymap } from '@codemirror/commands'
-import { syntaxHighlighting, HighlightStyle } from '@codemirror/language'
-import { tags } from '@lezer/highlight'
-import { useEditorStore } from '@/stores/editor'
-import HtmlIcon from './icons/HtmlIcon.vue'
-import CssIcon from './icons/CssIcon.vue'
-import JsIcon from './icons/JsIcon.vue'
+import { ref, onMounted, watch, toRefs, onBeforeUnmount } from "vue";
+import { EditorState } from "@codemirror/state";
+import { EditorView, keymap } from "@codemirror/view";
+import { oneDark } from "@codemirror/theme-one-dark";
+import { html } from "@codemirror/lang-html";
+import { css } from "@codemirror/lang-css";
+import { javascript } from "@codemirror/lang-javascript";
+import { defaultKeymap } from "@codemirror/commands";
+import { syntaxHighlighting, HighlightStyle } from "@codemirror/language";
+import { tags } from "@lezer/highlight";
+import { useEditorStore } from "@/stores/editor";
+import HtmlIcon from "./icons/HtmlIcon.vue";
+import CssIcon from "./icons/CssIcon.vue";
+import JsIcon from "./icons/JsIcon.vue";
+import UnifiedButton from "./ui/UnifiedButton.vue";
 
 const props = defineProps<{
-  activeTab: 'html' | 'css' | 'js'
-}>()
+  activeTab: "html" | "css" | "js";
+}>();
 
-const { activeTab } = toRefs(props)
-const editorStore = useEditorStore()
-const editorElement = ref<HTMLElement | null>(null)
-const editorView = ref<EditorView | null>(null)
+const { activeTab } = toRefs(props);
+const editorStore = useEditorStore();
+const editorElement = ref<HTMLElement | null>(null);
+const editorView = ref<EditorView | null>(null);
 
 // 自定义高亮样式
 const myHighlightStyle = HighlightStyle.define([
-  { tag: tags.keyword, color: '#c678dd' },
-  { tag: tags.comment, color: '#5c6370', fontStyle: 'italic' },
-  { tag: tags.string, color: '#98c379' },
-  { tag: tags.number, color: '#d19a66' },
-  { tag: tags.bracket, color: '#abb2bf' },
-  { tag: tags.tagName, color: '#e06c75' },
-  { tag: tags.attributeName, color: '#d19a66' },
-  { tag: tags.className, color: '#61afef' },
-])
+  { tag: tags.keyword, color: "#c678dd" },
+  { tag: tags.comment, color: "#5c6370", fontStyle: "italic" },
+  { tag: tags.string, color: "#98c379" },
+  { tag: tags.number, color: "#d19a66" },
+  { tag: tags.bracket, color: "#abb2bf" },
+  { tag: tags.tagName, color: "#e06c75" },
+  { tag: tags.attributeName, color: "#d19a66" },
+  { tag: tags.className, color: "#61afef" },
+]);
 
 // 基础扩展
 const baseExtensions = [
@@ -77,70 +84,73 @@ const baseExtensions = [
   }),
   EditorView.updateListener.of((update) => {
     if (update.docChanged) {
-      const code = update.state.doc.toString()
-      editorStore.updateCode(activeTab.value, code)
+      const code = update.state.doc.toString();
+      editorStore.updateCode(activeTab.value, code);
     }
-  })
-]
+  }),
+];
 
 const getLanguageExtension = () => {
   switch (activeTab.value) {
-    case 'html': return html()
-    case 'css': return css()
-    case 'js': return javascript()
-    default: return javascript()
+    case "html":
+      return html();
+    case "css":
+      return css();
+    case "js":
+      return javascript();
+    default:
+      return javascript();
   }
-}
+};
 
 const initializeEditor = () => {
-  if (!editorElement.value) return
+  if (!editorElement.value) return;
 
-  const currentCode = 
-    activeTab.value === 'html' ? editorStore.htmlCode :
-    activeTab.value === 'css' ? editorStore.cssCode :
-    editorStore.jsCode
+  const currentCode =
+    activeTab.value === "html"
+      ? editorStore.htmlCode
+      : activeTab.value === "css"
+      ? editorStore.cssCode
+      : editorStore.jsCode;
 
   const state = EditorState.create({
     doc: currentCode,
-    extensions: [
-      getLanguageExtension(),
-      ...baseExtensions
-    ]
-  })
+    extensions: [getLanguageExtension(), ...baseExtensions],
+  });
 
   editorView.value = new EditorView({
     state,
-    parent: editorElement.value
-  })
-}
+    parent: editorElement.value,
+  });
+};
 
 const destroyEditor = () => {
   if (editorView.value) {
-    editorView.value.destroy()
-    editorView.value = null
+    editorView.value.destroy();
+    editorView.value = null;
   }
-}
+};
 
 const recreateEditor = () => {
-  destroyEditor()
-  initializeEditor()
-}
+  destroyEditor();
+  initializeEditor();
+};
 
-const setActiveTab = (tab: 'html' | 'css' | 'js') => {
-  editorStore.setActiveTab(tab)
-}
+const setActiveTab = (tab: "html" | "css" | "js") => {
+  editorStore.setActiveTab(tab);
+};
 
 onMounted(() => {
-  initializeEditor()
-})
+  initializeEditor();
+});
 
 watch(activeTab, () => {
-  recreateEditor()
-})
+  recreateEditor();
+});
 
 onBeforeUnmount(() => {
-  destroyEditor()
-})
+  destroyEditor();
+});
 </script>
 
 <style scoped>
