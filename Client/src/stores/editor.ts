@@ -9,6 +9,7 @@ export const useEditorStore = defineStore('editor', () => {
   const saved = ref(true)
   const username = ref('从容应队')
   const title = ref('CodeOnline')
+  const status = ref(true)
 
   const updateCode = (type: 'html' | 'css' | 'js', code: string) => {
     if (type === 'html') htmlCode.value = code
@@ -29,6 +30,10 @@ export const useEditorStore = defineStore('editor', () => {
     title.value = newTitle
   }
 
+  const toggleView = () => {
+    status.value = !status.value
+  }
+
   return {
     htmlCode,
     cssCode,
@@ -37,9 +42,11 @@ export const useEditorStore = defineStore('editor', () => {
     saved,
     username,
     title,
+    status,
     updateCode,
     saveCode,
     setActiveTab,
-    setTitle
+    setTitle,
+    toggleView
   }
 })

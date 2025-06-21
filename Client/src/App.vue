@@ -1,7 +1,7 @@
 <template>
   <div class="app">
     <Navbar />
-    <div class="main-content">
+    <div v-if="status" class="main-content">
       <div class="editor-panel" ref="editorPanel">
         <CodeEditor :activeTab="activeTab" />
       </div>
@@ -16,6 +16,23 @@
           class="preview-frame"
           :class="{ 'no-pointer-events': isResizing }"
         ></iframe>
+      </div>
+    </div>
+    <div v-else class="main-content">
+      <div class="preview-panel">
+        <iframe 
+          ref="previewFrame" 
+          class="preview-frame"
+          :class="{ 'no-pointer-events': isResizing }"
+        ></iframe>
+      </div>
+      <div 
+        class="resize-handle" 
+        @mousedown="startResize"
+        @dblclick="resetSize"
+      ></div>
+      <div class="editor-panel" ref="editorPanel">
+        <CodeEditor :activeTab="activeTab" />
       </div>
     </div>
     <Footer />
@@ -33,7 +50,7 @@ import Footer from '@/components/Footer.vue'
 import SettingsDialog from '@/components/icons/SettingsIcon.vue'
 
 const editorStore = useEditorStore()
-const { htmlCode, cssCode, jsCode, activeTab } = storeToRefs(editorStore)
+const { htmlCode, cssCode, jsCode, activeTab, status } = storeToRefs(editorStore)
 const previewFrame = ref<HTMLIFrameElement | null>(null)
 const showSettings = ref(false)
 const isResizing = ref(false)

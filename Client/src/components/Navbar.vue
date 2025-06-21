@@ -12,6 +12,15 @@
     <!-- 右侧部分：操作按钮 -->
     <div class="right">
       <button 
+        class="btn view-btn" 
+        :class="{ status }"
+        @click="toggleView"
+      >
+        <ViewIcon class="icon" />
+        <span>{{ status ? 'View1' : 'View2' }}</span>
+      </button>
+      
+      <button 
         class="btn save-btn" 
         :class="{ saved }"
         @click="saveCode"
@@ -44,9 +53,14 @@ import CodePenLogo from './icons/CodePenLogo.vue'
 import DownloadIcon from './icons/DownloadIcon.vue'
 import CloudIcon from './icons/CloudIcon.vue'
 import SettingsIcon from './icons/SettingsIcon.vue'
+import ViewIcon from './icons/ViewIcon.vue'
 
 const editorStore = useEditorStore()
-const { saved, username, title } = storeToRefs(editorStore)
+const { saved, username, title, status } = storeToRefs(editorStore)
+
+const toggleView = () => {
+  editorStore.toggleView()
+}
 
 const saveCode = () => {
   editorStore.saveCode()
@@ -121,6 +135,11 @@ const login = () => {
   border: none;
   cursor: pointer;
   font-size: 14px;
+}
+
+.view-btn {
+  background: #5a5f73;
+  color: white;
 }
 
 .save-btn {
