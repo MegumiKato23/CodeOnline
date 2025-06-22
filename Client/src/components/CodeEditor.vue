@@ -1,6 +1,7 @@
 <template>
   <div class="editor-container">
     <div class="tabs">
+<<<<<<< HEAD
       <button :class="{ active: activeTab === 'html' }" @click="setActiveTab('html')">
         <HtmlIcon class="icon" />
         HTML
@@ -13,6 +14,20 @@
         <JsIcon class="icon" />
         JS
       </button>
+=======
+      <UnifiedButton type="tab" :active="activeTab === 'html'" :icon="HtmlIcon" @click="setActiveTab('html')">
+        <!-- <HtmlIcon class="icon" /> -->
+        HTML
+      </UnifiedButton>
+      <UnifiedButton type="tab" :active="activeTab === 'css'" :icon="CssIcon" @click="setActiveTab('css')">
+        <!-- <CssIcon class="icon" /> -->
+        CSS
+      </UnifiedButton>
+      <UnifiedButton type="tab" :active="activeTab === 'js'" :icon="JsIcon" @click="setActiveTab('js')">
+        <!-- <JsIcon class="icon" /> -->
+        JS
+      </UnifiedButton>
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
     </div>
     <div ref="editorElement" class="editor"></div>
   </div>
@@ -20,7 +35,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch, toRefs, onBeforeUnmount } from 'vue';
+<<<<<<< HEAD
 import { debounce } from 'lodash-es'; // 导入防抖函数
+=======
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
 import { EditorState } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
@@ -44,11 +62,14 @@ const editorStore = useEditorStore();
 const editorElement = ref<HTMLElement | null>(null);
 const editorView = ref<EditorView | null>(null);
 
+<<<<<<< HEAD
 // 创建防抖的代码更新函数 (300ms)
 const debouncedUpdateCode = debounce((code: string) => {
   editorStore.updateCode(activeTab.value, code);
 }, 300); // 300ms防抖延迟
 
+=======
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
 // 自定义高亮样式
 const myHighlightStyle = HighlightStyle.define([
   { tag: tags.keyword, color: '#c678dd' },
@@ -63,7 +84,11 @@ const myHighlightStyle = HighlightStyle.define([
 
 // 基础扩展
 const baseExtensions = [
+<<<<<<< HEAD
   history(),
+=======
+  history(), // 历史记录必须放在前面
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
   oneDark,
   keymap.of([
     ...defaultKeymap,
@@ -81,7 +106,11 @@ const baseExtensions = [
   EditorView.updateListener.of((update) => {
     if (update.docChanged) {
       const code = update.state.doc.toString();
+<<<<<<< HEAD
       debouncedUpdateCode(code); // 使用防抖函数
+=======
+      editorStore.updateCode(activeTab.value, code);
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
     }
   }),
 ];
@@ -144,9 +173,13 @@ watch(activeTab, () => {
   recreateEditor();
 });
 
+<<<<<<< HEAD
 // 组件卸载时取消防抖
 onBeforeUnmount(() => {
   debouncedUpdateCode.cancel();
+=======
+onBeforeUnmount(() => {
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
   destroyEditor();
 });
 </script>

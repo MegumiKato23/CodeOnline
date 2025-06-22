@@ -18,9 +18,14 @@
 </template>
 
 <script setup lang="ts">
+<<<<<<< HEAD
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { storeToRefs } from 'pinia';
 import { debounce } from 'lodash-es'; // 导入防抖函数
+=======
+import { ref, watch, onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
 import { useEditorStore } from '@/stores/editor';
 import Navbar from '@/components/Navbar.vue';
 import CodeEditor from '@/components/CodeEditor.vue';
@@ -36,6 +41,7 @@ const showSettings = ref(false);
 const showLoginDialog = ref(false);
 const showRegisterDialog = ref(false);
 const isResizing = ref(false);
+<<<<<<< HEAD
 const startX = ref(0);
 const startWidth = ref(0);
 const editorPanel = ref<HTMLElement | null>(null);
@@ -44,6 +50,29 @@ const editorPanel = ref<HTMLElement | null>(null);
 const debouncedUpdatePreview = debounce(() => {
   if (!previewFrame.value) return;
   
+=======
+// 存储鼠标按下时的 X 坐标
+const startX = ref(0);
+// 存储编辑器面板的初始宽度
+const startWidth = ref(0);
+const editorPanel = ref<HTMLElement | null>(null);
+
+// 切换到注册界面
+const switchToRegister = () => {
+  showLoginDialog.value = false;
+  showRegisterDialog.value = true;
+};
+
+// 切换到登录界面
+const switchToLogin = () => {
+  showRegisterDialog.value = false;
+  showLoginDialog.value = true;
+};
+
+const updatePreview = () => {
+  if (!previewFrame.value) return;
+  // <iframe>内部的文档对象
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
   const doc = previewFrame.value.contentDocument;
   if (!doc) return;
 
@@ -61,6 +90,7 @@ const debouncedUpdatePreview = debounce(() => {
     </html>
   `);
   doc.close();
+<<<<<<< HEAD
 }, 500); // 500ms防抖延迟
 
 // 切换到注册界面
@@ -77,6 +107,12 @@ const switchToLogin = () => {
 
 // 在鼠标按下时触发
 const startResize = (e: MouseEvent) => {
+=======
+};
+// 在鼠标按下时触发
+const startResize = (e: MouseEvent) => {
+  // 阻止默认事件，避免选中文本
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
   e.preventDefault();
   isResizing.value = true;
   startX.value = e.clientX;
@@ -84,10 +120,18 @@ const startResize = (e: MouseEvent) => {
     startWidth.value = editorPanel.value.offsetWidth;
   }
 
+<<<<<<< HEAD
+=======
+  // 禁用文本选择和鼠标事件
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
   document.body.style.userSelect = 'none';
   document.body.style.cursor = 'col-resize';
   document.body.style.pointerEvents = 'none';
 
+<<<<<<< HEAD
+=======
+  // 使用更高效的事件监听
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
   window.addEventListener('mousemove', handleResize, { passive: false });
   window.addEventListener('mouseup', stopResize, { once: true });
 };
@@ -101,6 +145,10 @@ const handleResize = (e: MouseEvent) => {
   const minWidth = 300;
   const maxWidth = containerWidth - 300;
 
+<<<<<<< HEAD
+=======
+  // 直接计算并应用新宽度，不使用requestAnimationFrame以获得即时响应
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
   const newWidth = Math.max(minWidth, Math.min(maxWidth, startWidth.value + dx));
   editorPanel.value.style.width = `${newWidth}px`;
 };
@@ -115,7 +163,10 @@ const stopResize = () => {
 
   window.removeEventListener('mousemove', handleResize);
 };
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
 // 重置编辑器面板的宽度为 50%
 const resetSize = () => {
   if (editorPanel.value) {
@@ -123,12 +174,20 @@ const resetSize = () => {
   }
 };
 
+<<<<<<< HEAD
 // 使用防抖的watch监听
 watch([htmlCode, cssCode, jsCode], debouncedUpdatePreview, { deep: true });
 
 onMounted(() => {
   debouncedUpdatePreview(); // 初始加载时调用防抖版本
 
+=======
+watch([htmlCode, cssCode, jsCode], updatePreview, { deep: true });
+onMounted(() => {
+  updatePreview();
+
+  // 仅在调整大小时禁用 iframe 事件
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
   const iframe = document.querySelector('.preview-frame') as HTMLIFrameElement;
   iframe?.addEventListener('mouseover', () => {
     if (isResizing.value) {
@@ -136,11 +195,14 @@ onMounted(() => {
     }
   });
 });
+<<<<<<< HEAD
 
 // 组件卸载时取消防抖
 onBeforeUnmount(() => {
   debouncedUpdatePreview.cancel();
 });
+=======
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
 </script>
 
 <style>

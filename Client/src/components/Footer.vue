@@ -1,10 +1,22 @@
 <template>
   <footer class="footer" :class="{ expanded: isConsoleExpanded }">
     <div class="tabs">
+<<<<<<< HEAD
       <button :class="{ active: isConsoleExpanded }" @click="toggleConsole">Console</button>
       <!-- 目前是关闭窗口之后可以改为切换 -->
       <button @click="closeConsole">Assets</button>
       <button @click="closeConsole">Shortcuts</button>
+=======
+      <div class="tabs_left">
+        <UnifiedButton type="primary" size="small" :active="isConsoleExpanded" @click="toggleConsole">
+          Console
+        </UnifiedButton>
+        <UnifiedButton type="primary" size="small" @click="closeConsole">Assets</UnifiedButton>
+      </div>
+      <div class="tabs_right">
+        <UnifiedButton type="primary" size="small">share</UnifiedButton>
+      </div>
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
     </div>
 
     <!-- 只有点击Console时才显示的内容区域 -->
@@ -12,8 +24,13 @@
       <div class="console-header">
         <span>Console</span>
         <div class="console-actions">
+<<<<<<< HEAD
           <button class="clear-btn" @click="clearConsole">Clear</button>
           <button class="close-btn" @click="closeConsole">×</button>
+=======
+          <UnifiedButton type="primary" size="small" @click="clearConsole">Clear</UnifiedButton>
+          <UnifiedButton type="primary" size="small" @click="closeConsole">×</UnifiedButton>
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
         </div>
       </div>
       <div class="console-output" ref="consoleOutput">
@@ -37,6 +54,10 @@ const isConsoleExpanded = ref(false);
 const consoleLogs = ref<string[]>([]);
 const command = ref('');
 const consoleOutput = ref<HTMLElement | null>(null);
+<<<<<<< HEAD
+=======
+import UnifiedButton from '@/components/ui/UnifiedButton.vue';
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
 
 const toggleConsole = () => {
   isConsoleExpanded.value = !isConsoleExpanded.value;
@@ -70,7 +91,14 @@ const scrollToBottom = () => {
 <style scoped>
 /* 初始状态只有选项卡按钮 */
 .footer {
+<<<<<<< HEAD
   height: 40px;
+=======
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 35px;
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
   background: #1a1a1a;
   border-top: 1px solid #333;
 }
@@ -81,6 +109,16 @@ const scrollToBottom = () => {
 }
 
 .tabs {
+<<<<<<< HEAD
+=======
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tabs_left {
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
   display: flex;
   background: #1a1a1a;
   padding: 0.25rem;
@@ -88,7 +126,15 @@ const scrollToBottom = () => {
   border-bottom: 1px solid #333;
 }
 
+<<<<<<< HEAD
 .tabs button {
+=======
+.tabs_right {
+  display: flex;
+}
+
+/* .tabs button {
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
   padding: 0.4rem 1rem;
   background: #2a2a2a;
   color: #ccc;
@@ -105,7 +151,11 @@ const scrollToBottom = () => {
 
 .tabs button:hover {
   background: #333;
+<<<<<<< HEAD
 }
+=======
+} */
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
 
 /* 控制台展开后的样式 */
 .console-expanded {
@@ -130,7 +180,11 @@ const scrollToBottom = () => {
   gap: 0.5rem;
 }
 
+<<<<<<< HEAD
 .clear-btn,
+=======
+/* .clear-btn,
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
 .close-btn {
   background: transparent;
   color: #ccc;
@@ -151,7 +205,11 @@ const scrollToBottom = () => {
 
 .close-btn:hover {
   color: #ff5555;
+<<<<<<< HEAD
 }
+=======
+} */
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
 
 .console-output {
   flex: 1;

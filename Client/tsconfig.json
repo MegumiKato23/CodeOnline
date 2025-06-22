@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
+<<<<<<< HEAD
+=======
+    "lib": ["ES2015", "DOM", "ES2015.Promise"],
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
@@ -8,4 +12,8 @@
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
   "exclude": ["node_modules"]
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 3effe92134083d96441e886e6007cfdd4794ee7b
