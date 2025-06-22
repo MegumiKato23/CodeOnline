@@ -11,29 +11,25 @@
 
     <!-- 右侧部分：操作按钮 -->
     <div class="right">
-      <button 
-        class="btn save-btn" 
-        :class="{ saved }"
-        @click="saveCode"
-      >
+      <button class="btn save-btn" :class="{ saved }" @click="saveCode">
         <CloudIcon class="icon" />
         <span>{{ saved ? 'Saved' : 'Save' }}</span>
       </button>
-      
+
       <button class="btn settings-btn" @click="openSettings">
         <SettingsIcon class="icon" />
         <span>Settings</span>
       </button>
-      
+
       <button class="btn download-btn" @click="download">
         <DownloadIcon class="icon" />
         <span>Download</span>
       </button>
-      
+
       <button v-if="!isLoggedIn" class="btn login-btn" @click="login">
         <span>Log In</span>
       </button>
-      
+
       <button v-else class="btn user-btn">
         <span>{{ username }}</span>
       </button>
@@ -42,36 +38,36 @@
 </template>
 
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import { computed } from 'vue'
-import { useEditorStore } from '@/stores/editor'
-import CodePenLogo from './icons/CodePenLogo.vue'
-import DownloadIcon from './icons/DownloadIcon.vue'
-import CloudIcon from './icons/CloudIcon.vue'
-import SettingsIcon from './icons/SettingsIcon.vue'
+import { storeToRefs } from 'pinia';
+import { computed } from 'vue';
+import { useEditorStore } from '@/stores/editor';
+import CodePenLogo from './icons/CodePenLogo.vue';
+import DownloadIcon from './icons/DownloadIcon.vue';
+import CloudIcon from './icons/CloudIcon.vue';
+import SettingsIcon from './icons/SettingsIcon.vue';
 
-const emit = defineEmits(['login'])
+const emit = defineEmits(['login']);
 
-const editorStore = useEditorStore()
-const { saved, username, title, isLoggedIn, teamname } = storeToRefs(editorStore)
+const editorStore = useEditorStore();
+const { saved, username, title, isLoggedIn, teamname } = storeToRefs(editorStore);
 
 const saveCode = () => {
-  editorStore.saveCode()
-  console.log('Code saved')
-}
+  editorStore.saveCode();
+  console.log('Code saved');
+};
 
 const openSettings = () => {
-  console.log('Open settings')
-}
+  console.log('Open settings');
+};
 
 const download = () => {
-  editorStore.saveCode()
-  console.log('Download code')
-}
+  editorStore.saveCode();
+  console.log('Download code');
+};
 
 const login = () => {
-  emit('login')
-}
+  emit('login');
+};
 </script>
 
 <style scoped>
