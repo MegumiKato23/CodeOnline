@@ -1,18 +1,18 @@
 <template>
   <div class="editor-container">
     <div class="tabs">
-      <button :class="{ active: activeTab === 'html' }" @click="setActiveTab('html')">
-        <HtmlIcon class="icon" />
+      <UnifiedButton type="tab" :active="activeTab === 'html'" :icon="HtmlIcon" @click="setActiveTab('html')">
+        <!-- <HtmlIcon class="icon" /> -->
         HTML
-      </button>
-      <button :class="{ active: activeTab === 'css' }" @click="setActiveTab('css')">
-        <CssIcon class="icon" />
+      </UnifiedButton>
+      <UnifiedButton type="tab" :active="activeTab === 'css'" :icon="CssIcon" @click="setActiveTab('css')">
+        <!-- <CssIcon class="icon" /> -->
         CSS
-      </button>
-      <button :class="{ active: activeTab === 'js' }" @click="setActiveTab('js')">
-        <JsIcon class="icon" />
+      </UnifiedButton>
+      <UnifiedButton type="tab" :active="activeTab === 'js'" :icon="JsIcon" @click="setActiveTab('js')">
+        <!-- <JsIcon class="icon" /> -->
         JS
-      </button>
+      </UnifiedButton>
     </div>
     <div ref="editorElement" class="editor"></div>
   </div>

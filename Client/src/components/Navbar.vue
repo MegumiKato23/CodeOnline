@@ -11,28 +11,19 @@
 
     <!-- 右侧部分：操作按钮 -->
     <div class="right">
-      <button class="btn save-btn" :class="{ saved }" @click="saveCode">
-        <CloudIcon class="icon" />
+      <UnifiedButton type="primary" :class="{ saved }" :icon="CloudIcon" @click="saveCode">
+        <!-- <CloudIcon class="icon" /> -->
         <span>{{ saved ? 'Saved' : 'Save' }}</span>
-      </button>
+      </UnifiedButton>
 
-      <button class="btn settings-btn" @click="openSettings">
-        <SettingsIcon class="icon" />
+      <UnifiedButton type="primary" :icon="SettingsIcon" @click="openSettings">
+        <!-- <SettingsIcon class="icon" /> -->
         <span>Settings</span>
-      </button>
+      </UnifiedButton>
 
-      <button class="btn download-btn" @click="download">
-        <DownloadIcon class="icon" />
-        <span>Download</span>
-      </button>
-
-      <button v-if="!isLoggedIn" class="btn login-btn" @click="login">
+      <UnifiedButton type="primary" @click="login">
         <span>Log In</span>
-      </button>
-
-      <button v-else class="btn user-btn">
-        <span>{{ username }}</span>
-      </button>
+      </UnifiedButton>
     </div>
   </nav>
 </template>
