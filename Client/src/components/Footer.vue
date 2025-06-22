@@ -1,6 +1,7 @@
 <template>
   <footer class="footer" :class="{ expanded: isConsoleExpanded }">
     <div class="tabs">
+<<<<<<< HEAD
       <div class="tabs_left">
         <UnifiedButton
           type="primary"
@@ -17,6 +18,21 @@
       <div class="tabs_right">
         <UnifiedButton type="primary" size="small">share</UnifiedButton>
       </div>
+=======
+      <button 
+        :class="{ active: isConsoleExpanded }" 
+        @click="toggleConsole"
+      >
+        Console
+      </button>
+      <!-- 目前是关闭窗口之后可以改为切换 -->
+      <button @click="closeConsole">
+        Assets
+      </button>
+      <button @click="closeConsole">
+        Shortcuts
+      </button>
+>>>>>>> 6a73d00e9bfda7cd9624373f5e863ad54294a690
     </div>
 
     <!-- 只有点击Console时才显示的内容区域 -->

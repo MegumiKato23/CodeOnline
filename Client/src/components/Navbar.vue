@@ -5,7 +5,7 @@
       <CodePenLogo class="logo" />
       <div class="title-area">
         <h1 class="title">{{ title }}</h1>
-        <div class="username">by {{ username }}</div>
+        <div class="teamname">by {{ teamname }}</div>
       </div>
     </div>
 
@@ -24,16 +24,34 @@
       <UnifiedButton type="primary" :icon="SettingsIcon" @click="openSettings">
         <!-- <SettingsIcon class="icon" /> -->
         <span>Settings</span>
+<<<<<<< HEAD
       </UnifiedButton>
 
       <UnifiedButton type="primary" @click="login">
         <span>Log In</span>
       </UnifiedButton>
+=======
+      </button>
+      
+      <button class="btn download-btn" @click="download">
+        <DownloadIcon class="icon" />
+        <span>Download</span>
+      </button>
+      
+      <button v-if="!isLoggedIn" class="btn login-btn" @click="login">
+        <span>Log In</span>
+      </button>
+      
+      <button v-else class="btn user-btn">
+        <span>{{ username }}</span>
+      </button>
+>>>>>>> 6a73d00e9bfda7cd9624373f5e863ad54294a690
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
+<<<<<<< HEAD
 import { storeToRefs } from "pinia";
 import { useEditorStore } from "@/stores/editor";
 import CodePenLogo from "./icons/CodePenLogo.vue";
@@ -44,6 +62,20 @@ import UnifiedButton from "./ui/UnifiedButton.vue";
 
 const editorStore = useEditorStore();
 const { saved, username, title } = storeToRefs(editorStore);
+=======
+import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
+import { useEditorStore } from '@/stores/editor'
+import CodePenLogo from './icons/CodePenLogo.vue'
+import DownloadIcon from './icons/DownloadIcon.vue'
+import CloudIcon from './icons/CloudIcon.vue'
+import SettingsIcon from './icons/SettingsIcon.vue'
+
+const emit = defineEmits(['login'])
+
+const editorStore = useEditorStore()
+const { saved, username, title, isLoggedIn, teamname } = storeToRefs(editorStore)
+>>>>>>> 6a73d00e9bfda7cd9624373f5e863ad54294a690
 
 const saveCode = () => {
   editorStore.saveCode();
@@ -60,8 +92,13 @@ const download = () => {
 };
 
 const login = () => {
+<<<<<<< HEAD
   console.log("Login");
 };
+=======
+  emit('login')
+}
+>>>>>>> 6a73d00e9bfda7cd9624373f5e863ad54294a690
 </script>
 
 <style scoped>
@@ -98,7 +135,7 @@ const login = () => {
   font-weight: normal;
 }
 
-.username {
+.teamname {
   font-size: 12px;
   color: #999;
 }
@@ -143,6 +180,17 @@ const login = () => {
 .login-btn {
   background: #5a5f73;
   color: white;
+}
+
+.user-btn {
+  background-color: #333;
+  color: white;
+  border: 1px solid #444;
+}
+
+.username {
+  font-size: 12px;
+  color: #999;
 }
 
 .icon {

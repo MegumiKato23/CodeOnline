@@ -1,6 +1,6 @@
 <template>
   <div class="app">
-    <Navbar />
+    <Navbar @login="showLoginDialog = true" />
     <div class="main-content">
       <div class="editor-panel" ref="editorPanel">
         <CodeEditor :activeTab="activeTab" />
@@ -16,10 +16,20 @@
           class="preview-frame"
           :class="{ 'no-pointer-events': isResizing }"
         ></iframe>
-  </div>
+      </div>
     </div>
     <Footer />
     <SettingsDialog v-if="showSettings" @close="showSettings = false" />
+    <LoginDialog 
+      :visible="showLoginDialog" 
+      @close="showLoginDialog = false" 
+      @register="switchToRegister()"
+    />
+    <RegisterDialog 
+      :visible="showRegisterDialog" 
+      @close="showRegisterDialog = false" 
+      @login="switchToLogin()"
+    />
   </div>
 </template>
 
@@ -31,19 +41,37 @@ import Navbar from '@/components/Navbar.vue'
 import CodeEditor from '@/components/CodeEditor.vue'
 import Footer from '@/components/Footer.vue'
 import SettingsDialog from '@/components/icons/SettingsIcon.vue'
+import LoginDialog from '@/components/login/LoginDialog.vue'
+import RegisterDialog from '@/components/login/RegisterDialog.vue'
 
 const editorStore = useEditorStore()
 const { htmlCode, cssCode, jsCode, activeTab } = storeToRefs(editorStore)
 const previewFrame = ref<HTMLIFrameElement | null>(null)
 const showSettings = ref(false)
+const showLoginDialog = ref(false)
+const showRegisterDialog = ref(false)
 const isResizing = ref(false)
+// 存储鼠标按下时的 X 坐标
 const startX = ref(0)
+// 存储编辑器面板的初始宽度
 const startWidth = ref(0)
 const editorPanel = ref<HTMLElement | null>(null)
 
+// 切换到注册界面
+const switchToRegister = () => {
+  showLoginDialog.value = false
+  showRegisterDialog.value = true
+}
+
+// 切换到登录界面
+const switchToLogin = () => {
+  showRegisterDialog.value = false
+  showLoginDialog.value = true
+}
+
 const updatePreview = () => {
   if (!previewFrame.value) return
-  
+  // <iframe>内部的文档对象
   const doc = previewFrame.value.contentDocument
   if (!doc) return
   
@@ -62,8 +90,9 @@ const updatePreview = () => {
   `)
   doc.close()
 }
-
+// 在鼠标按下时触发
 const startResize = (e: MouseEvent) => {
+  // 阻止默认事件，避免选中文本
   e.preventDefault()
   isResizing.value = true
   startX.value = e.clientX
@@ -105,7 +134,7 @@ const stopResize = () => {
   
   window.removeEventListener('mousemove', handleResize)
 }
-
+// 重置编辑器面板的宽度为 50%
 const resetSize = () => {
   if (editorPanel.value) {
     editorPanel.value.style.width = '50%'
@@ -161,9 +190,10 @@ onMounted(() => {
 
 }
 
+
 .resize-handle {
   width: 8px;
-  background: #333;
+  background: #1a1a1a;
   cursor: col-resize;
   position: relative;
   z-index: 10;
@@ -180,8 +210,8 @@ onMounted(() => {
   content: '';
   position: absolute;
   top: 0;
-  left: -10px;
-  right: -10px;
+  left: 0px;
+  right: 0px;
   bottom: 0;
 }
 
@@ -198,15 +228,9 @@ onMounted(() => {
   height: 100%;
   border: none;
   background: white;
-  /* 默认启用指针事件 */
-  pointer-events: auto;
 }
 /* 仅在调整大小时禁用指针事件 */
 .preview-frame.no-pointer-events {
-  pointer-events: none;
-}
-
-.resizing .preview-frame {
   pointer-events: none;
 }
 </style>

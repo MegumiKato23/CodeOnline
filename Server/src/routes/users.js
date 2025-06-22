@@ -27,5 +27,8 @@ router.get('/profile/:userId', getProfile);
 // 获取用户项目集
 router.get('/project/:userId', getUserProjects);
 
+// 更新token
+router.post('/refresh', authenticateToken, refreshToken);
+
 module.exports = router;
 

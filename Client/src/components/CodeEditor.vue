@@ -34,6 +34,7 @@
 </template>
 
 <script setup lang="ts">
+<<<<<<< HEAD
 import { ref, onMounted, watch, toRefs, onBeforeUnmount } from "vue";
 import { EditorState } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
@@ -49,6 +50,22 @@ import HtmlIcon from "./icons/HtmlIcon.vue";
 import CssIcon from "./icons/CssIcon.vue";
 import JsIcon from "./icons/JsIcon.vue";
 import UnifiedButton from "./ui/UnifiedButton.vue";
+=======
+import { ref, onMounted, watch, toRefs, onBeforeUnmount } from 'vue'
+import { EditorState } from '@codemirror/state'
+import { EditorView, keymap } from '@codemirror/view'
+import { oneDark } from '@codemirror/theme-one-dark'
+import { html } from '@codemirror/lang-html'
+import { css } from '@codemirror/lang-css'
+import { javascript } from '@codemirror/lang-javascript'
+import { defaultKeymap, undo, redo, history  } from '@codemirror/commands'
+import { syntaxHighlighting, HighlightStyle } from '@codemirror/language'
+import { tags } from '@lezer/highlight'
+import { useEditorStore } from '@/stores/editor'
+import HtmlIcon from './icons/HtmlIcon.vue'
+import CssIcon from './icons/CssIcon.vue'
+import JsIcon from './icons/JsIcon.vue'
+>>>>>>> 6a73d00e9bfda7cd9624373f5e863ad54294a690
 
 const props = defineProps<{
   activeTab: "html" | "css" | "js";
@@ -73,8 +90,14 @@ const myHighlightStyle = HighlightStyle.define([
 
 // 基础扩展
 const baseExtensions = [
+  history(), // 历史记录必须放在前面
   oneDark,
-  keymap.of(defaultKeymap),
+  keymap.of([
+    ...defaultKeymap,
+    { key: "Mod-z", run: undo, preventDefault: true },
+    { key: "Mod-y", run: redo, preventDefault: true },
+    { key: "Mod-Shift-z", run: redo, preventDefault: true }
+  ]),
   syntaxHighlighting(myHighlightStyle),
   EditorView.theme({
     "&": { height: "100%" },
@@ -115,8 +138,17 @@ const initializeEditor = () => {
 
   const state = EditorState.create({
     doc: currentCode,
+<<<<<<< HEAD
     extensions: [getLanguageExtension(), ...baseExtensions],
   });
+=======
+    extensions: [
+      ...baseExtensions,
+      getLanguageExtension()
+      
+    ]
+  })
+>>>>>>> 6a73d00e9bfda7cd9624373f5e863ad54294a690
 
   editorView.value = new EditorView({
     state,
