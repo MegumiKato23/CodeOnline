@@ -1,10 +1,5 @@
 <template>
-  <button
-    :class="buttonClasses"
-    :disabled="disabled"
-    @click="handleClick"
-    v-bind="$attrs"
-  >
+  <button :class="buttonClasses" :disabled="disabled" @click="handleClick" v-bind="$attrs">
     <!-- 图标插槽 -->
     <span v-if="$slots.icon || icon" class="btn-icon">
       <slot name="icon">
@@ -19,13 +14,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed } from 'vue';
 
 interface Props {
   // 按钮类型：主要、标签页、透明按钮
-  type?: "primary" | "tab" | "ghost";
+  type?: 'primary' | 'tab' | 'ghost';
   // 按钮大小
-  size?: "large" | "small";
+  size?: 'large' | 'small';
   // 是否禁用
   disabled?: boolean;
   // 按钮图标
@@ -37,8 +32,8 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  type: "primary",
-  size: "large",
+  type: 'primary',
+  size: 'large',
   disabled: false,
   icon: null,
   active: false,
@@ -49,18 +44,18 @@ const emit = defineEmits<{
 }>();
 
 const buttonClasses = computed(() => [
-  "unified-btn",
+  'unified-btn',
   `btn-${props.type}`,
   `btn-${props.size}`,
   {
-    "btn-disabled": props.disabled,
-    "btn-active": props.active,
+    'btn-disabled': props.disabled,
+    'btn-active': props.active,
   },
 ]);
 
 const handleClick = (event: MouseEvent) => {
   if (!props.disabled) {
-    emit("click", event);
+    emit('click', event);
   }
 };
 </script>

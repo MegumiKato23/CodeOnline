@@ -2,17 +2,10 @@
   <footer class="footer" :class="{ expanded: isConsoleExpanded }">
     <div class="tabs">
       <div class="tabs_left">
-        <UnifiedButton
-          type="primary"
-          size="small"
-          :active="isConsoleExpanded"
-          @click="toggleConsole"
-        >
+        <UnifiedButton type="primary" size="small" :active="isConsoleExpanded" @click="toggleConsole">
           Console
         </UnifiedButton>
-        <UnifiedButton type="primary" size="small" @click="closeConsole"
-          >Assets</UnifiedButton
-        >
+        <UnifiedButton type="primary" size="small" @click="closeConsole">Assets</UnifiedButton>
       </div>
       <div class="tabs_right">
         <UnifiedButton type="primary" size="small">share</UnifiedButton>
@@ -24,43 +17,32 @@
       <div class="console-header">
         <span>Console</span>
         <div class="console-actions">
-          <UnifiedButton type="primary" size="small" @click="clearConsole"
-            >Clear</UnifiedButton
-          >
-          <UnifiedButton type="primary" size="small" @click="closeConsole"
-            >×</UnifiedButton
-          >
+          <UnifiedButton type="primary" size="small" @click="clearConsole">Clear</UnifiedButton>
+          <UnifiedButton type="primary" size="small" @click="closeConsole">×</UnifiedButton>
         </div>
       </div>
       <div class="console-output" ref="consoleOutput">
         <div v-for="(log, index) in consoleLogs" :key="index" class="log-entry">
           <span class="prompt">></span> {{ log }}
         </div>
-        <div v-if="consoleLogs.length === 0" class="log-entry">
-          <span class="prompt">></span> Ready
-        </div>
+        <div v-if="consoleLogs.length === 0" class="log-entry"><span class="prompt">></span> Ready</div>
       </div>
       <div class="console-input">
         <span class="prompt">></span>
-        <input
-          v-model="command"
-          type="text"
-          @keyup.enter="executeCommand"
-          placeholder="Type command here..."
-        />
+        <input v-model="command" type="text" @keyup.enter="executeCommand" placeholder="Type command here..." />
       </div>
     </div>
   </footer>
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from "vue";
+import { ref, nextTick } from 'vue';
 
 const isConsoleExpanded = ref(false);
 const consoleLogs = ref<string[]>([]);
-const command = ref("");
+const command = ref('');
 const consoleOutput = ref<HTMLElement | null>(null);
-import UnifiedButton from "@/components/ui/UnifiedButton.vue";
+import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
 const toggleConsole = () => {
   isConsoleExpanded.value = !isConsoleExpanded.value;
@@ -77,7 +59,7 @@ const closeConsole = () => {
 const executeCommand = () => {
   if (command.value.trim()) {
     consoleLogs.value.push(command.value);
-    command.value = "";
+    command.value = '';
     scrollToBottom();
   }
 };
@@ -151,7 +133,7 @@ const scrollToBottom = () => {
   flex-direction: column;
   height: calc(100% - 40px);
   background: #0a0a0a;
-  font-family: "Courier New", monospace;
+  font-family: 'Courier New', monospace;
 }
 
 .console-header {
@@ -220,7 +202,7 @@ const scrollToBottom = () => {
   background: transparent;
   border: none;
   color: white;
-  font-family: "Courier New", monospace;
+  font-family: 'Courier New', monospace;
   padding: 0.25rem 0.5rem;
   outline: none;
 }

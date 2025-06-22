@@ -11,14 +11,9 @@
 
     <!-- 右侧部分：操作按钮 -->
     <div class="right">
-      <UnifiedButton
-        type="primary"
-        :class="{ saved }"
-        :icon="CloudIcon"
-        @click="saveCode"
-      >
+      <UnifiedButton type="primary" :class="{ saved }" :icon="CloudIcon" @click="saveCode">
         <!-- <CloudIcon class="icon" /> -->
-        <span>{{ saved ? "Saved" : "Save" }}</span>
+        <span>{{ saved ? 'Saved' : 'Save' }}</span>
       </UnifiedButton>
 
       <UnifiedButton type="primary" :icon="SettingsIcon" @click="openSettings">
@@ -34,36 +29,35 @@
 </template>
 
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
-import { computed } from "vue";
-import { useEditorStore } from "@/stores/editor";
-import CodePenLogo from "./icons/CodePenLogo.vue";
-import DownloadIcon from "./icons/DownloadIcon.vue";
-import CloudIcon from "./icons/CloudIcon.vue";
-import SettingsIcon from "./icons/SettingsIcon.vue";
+import { storeToRefs } from 'pinia';
+import { computed } from 'vue';
+import { useEditorStore } from '@/stores/editor';
+import CodePenLogo from './icons/CodePenLogo.vue';
+import DownloadIcon from './icons/DownloadIcon.vue';
+import CloudIcon from './icons/CloudIcon.vue';
+import SettingsIcon from './icons/SettingsIcon.vue';
 
-const emit = defineEmits(["login"]);
+const emit = defineEmits(['login']);
 
 const editorStore = useEditorStore();
-const { saved, username, title, isLoggedIn, teamname } =
-  storeToRefs(editorStore);
+const { saved, username, title, isLoggedIn, teamname } = storeToRefs(editorStore);
 
 const saveCode = () => {
   editorStore.saveCode();
-  console.log("Code saved");
+  console.log('Code saved');
 };
 
 const openSettings = () => {
-  console.log("Open settings");
+  console.log('Open settings');
 };
 
 const download = () => {
   editorStore.saveCode();
-  console.log("Download code");
+  console.log('Download code');
 };
 
 const login = () => {
-  emit("login");
+  emit('login');
 };
 </script>
 
