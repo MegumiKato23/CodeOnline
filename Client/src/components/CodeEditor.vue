@@ -67,6 +67,7 @@ import { useEditorStore } from '@/stores/editor';
 import HtmlIcon from './icons/HtmlIcon.vue';
 import CssIcon from './icons/CssIcon.vue';
 import JsIcon from './icons/JsIcon.vue';
+import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
 const props = defineProps<{
   activeTab: 'html' | 'css' | 'js';

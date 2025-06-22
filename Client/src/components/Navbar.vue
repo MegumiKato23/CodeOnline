@@ -12,6 +12,7 @@
     <!-- 右侧部分：操作按钮 -->
     <div class="right">
 <<<<<<< HEAD
+<<<<<<< HEAD
       <UnifiedButton
         type="primary"
         size="large"
@@ -22,17 +23,28 @@
       >
 =======
       <UnifiedButton type="primary" :class="{ saved }" :icon="CloudIcon" @click="saveCode">
+=======
+      <UnifiedButton type="primary" size="large" :class="{ saved }" :icon="CloudIcon" @click="saveCode">
+>>>>>>> 628c62c (修改按钮样式)
         <!-- <CloudIcon class="icon" /> -->
 >>>>>>> bfca8a1 (解决冲突)
         <span>{{ saved ? 'Saved' : 'Save' }}</span>
       </UnifiedButton>
 
       <UnifiedButton type="primary" size="large" :icon="SettingsIcon" @click="openSettings">
+<<<<<<< HEAD
         <span>Settings</span>
       </UnifiedButton>
 
       <!-- 根据登录状态显示登录按钮或头像 -->
       <UnifiedButton v-if="!isLoggedIn" type="primary" size="large" @click="login">
+=======
+        <!-- <SettingsIcon class="icon" /> -->
+        <span>Settings</span>
+      </UnifiedButton>
+
+      <UnifiedButton type="primary" size="large" @click="login">
+>>>>>>> 628c62c (修改按钮样式)
         <span>Log In</span>
       </UnifiedButton>
 <<<<<<< HEAD
@@ -75,10 +87,13 @@ import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import { useEditorStore } from '@/stores/editor';
 import CodePenLogo from './icons/CodePenLogo.vue';
-import DownloadIcon from './icons/DownloadIcon.vue';
 import CloudIcon from './icons/CloudIcon.vue';
 import SettingsIcon from './icons/SettingsIcon.vue';
+<<<<<<< HEAD
 >>>>>>> bfca8a1 (解决冲突)
+=======
+import UnifiedButton from '@/components/ui/UnifiedButton.vue';
+>>>>>>> 628c62c (修改按钮样式)
 
 const emit = defineEmits(['login']);
 
@@ -124,10 +139,10 @@ const login = () => {
 =======
 };
 
-const download = () => {
-  editorStore.saveCode();
-  console.log('Download code');
-};
+// const download = () => {
+//   editorStore.saveCode();
+//   console.log('Download code');
+// };
 
 const login = () => {
   emit('login');
