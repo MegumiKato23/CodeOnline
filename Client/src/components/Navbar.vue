@@ -5,7 +5,7 @@
       <CodePenLogo class="logo" />
       <div class="title-area">
         <h1 class="title">{{ title }}</h1>
-        <div class="username">by {{ username }}</div>
+        <div class="teamname">by {{ teamname }}</div>
       </div>
     </div>
 
@@ -20,34 +20,26 @@
         <span>{{ status ? 'View1' : 'View2' }}</span>
       </button>
       
-      <button 
-        class="btn save-btn" 
-        :class="{ saved }"
-        @click="saveCode"
-      >
-        <CloudIcon class="icon" />
+      <UnifiedButton type="primary" :class="{ saved }" :icon="CloudIcon" @click="saveCode">
+        <!-- <CloudIcon class="icon" /> -->
         <span>{{ saved ? 'Saved' : 'Save' }}</span>
-      </button>
-      
-      <button class="btn settings-btn" @click="openSettings">
-        <SettingsIcon class="icon" />
+      </UnifiedButton>
+
+      <UnifiedButton type="primary" :icon="SettingsIcon" @click="openSettings">
+        <!-- <SettingsIcon class="icon" /> -->
         <span>Settings</span>
-      </button>
-      
-      <button class="btn download-btn" @click="download">
-        <DownloadIcon class="icon" />
-        <span>Download</span>
-      </button>
-      
-      <button class="btn login-btn" @click="login">
+      </UnifiedButton>
+
+      <UnifiedButton type="primary" @click="login">
         <span>Log In</span>
-      </button>
+      </UnifiedButton>
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
 import { useEditorStore } from '@/stores/editor'
 import CodePenLogo from './icons/CodePenLogo.vue'
 import DownloadIcon from './icons/DownloadIcon.vue'
@@ -55,30 +47,31 @@ import CloudIcon from './icons/CloudIcon.vue'
 import SettingsIcon from './icons/SettingsIcon.vue'
 import ViewIcon from './icons/ViewIcon.vue'
 
+const emit = defineEmits(['login']);
+
 const editorStore = useEditorStore()
-const { saved, username, title, status } = storeToRefs(editorStore)
+const { saved, username, title, isLoggedIn, teamname } = storeToRefs(editorStore)
 
 const toggleView = () => {
   editorStore.toggleView()
 }
-
 const saveCode = () => {
-  editorStore.saveCode()
-  console.log('Code saved')
-}
+  editorStore.saveCode();
+  console.log('Code saved');
+};
 
 const openSettings = () => {
-  console.log('Open settings')
-}
+  console.log('Open settings');
+};
 
 const download = () => {
-  editorStore.saveCode()
-  console.log('Download code')
-}
+  editorStore.saveCode();
+  console.log('Download code');
+};
 
 const login = () => {
-  console.log('Login')
-}
+  emit('login');
+};
 </script>
 
 <style scoped>
@@ -115,7 +108,7 @@ const login = () => {
   font-weight: normal;
 }
 
-.username {
+.teamname {
   font-size: 12px;
   color: #999;
 }
@@ -165,6 +158,17 @@ const login = () => {
 .login-btn {
   background: #5a5f73;
   color: white;
+}
+
+.user-btn {
+  background-color: #333;
+  color: white;
+  border: 1px solid #444;
+}
+
+.username {
+  font-size: 12px;
+  color: #999;
 }
 
 .icon {

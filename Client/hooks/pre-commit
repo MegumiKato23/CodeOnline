@@ -1,0 +1,11 @@
+#!/bin/sh
+# 打印开始信息
+echo "🚀 运行 pre-commit 检查..."
+npx prettier --write Client/src/
+
+# 检查是否运行成功
+PRETTIER_EXIT_CODE=$?
+if [ $PRETTIER_EXIT_CODE -ne 0 ]; then
+  echo "❌ Prettier 发现错误，请修复后重试"
+  exit 1
+fi

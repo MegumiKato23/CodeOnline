@@ -1,21 +1,13 @@
 <template>
   <div class="app">
-    <Navbar />
+    <Navbar @login="showLoginDialog = true" />
     <div v-if="status" class="main-content">
       <div class="editor-panel" ref="editorPanel">
         <CodeEditor :activeTab="activeTab" />
       </div>
-      <div 
-        class="resize-handle" 
-        @mousedown="startResize"
-        @dblclick="resetSize"
-      ></div>
+      <div class="resize-handle" @mousedown="startResize" @dblclick="resetSize"></div>
       <div class="preview-panel">
-        <iframe 
-          ref="previewFrame" 
-          class="preview-frame"
-          :class="{ 'no-pointer-events': isResizing }"
-        ></iframe>
+        <iframe ref="previewFrame" class="preview-frame" :class="{ 'no-pointer-events': isResizing }"></iframe>
       </div>
     </div>
     <div v-else class="main-content">
@@ -37,36 +29,54 @@
     </div>
     <Footer />
     <SettingsDialog v-if="showSettings" @close="showSettings = false" />
+    <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
+    <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
-import { storeToRefs } from 'pinia'
-import { useEditorStore } from '@/stores/editor'
-import Navbar from '@/components/Navbar.vue'
-import CodeEditor from '@/components/CodeEditor.vue'
-import Footer from '@/components/Footer.vue'
-import SettingsDialog from '@/components/icons/SettingsIcon.vue'
+import { ref, watch, onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useEditorStore } from '@/stores/editor';
+import Navbar from '@/components/Navbar.vue';
+import CodeEditor from '@/components/CodeEditor.vue';
+import Footer from '@/components/Footer.vue';
+import SettingsDialog from '@/components/icons/SettingsIcon.vue';
+import LoginDialog from '@/components/login/LoginDialog.vue';
+import RegisterDialog from '@/components/login/RegisterDialog.vue';
 
-const editorStore = useEditorStore()
-const { htmlCode, cssCode, jsCode, activeTab, status } = storeToRefs(editorStore)
-const previewFrame = ref<HTMLIFrameElement | null>(null)
-const showSettings = ref(false)
-const isResizing = ref(false)
+const editorStore = useEditorStore();
+const { htmlCode, cssCode, jsCode, activeTab, status } = storeToRefs(editorStore);
+const previewFrame = ref<HTMLIFrameElement | null>(null);
+const showSettings = ref(false);
+const showLoginDialog = ref(false);
+const showRegisterDialog = ref(false);
+const isResizing = ref(false);
 // 存储鼠标按下时的 X 坐标
-const startX = ref(0)
+const startX = ref(0);
 // 存储编辑器面板的初始宽度
-const startWidth = ref(0)
-const editorPanel = ref<HTMLElement | null>(null)
+const startWidth = ref(0);
+const editorPanel = ref<HTMLElement | null>(null);
+
+// 切换到注册界面
+const switchToRegister = () => {
+  showLoginDialog.value = false;
+  showRegisterDialog.value = true;
+};
+
+// 切换到登录界面
+const switchToLogin = () => {
+  showRegisterDialog.value = false;
+  showLoginDialog.value = true;
+};
 
 const updatePreview = () => {
-  if (!previewFrame.value) return
+  if (!previewFrame.value) return;
   // <iframe>内部的文档对象
-  const doc = previewFrame.value.contentDocument
-  if (!doc) return
-  
-  doc.open()
+  const doc = previewFrame.value.contentDocument;
+  if (!doc) return;
+
+  doc.open();
   doc.write(`
     <!DOCTYPE html>
     <html>
@@ -78,72 +88,72 @@ const updatePreview = () => {
         <script>${jsCode.value}<\/script>
       </body>
     </html>
-  `)
-  doc.close()
-}
+  `);
+  doc.close();
+};
 // 在鼠标按下时触发
 const startResize = (e: MouseEvent) => {
   // 阻止默认事件，避免选中文本
-  e.preventDefault()
-  isResizing.value = true
-  startX.value = e.clientX
+  e.preventDefault();
+  isResizing.value = true;
+  startX.value = e.clientX;
   if (editorPanel.value) {
-    startWidth.value = editorPanel.value.offsetWidth
+    startWidth.value = editorPanel.value.offsetWidth;
   }
-  
+
   // 禁用文本选择和鼠标事件
-  document.body.style.userSelect = 'none'
-  document.body.style.cursor = 'col-resize'
-  document.body.style.pointerEvents = 'none'
-  
+  document.body.style.userSelect = 'none';
+  document.body.style.cursor = 'col-resize';
+  document.body.style.pointerEvents = 'none';
+
   // 使用更高效的事件监听
-  window.addEventListener('mousemove', handleResize, { passive: false })
-  window.addEventListener('mouseup', stopResize, { once: true })
-}
+  window.addEventListener('mousemove', handleResize, { passive: false });
+  window.addEventListener('mouseup', stopResize, { once: true });
+};
 
 const handleResize = (e: MouseEvent) => {
-  e.preventDefault()
-  if (!isResizing.value || !editorPanel.value) return
-  
-  const dx = e.clientX - startX.value
-  const containerWidth = document.querySelector('.main-content')?.clientWidth || 0
-  const minWidth = 300
-  const maxWidth = containerWidth - 300
-  
+  e.preventDefault();
+  if (!isResizing.value || !editorPanel.value) return;
+
+  const dx = e.clientX - startX.value;
+  const containerWidth = document.querySelector('.main-content')?.clientWidth || 0;
+  const minWidth = 300;
+  const maxWidth = containerWidth - 300;
+
   // 直接计算并应用新宽度，不使用requestAnimationFrame以获得即时响应
-  const newWidth = Math.max(minWidth, Math.min(maxWidth, startWidth.value + dx))
-  editorPanel.value.style.width = `${newWidth}px`
-}
+  const newWidth = Math.max(minWidth, Math.min(maxWidth, startWidth.value + dx));
+  editorPanel.value.style.width = `${newWidth}px`;
+};
 
 const stopResize = () => {
-  if (!isResizing.value) return
-  
-  isResizing.value = false
-  document.body.style.userSelect = ''
-  document.body.style.cursor = ''
-  document.body.style.pointerEvents = ''
-  
-  window.removeEventListener('mousemove', handleResize)
-}
+  if (!isResizing.value) return;
+
+  isResizing.value = false;
+  document.body.style.userSelect = '';
+  document.body.style.cursor = '';
+  document.body.style.pointerEvents = '';
+
+  window.removeEventListener('mousemove', handleResize);
+};
 // 重置编辑器面板的宽度为 50%
 const resetSize = () => {
   if (editorPanel.value) {
-    editorPanel.value.style.width = '50%'
+    editorPanel.value.style.width = '50%';
   }
-}
+};
 
-watch([htmlCode, cssCode, jsCode], updatePreview, { deep: true })
+watch([htmlCode, cssCode, jsCode], updatePreview, { deep: true });
 onMounted(() => {
-  updatePreview()
-  
+  updatePreview();
+
   // 仅在调整大小时禁用 iframe 事件
-  const iframe = document.querySelector('.preview-frame') as HTMLIFrameElement
+  const iframe = document.querySelector('.preview-frame') as HTMLIFrameElement;
   iframe?.addEventListener('mouseover', () => {
     if (isResizing.value) {
-      document.body.style.cursor = 'col-resize'
+      document.body.style.cursor = 'col-resize';
     }
-  })
-})
+  });
+});
 </script>
 
 <style>
@@ -178,9 +188,7 @@ onMounted(() => {
   height: 100%;
   overflow: hidden;
   background: #1e1e1e;
-
 }
-
 
 .resize-handle {
   width: 8px;

@@ -224,11 +224,34 @@ const getUserProjects = async (req, res) => {
   }
 };
 
+// 更新token
+const refreshToken = async (req, res) => {
+  try {
+    // 生成新的访问令牌
+    const newToken = generateToken({
+      id: user.id,
+      username: user.name,
+      account: user.account
+    });
+
+    // 返回新的访问令牌
+    res.status(200).json({
+      access_token: newToken,
+      token_type: 'Bearer',
+      expires_in: 7 * 24 * 60 * 60
+    });
+  } catch(error) {
+    console.error('Refresh token error:', error);
+    res.status(500).json({ error: 'Failed to refresh token' });
+  }
+};
+
 module.exports = {
   register,
   login,
   updateProfile,
   getProfile,
-  getUserProjects
+  getUserProjects,
+  refreshToken
 };
 
