@@ -1,5 +1,10 @@
 import { Completion, CompletionContext } from '@codemirror/autocomplete'
-
+const CSS_SELECTORS: Completion[] = [
+  { label: ".class", type: "selector", apply: ".$0" },
+  { label: "#id", type: "selector", apply: "#$0" },
+  { label: "element", type: "selector", apply: "$0" },
+  { label: "[attribute]", type: "selector", apply: "[$0]" }
+]
 // 预生成的CSS数据
 const CSS_DATA = {
   properties: [
@@ -66,28 +71,53 @@ const CSS_DATA = {
 }
 
 export const cssCompletions = (context: CompletionContext) => {
-  const { state, pos } = context
-  const line = state.doc.lineAt(pos)
-  const textBefore = line.text.slice(0, pos - line.from)
-
-  // 上下文分析
-  const isAfterColon = /:[^:]*$/.test(textBefore)
-  const isAfterAtRule = /@\w*\s*[^{]*$/.test(textBefore)
-
-  if (isAfterAtRule) {
+  const line = context.state.doc.lineAt(context.pos)
+  const textBefore = line.text.slice(0, context.pos - line.from)
+  
+  // 情况1：在选择器位置
+  const selectorMatch = /([.#a-zA-Z][^{]*)$/.exec(textBefore)
+  if (selectorMatch && !textBefore.includes('{')) {
     return {
-      from: pos,
-      options: [
-        { label: "media", type: "at-rule", apply: "@media $0" },
-        { label: "keyframes", type: "at-rule", apply: "@keyframes $0" }
-      ]
+      from: context.pos - selectorMatch[1].length,
+      options: CSS_SELECTORS,
+      filter: false
     }
   }
 
-  return {
-    from: pos,
-    options: isAfterColon 
-      ? [...CSS_DATA.values, ...CSS_DATA.units]
-      : CSS_DATA.properties
+  // 情况2：在属性名位置
+  const propMatch = /([a-z-]+)\s*:\s*[^;]*$/i.exec(textBefore)
+  if (!propMatch) {
+    return {
+      from: context.pos,
+      options: CSS_DATA.properties,
+      filter: false
+    }
   }
+
+  // 情况3：在属性值位置
+  const isAfterColon = /:\s*[^;]*$/.test(textBefore)
+  if (isAfterColon) {
+    const currentProp = propMatch[1].toLowerCase()
+    return {
+      from: context.pos - (textBefore.split(':').pop()?.trim().length || 0),
+      options: [
+        ...CSS_DATA.values.filter(v => 
+          v.apply.includes(currentProp) || 
+          currentProp.includes(v.apply)
+        ),
+        ...CSS_DATA.units
+      ],
+      filter: false
+    }
+  }
+
+  return null
+}
+
+// 4. 辅助函数（确保正确闭合）
+function getCssValuesForProp(prop: string): Completion[] {
+  return CSS_DATA.values.filter(v => 
+    v.apply.includes(prop) || 
+    prop.includes(v.apply)
+  )
 }

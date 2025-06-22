@@ -76,7 +76,15 @@ const HTML_ATTRIBUTES: Completion[] =
     { label: "onclick", type: "event", apply: "onclick=\"$0\"", boost: 7 },
     { label: "onchange", type: "event", apply: "onchange=\"$0\"", boost: 7 },
 ]
-
+const HTML_ATTRIBUTE_VALUES: Record<string, Completion[]> = {
+  "type": [
+    { label: "text", apply: "text" },
+    { label: "checkbox", apply: "checkbox" }
+  ],
+  "target": [
+    { label: "_blank", apply: "_blank" }
+  ]
+};
 // 私有工具函数
 function getAttributeValueCompletions(attr: string, pos: number) {
   // 实现属性值提示逻辑
@@ -88,16 +96,54 @@ function getSnippetCompletions(): Completion[] {
     { label: "html5", type: "snippet", apply: "<!DOCTYPE html>\n<html>\n<head>\n\t<title>$1</title>\n</head>\n<body>\n\t$0\n</body>\n</html>" }
   ]
 }
+const JSX_ATTRIBUTES: Completion[] = [
+  { label: "className", apply: "className=\"$0\"", boost: 11 }, // 替换 class
+  { label: "onClick", apply: "onClick={$0}", boost: 10 },
+  { label: "key", apply: "key=\"$0\"", boost: 9 }
+]
 export function htmlCompletions(context: CompletionContext) {
   const line = context.state.doc.lineAt(context.pos)
   const textBefore = line.text.slice(0, context.pos - line.from)
   
-  // 您的上下文判断逻辑
-  const inTag = /<[^>]*$/.test(textBefore)
-  const inAttribute = /<[^>]*\s[^>]*$/.test(textBefore)
+  // 1. 标签名补全（输入 <d 补全 div）
+  const tagOpenMatch = /<([a-z][a-z0-9]*)$/i.exec(textBefore)
+  if (tagOpenMatch) {
+    return {
+      from: context.pos - tagOpenMatch[1].length,
+      options: HTML_TAGS.filter(tag => 
+        tag.label.startsWith(tagOpenMatch[1].toLowerCase())
+      ),
+      filter: false
+    }
+  }
 
+  // 2. 属性名补全（输入 <div c 补全 class）
+  const attrMatch = /<[a-z][a-z0-9]*\s+([^\s>]*)$/i.exec(textBefore)
+  if (attrMatch) {
+    return {
+      from: context.pos - attrMatch[1].length,
+      options: HTML_ATTRIBUTES.filter(attr =>
+        attr.label.startsWith(attrMatch[1].toLowerCase())
+      ),
+      filter: false
+    }
+  }
+  
+  const attrValueMatch = /<[^>]+\s+([a-z-]+)=("[^"]*"|'[^']*')$/i.exec(textBefore);
+  if (attrValueMatch) {
+    const attrName = attrValueMatch[1];
+    const values = HTML_ATTRIBUTE_VALUES[attrName] || [];
+    return {
+      from: context.pos,
+      options: values,
+      filter: false
+    };
+  }
+   const isJsx = context.state.doc.toString().includes('return (')
   return {
     from: context.pos,
-    options: inAttribute ? HTML_ATTRIBUTES : [...HTML_TAGS, ...HTML_ATTRIBUTES]
-  }
+    options: isJsx ? [...JSX_ATTRIBUTES, ...HTML_ATTRIBUTES] : HTML_ATTRIBUTES,
+    filter: false
+  };
+ 
 }

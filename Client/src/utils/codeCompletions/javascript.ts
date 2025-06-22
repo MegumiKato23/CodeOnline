@@ -1,6 +1,5 @@
 import { Completion, CompletionContext } from '@codemirror/autocomplete'
-import { analyzeAST } from '../astAnalyzer'
-
+import { analyzeAST, type VariableInfo } from '../astAnalyzer'
 const JS_KEYWORDS: Completion[] = [
  // 控制结构
     { label: "if", type: "keyword", apply: "if ($0) {\n\t$1\n}", boost: 10 },
@@ -47,16 +46,93 @@ const JS_KEYWORDS: Completion[] = [
     { label: "import", type: "keyword", apply: "import $0 from '$1'", boost: 9 },
     { label: "export", type: "keyword", apply: "export $0", boost: 9 }
 ]
+// 补充框架API（如Vue/React）
+const FRAME_APIS: Record<string, Completion[]> = {
+  "vue": [
+    { label: "ref", apply: "ref($0)" },
+    { label: "computed", apply: "computed(() => $0)" }
+  ],
+  "react": [
+    { label: "useState", apply: "const [$0, set${0/(.*)/${1:/capitalize}/}] = useState()" }
+  ]
+};
+// 类型安全的补全选项转换
+const mapVariableToCompletion = (v: VariableInfo): Completion => ({
+  label: v.name,
+  type: v.type === 'function' ? 'function' : 
+        v.type === 'class' ? 'class' : 'variable',
+  detail: `${v.type}${v.scope ? ` (${v.scope})` : ''}`
+})
 
 export const jsCompletions = (context: CompletionContext) => {
-  const { state, pos } = context
-  const userVars = analyzeAST(state.doc.toString())
+  const line = context.state.doc.lineAt(context.pos)
+  const textBefore = line.text.slice(0, context.pos - line.from)
   
+  // 1. 标识符补全（输入 docu 补全 document）
+  const identifierMatch = /([a-zA-Z_$][0-9a-zA-Z_$]*)$/.exec(textBefore)
+  if (identifierMatch) {
+    const prefix = identifierMatch[1]
+    const userVars = analyzeAST(context.state.doc.toString())
+    
+    return {
+      from: context.pos - prefix.length,
+      options: [
+        ...JS_KEYWORDS.filter(k => 
+          k.label.startsWith(prefix) &&
+          !k.label.endsWith(":")
+        ),
+        ...userVars.filter(v => 
+          v.name.startsWith(prefix)
+        ).map(v => ({
+          label: v.name,
+          type: "variable",
+          detail: v.type
+        }))
+      ],
+      filter: false
+    }
+  }
+
+  // 2. 对象属性补全（输入 console.l 补全 log）
+  const memberExprMatch = /([a-zA-Z_$][\w$]*)\.([\w$]*)$/.exec(textBefore)
+  if (memberExprMatch) {
+    const [_, obj, prop] = memberExprMatch
+    const objCompletions = getObjectCompletions(obj) // 自定义函数获取对象属性
+    
+    return {
+      from: context.pos - prop.length,
+      options: objCompletions.filter(c => 
+        c.label.startsWith(prop)
+      ),
+      filter: false
+    }
+  }
+  // 修改补全选项生成逻辑
+  const userVars = analyzeAST(context.state.doc.toString())
+    .filter(v => v.position < context.pos) // 只使用当前位置之前的变量
+    .map(v => ({
+      label: v.name,
+      type: v.type === 'function' ? 'function' : 
+            v.type === 'class' ? 'class' : 'variable',
+      detail: v.type.toUpperCase() // 显示更详细的类型信息
+    }))
   return {
-    from: pos,
-    options: [
-      ...JS_KEYWORDS,
-      ...userVars.map(v => ({ label: v.name, type: "variable", detail: v.type }))
+    from: context.pos,
+    options: [...JS_KEYWORDS, ...userVars],
+    filter: false
+  }
+}
+
+// 示例辅助函数
+function getObjectCompletions(obj: string): Completion[] {
+  const OBJ_PROPS: Record<string, Completion[]> = {
+    console: [
+      { label: "log", type: "method", apply: "log($0)" },
+      { label: "error", type: "method", apply: "error($0)" }
+    ],
+    document: [
+      { label: "querySelector", type: "method", apply: "querySelector('$0')" }
     ]
   }
+  return OBJ_PROPS[obj] || []
 }

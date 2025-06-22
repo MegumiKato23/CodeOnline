@@ -27,6 +27,18 @@
   </div>
 </template>
 
+watch(() => editorStore.activeTab, (newTab) => {
+  if (editorView.value) {
+    // 更新编辑器状态以强制刷新补全
+    editorView.value.dispatch({
+      effects: EditorView.reconfigure.of([
+        ...baseExtensions,
+        getLanguageExtension()
+      ])
+    });
+  }
+});
+
 <script setup lang="ts">
 import { ref, onMounted, watch, toRefs, onBeforeUnmount } from 'vue'
 import { EditorState } from '@codemirror/state'
@@ -99,7 +111,11 @@ const baseExtensions = [
 // 获取当前语言扩展
 const getLanguageExtension = () => {
   switch (activeTab.value) {
-    case 'html': return html({ matchClosingTags: true })
+     case 'html': 
+      return html({ 
+        matchClosingTags: true,
+        autoCloseTags: true,
+        })
     case 'css': return css()
     case 'js': return javascript()
     default: return javascript()
