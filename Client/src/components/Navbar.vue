@@ -30,12 +30,16 @@
       <UnifiedButton v-if="!isLoggedIn" type="primary" size="large" @click="login">
         <span>Log In</span>
       </UnifiedButton>
+<<<<<<< HEAD
       <HeadPortrait v-else />
+=======
+>>>>>>> f5ef146 (合并冲突)
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
+<<<<<<< HEAD
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import { useUserStore } from '@/stores/userStore';
@@ -52,6 +56,21 @@ const userStore = useUserStore();
 const codeStore = useCodeStore();
 const { username, isLoggedIn } = storeToRefs(userStore);
 const { saved } = storeToRefs(codeStore);
+=======
+import { storeToRefs } from "pinia";
+import { computed } from "vue";
+import { useEditorStore } from "@/stores/editor";
+import CodePenLogo from "./icons/CodePenLogo.vue";
+import DownloadIcon from "./icons/DownloadIcon.vue";
+import CloudIcon from "./icons/CloudIcon.vue";
+import SettingsIcon from "./icons/SettingsIcon.vue";
+
+const emit = defineEmits(["login"]);
+
+const editorStore = useEditorStore();
+const { saved, username, title, isLoggedIn, teamname } =
+  storeToRefs(editorStore);
+>>>>>>> f5ef146 (合并冲突)
 
 const saveCode = () => {
   if (!userStore.isLoggedIn) {
@@ -73,7 +92,11 @@ const openSettings = () => {
 };
 
 const login = () => {
+<<<<<<< HEAD
   emit('login');
+=======
+  emit("login");
+>>>>>>> f5ef146 (合并冲突)
 };
 </script>
 

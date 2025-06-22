@@ -19,6 +19,7 @@
 </template>
 
 <script setup lang="ts">
+<<<<<<< HEAD
 import { ref, onMounted, watch, toRefs, onBeforeUnmount } from 'vue';
 import { debounce } from 'lodash-es'; // 导入防抖函数
 import { EditorState } from '@codemirror/state';
@@ -36,6 +37,22 @@ import HtmlIcon from './icons/HtmlIcon.vue';
 import CssIcon from './icons/CssIcon.vue';
 import JsIcon from './icons/JsIcon.vue';
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
+=======
+import { ref, onMounted, watch, toRefs, onBeforeUnmount } from "vue";
+import { EditorState } from "@codemirror/state";
+import { EditorView, keymap } from "@codemirror/view";
+import { oneDark } from "@codemirror/theme-one-dark";
+import { html } from "@codemirror/lang-html";
+import { css } from "@codemirror/lang-css";
+import { javascript } from "@codemirror/lang-javascript";
+import { defaultKeymap, undo, redo, history } from "@codemirror/commands";
+import { syntaxHighlighting, HighlightStyle } from "@codemirror/language";
+import { tags } from "@lezer/highlight";
+import { useEditorStore } from "@/stores/editor";
+import HtmlIcon from "./icons/HtmlIcon.vue";
+import CssIcon from "./icons/CssIcon.vue";
+import JsIcon from "./icons/JsIcon.vue";
+>>>>>>> f5ef146 (合并冲突)
 
 const props = defineProps<{
   activeTab: 'html' | 'css' | 'js';
@@ -77,9 +94,15 @@ const baseExtensions = [
   oneDark,
   keymap.of([
     ...defaultKeymap,
+<<<<<<< HEAD
     { key: 'Mod-z', run: undo, preventDefault: true },
     { key: 'Mod-y', run: redo, preventDefault: true },
     { key: 'Mod-Shift-z', run: redo, preventDefault: true },
+=======
+    { key: "Mod-z", run: undo, preventDefault: true },
+    { key: "Mod-y", run: redo, preventDefault: true },
+    { key: "Mod-Shift-z", run: redo, preventDefault: true },
+>>>>>>> f5ef146 (合并冲突)
   ]),
   syntaxHighlighting(myHighlightStyle),
   EditorView.theme({
@@ -123,6 +146,7 @@ const initializeEditor = () => {
 
   const state = EditorState.create({
     doc: currentCode,
+<<<<<<< HEAD
     extensions,
   });
 
@@ -130,6 +154,10 @@ const initializeEditor = () => {
   if (editorView.value) {
     editorView.value.destroy();
   }
+=======
+    extensions: [...baseExtensions, getLanguageExtension()],
+  });
+>>>>>>> f5ef146 (合并冲突)
 
   editorView.value = new EditorView({
     state,
