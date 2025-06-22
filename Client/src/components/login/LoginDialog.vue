@@ -8,21 +8,11 @@
       <div class="login-body">
         <div class="form-group">
           <label for="account">账号</label>
-          <input 
-            type="text" 
-            id="account" 
-            v-model="loginForm.account" 
-            placeholder="请输入账户"
-          >
+          <input type="text" id="account" v-model="loginForm.account" placeholder="请输入账户" />
         </div>
         <div class="form-group">
           <label for="password">密码</label>
-          <input 
-            type="password" 
-            id="password" 
-            v-model="loginForm.password" 
-            placeholder="请输入密码"
-          >
+          <input type="password" id="password" v-model="loginForm.password" placeholder="请输入密码" />
         </div>
         <div class="error-message" v-if="errorMessage">{{ errorMessage }}</div>
       </div>
@@ -35,55 +25,55 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useEditorStore } from '@/stores/editor'
+import { ref, reactive } from 'vue';
+import { useEditorStore } from '@/stores/editor';
 
 const props = defineProps<{
-  visible: boolean
-}>()
+  visible: boolean;
+}>();
 
-const emit = defineEmits(['close', 'register'])
+const emit = defineEmits(['close', 'register']);
 
-const editorStore = useEditorStore()
-const errorMessage = ref('')
+const editorStore = useEditorStore();
+const errorMessage = ref('');
 
 const loginForm = reactive({
   account: '',
-  password: ''
-})
+  password: '',
+});
 
 const close = () => {
-  emit('close')
+  emit('close');
   // 清空表单和错误信息
-  loginForm.account = ''
-  loginForm.password = ''
-  errorMessage.value = ''
-}
+  loginForm.account = '';
+  loginForm.password = '';
+  errorMessage.value = '';
+};
 
 const handleLogin = () => {
   // 验证表单
   if (!loginForm.account.trim()) {
-    errorMessage.value = '请输入账号'
-    return
+    errorMessage.value = '请输入账号';
+    return;
   }
   if (!loginForm.password.trim()) {
-    errorMessage.value = '请输入密码'
-    return
+    errorMessage.value = '请输入密码';
+    return;
   }
-  
+
   // TODO: 调用登录接口
-  console.log('登录信息:', loginForm)
-  
+  console.log('登录信息:', loginForm);
+
   // 更新账号
-  editorStore.setAccount(loginForm.account)
-  
+  editorStore.setAccount(loginForm.account);
+
   // 关闭登录框
-  close()
-}
+  close();
+};
 
 const switchToRegister = () => {
-  emit('register')
-}
+  emit('register');
+};
 </script>
 
 <style scoped>

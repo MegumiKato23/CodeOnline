@@ -1,24 +1,15 @@
 <template>
   <div class="editor-container">
     <div class="tabs">
-      <button 
-        :class="{ active: activeTab === 'html' }" 
-        @click="setActiveTab('html')"
-      >
+      <button :class="{ active: activeTab === 'html' }" @click="setActiveTab('html')">
         <HtmlIcon class="icon" />
         HTML
       </button>
-      <button 
-        :class="{ active: activeTab === 'css' }" 
-        @click="setActiveTab('css')"
-      >
+      <button :class="{ active: activeTab === 'css' }" @click="setActiveTab('css')">
         <CssIcon class="icon" />
         CSS
       </button>
-      <button 
-        :class="{ active: activeTab === 'js' }" 
-        @click="setActiveTab('js')"
-      >
+      <button :class="{ active: activeTab === 'js' }" @click="setActiveTab('js')">
         <JsIcon class="icon" />
         JS
       </button>
@@ -28,29 +19,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, toRefs, onBeforeUnmount } from 'vue'
-import { EditorState } from '@codemirror/state'
-import { EditorView, keymap } from '@codemirror/view'
-import { oneDark } from '@codemirror/theme-one-dark'
-import { html } from '@codemirror/lang-html'
-import { css } from '@codemirror/lang-css'
-import { javascript } from '@codemirror/lang-javascript'
-import { defaultKeymap, undo, redo, history  } from '@codemirror/commands'
-import { syntaxHighlighting, HighlightStyle } from '@codemirror/language'
-import { tags } from '@lezer/highlight'
-import { useEditorStore } from '@/stores/editor'
-import HtmlIcon from './icons/HtmlIcon.vue'
-import CssIcon from './icons/CssIcon.vue'
-import JsIcon from './icons/JsIcon.vue'
+import { ref, onMounted, watch, toRefs, onBeforeUnmount } from 'vue';
+import { EditorState } from '@codemirror/state';
+import { EditorView, keymap } from '@codemirror/view';
+import { oneDark } from '@codemirror/theme-one-dark';
+import { html } from '@codemirror/lang-html';
+import { css } from '@codemirror/lang-css';
+import { javascript } from '@codemirror/lang-javascript';
+import { defaultKeymap, undo, redo, history } from '@codemirror/commands';
+import { syntaxHighlighting, HighlightStyle } from '@codemirror/language';
+import { tags } from '@lezer/highlight';
+import { useEditorStore } from '@/stores/editor';
+import HtmlIcon from './icons/HtmlIcon.vue';
+import CssIcon from './icons/CssIcon.vue';
+import JsIcon from './icons/JsIcon.vue';
 
 const props = defineProps<{
-  activeTab: 'html' | 'css' | 'js'
-}>()
+  activeTab: 'html' | 'css' | 'js';
+}>();
 
-const { activeTab } = toRefs(props)
-const editorStore = useEditorStore()
-const editorElement = ref<HTMLElement | null>(null)
-const editorView = ref<EditorView | null>(null)
+const { activeTab } = toRefs(props);
+const editorStore = useEditorStore();
+const editorElement = ref<HTMLElement | null>(null);
+const editorView = ref<EditorView | null>(null);
 
 // 自定义高亮样式
 const myHighlightStyle = HighlightStyle.define([
@@ -62,7 +53,7 @@ const myHighlightStyle = HighlightStyle.define([
   { tag: tags.tagName, color: '#e06c75' },
   { tag: tags.attributeName, color: '#d19a66' },
   { tag: tags.className, color: '#61afef' },
-])
+]);
 
 // 基础扩展
 const baseExtensions = [
@@ -70,84 +61,86 @@ const baseExtensions = [
   oneDark,
   keymap.of([
     ...defaultKeymap,
-    { key: "Mod-z", run: undo, preventDefault: true },
-    { key: "Mod-y", run: redo, preventDefault: true },
-    { key: "Mod-Shift-z", run: redo, preventDefault: true }
+    { key: 'Mod-z', run: undo, preventDefault: true },
+    { key: 'Mod-y', run: redo, preventDefault: true },
+    { key: 'Mod-Shift-z', run: redo, preventDefault: true },
   ]),
   syntaxHighlighting(myHighlightStyle),
   EditorView.theme({
-    "&": { height: "100%" },
-    ".cm-scroller": { overflow: "auto" },
-    ".cm-content": { padding: "10px 0" },
-    ".cm-gutters": { backgroundColor: "#282c34", color: "#abb2bf" },
+    '&': { height: '100%' },
+    '.cm-scroller': { overflow: 'auto' },
+    '.cm-content': { padding: '10px 0' },
+    '.cm-gutters': { backgroundColor: '#282c34', color: '#abb2bf' },
   }),
   EditorView.updateListener.of((update) => {
     if (update.docChanged) {
-      const code = update.state.doc.toString()
-      editorStore.updateCode(activeTab.value, code)
+      const code = update.state.doc.toString();
+      editorStore.updateCode(activeTab.value, code);
     }
-  })
-]
+  }),
+];
 
 const getLanguageExtension = () => {
   switch (activeTab.value) {
-    case 'html': return html()
-    case 'css': return css()
-    case 'js': return javascript()
-    default: return javascript()
+    case 'html':
+      return html();
+    case 'css':
+      return css();
+    case 'js':
+      return javascript();
+    default:
+      return javascript();
   }
-}
+};
 
 const initializeEditor = () => {
-  if (!editorElement.value) return
+  if (!editorElement.value) return;
 
-  const currentCode = 
-    activeTab.value === 'html' ? editorStore.htmlCode :
-    activeTab.value === 'css' ? editorStore.cssCode :
-    editorStore.jsCode
+  const currentCode =
+    activeTab.value === 'html'
+      ? editorStore.htmlCode
+      : activeTab.value === 'css'
+        ? editorStore.cssCode
+        : editorStore.jsCode;
 
   const state = EditorState.create({
     doc: currentCode,
-    extensions: [
-      ...baseExtensions,
-      getLanguageExtension()
-      
-    ]
-  })
+    extensions: [...baseExtensions, getLanguageExtension()],
+  });
 
   editorView.value = new EditorView({
     state,
-    parent: editorElement.value
-  })
-}
+    parent: editorElement.value,
+  });
+};
 
 const destroyEditor = () => {
   if (editorView.value) {
-    editorView.value.destroy()
-    editorView.value = null
+    editorView.value.destroy();
+    editorView.value = null;
   }
-}
+};
 
 const recreateEditor = () => {
-  destroyEditor()
-  initializeEditor()
-}
+  destroyEditor();
+  initializeEditor();
+};
 
 const setActiveTab = (tab: 'html' | 'css' | 'js') => {
-  editorStore.setActiveTab(tab)
-}
+  editorStore.setActiveTab(tab);
+};
 
 onMounted(() => {
-  initializeEditor()
-})
+  initializeEditor();
+});
 
 watch(activeTab, () => {
-  recreateEditor()
-})
+  recreateEditor();
+});
 
 onBeforeUnmount(() => {
-  destroyEditor()
-})
+  destroyEditor();
+});
 </script>
 
 <style scoped>

@@ -8,39 +8,24 @@
       <div class="register-body">
         <div class="form-group">
           <label for="username">用户名</label>
-          <input 
-            type="text" 
-            id="username" 
-            v-model="registerForm.username" 
-            placeholder="请输入用户名"
-          >
+          <input type="text" id="username" v-model="registerForm.username" placeholder="请输入用户名" />
         </div>
         <div class="form-group">
           <label for="account">手机号</label>
-          <input 
-            type="text" 
-            id="account" 
-            v-model="registerForm.account" 
-            placeholder="请输入手机号"
-          >
+          <input type="text" id="account" v-model="registerForm.account" placeholder="请输入手机号" />
         </div>
         <div class="form-group">
           <label for="password">密码</label>
-          <input 
-            type="password" 
-            id="password" 
-            v-model="registerForm.password" 
-            placeholder="请输入密码"
-          >
+          <input type="password" id="password" v-model="registerForm.password" placeholder="请输入密码" />
         </div>
         <div class="form-group">
           <label for="confirmPassword">确认密码</label>
-          <input 
-            type="password" 
-            id="confirmPassword" 
-            v-model="registerForm.confirmPassword" 
+          <input
+            type="password"
+            id="confirmPassword"
+            v-model="registerForm.confirmPassword"
             placeholder="请再次输入密码"
-          >
+          />
         </div>
         <div class="error-message" v-if="errorMessage">{{ errorMessage }}</div>
       </div>
@@ -53,62 +38,62 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive } from 'vue';
 
 const props = defineProps<{
-  visible: boolean
-}>()
+  visible: boolean;
+}>();
 
-const emit = defineEmits(['close', 'login'])
+const emit = defineEmits(['close', 'login']);
 
-const errorMessage = ref('')
+const errorMessage = ref('');
 
 const registerForm = reactive({
   username: '',
   account: '',
   password: '',
-  confirmPassword: ''
-})
+  confirmPassword: '',
+});
 
 const close = () => {
-  emit('close')
+  emit('close');
   // 清空表单和错误信息
-  registerForm.username = ''
-  registerForm.account = ''
-  registerForm.password = ''
-  registerForm.confirmPassword = ''
-  errorMessage.value = ''
-}
+  registerForm.username = '';
+  registerForm.account = '';
+  registerForm.password = '';
+  registerForm.confirmPassword = '';
+  errorMessage.value = '';
+};
 
 const handleRegister = () => {
   // 验证表单
   if (!registerForm.username.trim()) {
-    errorMessage.value = '请输入用户名'
-    return
+    errorMessage.value = '请输入用户名';
+    return;
   }
   if (!registerForm.account.trim()) {
-    errorMessage.value = '请输入手机号'
-    return
+    errorMessage.value = '请输入手机号';
+    return;
   }
   if (!registerForm.password.trim()) {
-    errorMessage.value = '请输入密码'
-    return
+    errorMessage.value = '请输入密码';
+    return;
   }
   if (registerForm.password !== registerForm.confirmPassword) {
-    errorMessage.value = '两次输入的密码不一致'
-    return
+    errorMessage.value = '两次输入的密码不一致';
+    return;
   }
-  
+
   // TODO: 调用注册接口
-  console.log('注册信息:', registerForm)
-  
+  console.log('注册信息:', registerForm);
+
   // 注册成功后切换到登录界面
-  switchToLogin()
-}
+  switchToLogin();
+};
 
 const switchToLogin = () => {
-  emit('login')
-}
+  emit('login');
+};
 </script>
 
 <style scoped>

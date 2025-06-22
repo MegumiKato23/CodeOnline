@@ -1,21 +1,12 @@
 <template>
   <footer class="footer" :class="{ expanded: isConsoleExpanded }">
     <div class="tabs">
-      <button 
-        :class="{ active: isConsoleExpanded }" 
-        @click="toggleConsole"
-      >
-        Console
-      </button>
+      <button :class="{ active: isConsoleExpanded }" @click="toggleConsole">Console</button>
       <!-- 目前是关闭窗口之后可以改为切换 -->
-      <button @click="closeConsole">
-        Assets
-      </button>
-      <button @click="closeConsole">
-        Shortcuts
-      </button>
+      <button @click="closeConsole">Assets</button>
+      <button @click="closeConsole">Shortcuts</button>
     </div>
-    
+
     <!-- 只有点击Console时才显示的内容区域 -->
     <div v-if="isConsoleExpanded" class="console-expanded">
       <div class="console-header">
@@ -29,58 +20,51 @@
         <div v-for="(log, index) in consoleLogs" :key="index" class="log-entry">
           <span class="prompt">></span> {{ log }}
         </div>
-        <div v-if="consoleLogs.length === 0" class="log-entry">
-          <span class="prompt">></span> Ready
-        </div>
+        <div v-if="consoleLogs.length === 0" class="log-entry"><span class="prompt">></span> Ready</div>
       </div>
       <div class="console-input">
         <span class="prompt">></span>
-        <input
-          v-model="command"
-          type="text"
-          @keyup.enter="executeCommand"
-          placeholder="Type command here..."
-        />
+        <input v-model="command" type="text" @keyup.enter="executeCommand" placeholder="Type command here..." />
       </div>
     </div>
   </footer>
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
+import { ref, nextTick } from 'vue';
 
-const isConsoleExpanded = ref(false)
-const consoleLogs = ref<string[]>([])
-const command = ref('')
-const consoleOutput = ref<HTMLElement | null>(null)
+const isConsoleExpanded = ref(false);
+const consoleLogs = ref<string[]>([]);
+const command = ref('');
+const consoleOutput = ref<HTMLElement | null>(null);
 
 const toggleConsole = () => {
-  isConsoleExpanded.value = !isConsoleExpanded.value
-}
+  isConsoleExpanded.value = !isConsoleExpanded.value;
+};
 
 const clearConsole = () => {
-  consoleLogs.value = []
-}
+  consoleLogs.value = [];
+};
 
 const closeConsole = () => {
-  isConsoleExpanded.value = false
-}
+  isConsoleExpanded.value = false;
+};
 
 const executeCommand = () => {
   if (command.value.trim()) {
-    consoleLogs.value.push(command.value)
-    command.value = ''
-    scrollToBottom()
+    consoleLogs.value.push(command.value);
+    command.value = '';
+    scrollToBottom();
   }
-}
+};
 
 const scrollToBottom = () => {
   nextTick(() => {
     if (consoleOutput.value) {
-      consoleOutput.value.scrollTop = consoleOutput.value.scrollHeight
+      consoleOutput.value.scrollTop = consoleOutput.value.scrollHeight;
     }
-  })
-}
+  });
+};
 </script>
 
 <style scoped>
@@ -146,7 +130,8 @@ const scrollToBottom = () => {
   gap: 0.5rem;
 }
 
-.clear-btn, .close-btn {
+.clear-btn,
+.close-btn {
   background: transparent;
   color: #ccc;
   border: none;
