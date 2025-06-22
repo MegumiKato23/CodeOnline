@@ -26,11 +26,15 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
+<<<<<<< HEAD
 import { useUserStore } from '@/stores/userStore';
 import { api } from '@/api';
 import { Users } from 'lucide-vue-next';
 import { useCodeStore } from '@/stores/codeStore';
 import { ShareService } from '@/services/shareService';
+=======
+import { useEditorStore } from '@/stores/editor';
+>>>>>>> bfca8a1 (解决冲突)
 
 const props = defineProps<{
   visible: boolean;
@@ -38,9 +42,13 @@ const props = defineProps<{
 
 const emit = defineEmits(['close', 'register']);
 
+<<<<<<< HEAD
 const userStore = useUserStore();
 const codeStore = useCodeStore();
 
+=======
+const editorStore = useEditorStore();
+>>>>>>> bfca8a1 (解决冲突)
 const errorMessage = ref('');
 
 const loginForm = reactive({
@@ -67,6 +75,7 @@ const handleLogin = async () => {
     return;
   }
 
+<<<<<<< HEAD
   try {
     const response = await api.login({
       account: loginForm.account,
@@ -131,16 +140,29 @@ const handleLogin = async () => {
     resetForm();
     errorMessage.value = error.response?.data?.message || '登录失败';
   }
+=======
+  // TODO: 调用登录接口
+  console.log('登录信息:', loginForm);
+
+  // 更新账号
+  editorStore.setAccount(loginForm.account);
+
+  // 关闭登录框
+  close();
+>>>>>>> bfca8a1 (解决冲突)
 };
 
 const switchToRegister = () => {
   emit('register');
 };
+<<<<<<< HEAD
 
 const resetForm = () => {
   loginForm.password = '';
   errorMessage.value = '';
 };
+=======
+>>>>>>> bfca8a1 (解决冲突)
 </script>
 
 <style scoped>

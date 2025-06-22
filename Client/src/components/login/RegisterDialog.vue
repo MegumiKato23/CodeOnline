@@ -7,19 +7,30 @@
       </div>
       <div class="register-body">
         <div class="form-group">
+<<<<<<< HEAD
           <label for="username"> 用户名</label>
           <input type="text" id="username" v-model="registerForm.username" placeholder="请输入用户名" />
           <div class="input-tip">用户名长度3-20个字符</div>
+=======
+          <label for="username">用户名</label>
+          <input type="text" id="username" v-model="registerForm.username" placeholder="请输入用户名" />
+>>>>>>> bfca8a1 (解决冲突)
         </div>
         <div class="form-group">
           <label for="account">手机号</label>
           <input type="text" id="account" v-model="registerForm.account" placeholder="请输入手机号" />
+<<<<<<< HEAD
           <div class="input-tip">请输入11位手机号码</div>
+=======
+>>>>>>> bfca8a1 (解决冲突)
         </div>
         <div class="form-group">
           <label for="password">密码</label>
           <input type="password" id="password" v-model="registerForm.password" placeholder="请输入密码" />
+<<<<<<< HEAD
           <div class="input-tip">密码长度6-30个字符，必须包含大小写字母和数字</div>
+=======
+>>>>>>> bfca8a1 (解决冲突)
         </div>
         <div class="form-group">
           <label for="confirmPassword">确认密码</label>
@@ -29,7 +40,10 @@
             v-model="registerForm.confirmPassword"
             placeholder="请再次输入密码"
           />
+<<<<<<< HEAD
           <div class="input-tip">请再次输入相同的密码</div>
+=======
+>>>>>>> bfca8a1 (解决冲突)
         </div>
         <div class="error-message" v-if="errorMessage">{{ errorMessage }}</div>
       </div>
@@ -43,7 +57,10 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
+<<<<<<< HEAD
 import { api } from '@/api';
+=======
+>>>>>>> bfca8a1 (解决冲突)
 
 const props = defineProps<{
   visible: boolean;
@@ -75,32 +92,42 @@ const handleRegister = async () => {
   if (!registerForm.username.trim()) {
     errorMessage.value = '请输入用户名';
     return;
+<<<<<<< HEAD
   }
   if (!/^[a-zA-Z0-9_\u4e00-\u9fa5]{3,20}$/.test(registerForm.username.trim())) {
     errorMessage.value = '用户名格式不正确，长度3-20个字符，只能包含字母、数字、下划线和中文';
     return;
+=======
+>>>>>>> bfca8a1 (解决冲突)
   }
   if (!registerForm.account.trim()) {
     errorMessage.value = '请输入手机号';
     return;
+<<<<<<< HEAD
   }
   if (!/^1\d{10}$/.test(registerForm.account.trim())) {
     errorMessage.value = '请输入正确的手机号码';
     return;
+=======
+>>>>>>> bfca8a1 (解决冲突)
   }
   if (!registerForm.password.trim()) {
     errorMessage.value = '请输入密码';
     return;
+<<<<<<< HEAD
   }
   if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,30}$/.test(registerForm.password)) {
     errorMessage.value = '密码格式不正确，长度6-30个字符，必须包含大小写字母和数字';
     return;
+=======
+>>>>>>> bfca8a1 (解决冲突)
   }
   if (registerForm.password !== registerForm.confirmPassword) {
     errorMessage.value = '两次输入的密码不一致';
     return;
   }
 
+<<<<<<< HEAD
   try {
     const response = await api.register({
       username: registerForm.username,
@@ -120,11 +147,19 @@ const handleRegister = async () => {
   } catch (error) {
     errorMessage.value = error.response?.data?.message || '注册失败';
   }
+=======
+  // TODO: 调用注册接口
+  console.log('注册信息:', registerForm);
+
+  // 注册成功后切换到登录界面
+  switchToLogin();
+>>>>>>> bfca8a1 (解决冲突)
 };
 
 const switchToLogin = () => {
   emit('login');
 };
+<<<<<<< HEAD
 
 const resetForm = () => {
   registerForm.username = '';
@@ -133,6 +168,8 @@ const resetForm = () => {
   registerForm.confirmPassword = '';
   errorMessage.value = '';
 };
+=======
+>>>>>>> bfca8a1 (解决冲突)
 </script>
 
 <style scoped>

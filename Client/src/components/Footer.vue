@@ -54,9 +54,13 @@
 </template>
 
 <script setup lang="ts">
+<<<<<<< HEAD
 import { ref, nextTick, onMounted, onUnmounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import { api } from '@/api/index';
+=======
+import { ref, nextTick } from 'vue';
+>>>>>>> bfca8a1 (解决冲突)
 
 const userStore = useUserStore();
 const props = defineProps<{
@@ -70,10 +74,13 @@ const shareTime = ref(null);
 const consoleLogs = ref<string[]>([]);
 const command = ref('');
 const consoleOutput = ref<HTMLElement | null>(null);
+<<<<<<< HEAD
 // 添加复制提示状态
 const showCopyToast = ref(false);
 
 const emit = defineEmits(['login']);
+=======
+>>>>>>> bfca8a1 (解决冲突)
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
 const toggleConsole = () => {

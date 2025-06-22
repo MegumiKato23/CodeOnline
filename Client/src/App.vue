@@ -7,35 +7,49 @@
       </div>
       <div class="resize-handle" @mousedown="startResize" @dblclick="resetSize"></div>
       <div class="preview-panel">
+<<<<<<< HEAD
         <iframe
           sandbox="allow-scripts  allow-same-origin"
           ref="previewFrame"
           class="preview-frame"
           :class="{ 'no-pointer-events': isResizing }"
         ></iframe>
+=======
+        <iframe ref="previewFrame" class="preview-frame" :class="{ 'no-pointer-events': isResizing }"></iframe>
+>>>>>>> bfca8a1 (解决冲突)
       </div>
     </div>
     <Footer :isReadOnly="userStore.isReadOnlyMode" @login="showLoginDialog = true" />
     <SettingsDialog v-if="showSettings" @close="showSettings = false" />
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
+<<<<<<< HEAD
     <!-- <head_portrait @login="showLoginDialog = true" /> -->
+=======
+>>>>>>> bfca8a1 (解决冲突)
   </div>
 </template>
 
 <script setup lang="ts">
+<<<<<<< HEAD
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { storeToRefs } from 'pinia';
 import { debounce } from 'lodash-es'; // 导入防抖函数
 import { useCodeStore } from '@/stores/codeStore';
 import { useUserStore } from '@/stores/userStore';
 import type { ProjectPermissions } from '@/stores/userStore';
+=======
+import { ref, watch, onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useEditorStore } from '@/stores/editor';
+>>>>>>> bfca8a1 (解决冲突)
 import Navbar from '@/components/Navbar.vue';
 import CodeEditor from '@/components/CodeEditor.vue';
 import Footer from '@/components/Footer.vue';
 import SettingsDialog from '@/components/icons/SettingsIcon.vue';
 import LoginDialog from '@/components/login/LoginDialog.vue';
 import RegisterDialog from '@/components/login/RegisterDialog.vue';
+<<<<<<< HEAD
 import head_portrait from './components/head_portrait.vue';
 import { api } from '@/api/index';
 import { Users } from 'lucide-vue-next';
@@ -48,6 +62,11 @@ const userStore = useUserStore();
 const permissions = ref<ProjectPermissions | null>(null);
 
 const { htmlCode, cssCode, jsCode, activeTab } = storeToRefs(codeStore);
+=======
+
+const editorStore = useEditorStore();
+const { htmlCode, cssCode, jsCode, activeTab } = storeToRefs(editorStore);
+>>>>>>> bfca8a1 (解决冲突)
 const previewFrame = ref<HTMLIFrameElement | null>(null);
 const showSettings = ref(false);
 const showLoginDialog = ref(false);
@@ -58,6 +77,7 @@ const startX = ref(0);
 // 存储编辑器面板的初始宽度
 const startWidth = ref(0);
 const editorPanel = ref<HTMLElement | null>(null);
+<<<<<<< HEAD
 // 创建防抖的预览更新函数 (500ms)
 const debouncedUpdatePreview = debounce(() => {
   if (!previewFrame.value) return;
@@ -68,6 +88,27 @@ const debouncedUpdatePreview = debounce(() => {
   // 设置sandbox属性
   previewFrame.value.setAttribute('sandbox', 'allow-scripts  allow-same-origin');
 
+=======
+
+// 切换到注册界面
+const switchToRegister = () => {
+  showLoginDialog.value = false;
+  showRegisterDialog.value = true;
+};
+
+// 切换到登录界面
+const switchToLogin = () => {
+  showRegisterDialog.value = false;
+  showLoginDialog.value = true;
+};
+
+const updatePreview = () => {
+  if (!previewFrame.value) return;
+  // <iframe>内部的文档对象
+  const doc = previewFrame.value.contentDocument;
+  if (!doc) return;
+
+>>>>>>> bfca8a1 (解决冲突)
   doc.open();
   doc.write(`
     <!DOCTYPE html>
@@ -93,6 +134,7 @@ const debouncedUpdatePreview = debounce(() => {
     </html>
   `);
   doc.close();
+<<<<<<< HEAD
 }, 500); // 500ms防抖延迟
 // 切换到注册界面
 const switchToRegister = () => {
@@ -106,6 +148,9 @@ const switchToLogin = () => {
   showLoginDialog.value = true;
 };
 
+=======
+};
+>>>>>>> bfca8a1 (解决冲突)
 // 在鼠标按下时触发
 const startResize = (e: MouseEvent) => {
   // 阻止默认事件，避免选中文本
@@ -157,10 +202,16 @@ const resetSize = () => {
   }
 };
 
+<<<<<<< HEAD
 // 使用防抖的watch监听
 watch([htmlCode, cssCode, jsCode], debouncedUpdatePreview, { deep: true });
 onMounted(() => {
   debouncedUpdatePreview(); // 初始加载时调用防抖版本
+=======
+watch([htmlCode, cssCode, jsCode], updatePreview, { deep: true });
+onMounted(() => {
+  updatePreview();
+>>>>>>> bfca8a1 (解决冲突)
 
   // 仅在调整大小时禁用 iframe 事件
   const iframe = document.querySelector('.preview-frame') as HTMLIFrameElement;
@@ -169,6 +220,7 @@ onMounted(() => {
       document.body.style.cursor = 'col-resize';
     }
   });
+<<<<<<< HEAD
   checkShareAccess();
   debouncedUpdatePreview();
 });
@@ -187,6 +239,8 @@ const checkShareAccess = async () => {
 // 组件卸载时取消防抖
 onBeforeUnmount(() => {
   debouncedUpdatePreview.cancel();
+=======
+>>>>>>> bfca8a1 (解决冲突)
 });
 </script>
 

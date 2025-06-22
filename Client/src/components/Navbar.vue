@@ -11,6 +11,7 @@
 
     <!-- 右侧部分：操作按钮 -->
     <div class="right">
+<<<<<<< HEAD
       <UnifiedButton
         type="primary"
         size="large"
@@ -19,6 +20,10 @@
         :disabled="userStore.isReadOnlyMode"
         @click="saveCode"
       >
+=======
+      <UnifiedButton type="primary" :class="{ saved }" :icon="CloudIcon" @click="saveCode">
+        <!-- <CloudIcon class="icon" /> -->
+>>>>>>> bfca8a1 (解决冲突)
         <span>{{ saved ? 'Saved' : 'Save' }}</span>
       </UnifiedButton>
 
@@ -39,6 +44,7 @@
 </template>
 
 <script setup lang="ts">
+<<<<<<< HEAD
 <<<<<<< HEAD
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
@@ -64,10 +70,20 @@ import CodePenLogo from "./icons/CodePenLogo.vue";
 import DownloadIcon from "./icons/DownloadIcon.vue";
 import CloudIcon from "./icons/CloudIcon.vue";
 import SettingsIcon from "./icons/SettingsIcon.vue";
+=======
+import { storeToRefs } from 'pinia';
+import { computed } from 'vue';
+import { useEditorStore } from '@/stores/editor';
+import CodePenLogo from './icons/CodePenLogo.vue';
+import DownloadIcon from './icons/DownloadIcon.vue';
+import CloudIcon from './icons/CloudIcon.vue';
+import SettingsIcon from './icons/SettingsIcon.vue';
+>>>>>>> bfca8a1 (解决冲突)
 
-const emit = defineEmits(["login"]);
+const emit = defineEmits(['login']);
 
 const editorStore = useEditorStore();
+<<<<<<< HEAD
 const { saved, username, title, isLoggedIn, teamname } =
   storeToRefs(editorStore);
 >>>>>>> f5ef146 (合并冲突)
@@ -85,10 +101,18 @@ const saveCode = () => {
     .catch(() => {
       console.log('代码保存失败');
     });
+=======
+const { saved, username, title, isLoggedIn, teamname } = storeToRefs(editorStore);
+
+const saveCode = () => {
+  editorStore.saveCode();
+  console.log('Code saved');
+>>>>>>> bfca8a1 (解决冲突)
 };
 
 const openSettings = () => {
   console.log('Open settings');
+<<<<<<< HEAD
 };
 
 const login = () => {
@@ -97,6 +121,17 @@ const login = () => {
 =======
   emit("login");
 >>>>>>> f5ef146 (合并冲突)
+=======
+};
+
+const download = () => {
+  editorStore.saveCode();
+  console.log('Download code');
+};
+
+const login = () => {
+  emit('login');
+>>>>>>> bfca8a1 (解决冲突)
 };
 </script>
 
