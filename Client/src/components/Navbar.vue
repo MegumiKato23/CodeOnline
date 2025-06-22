@@ -11,14 +11,14 @@
 
     <!-- 右侧部分：操作按钮 -->
     <div class="right">
-      <button 
+      <UnifiedButton 
         class="btn view-btn" 
         :class="{ status }"
         @click="toggleView"
       >
         <ViewIcon class="icon" />
         <span>{{ status ? 'View1' : 'View2' }}</span>
-      </button>
+      </UnifiedButton>
       
       <UnifiedButton type="primary" :class="{ saved }" :icon="CloudIcon" @click="saveCode">
         <!-- <CloudIcon class="icon" /> -->
@@ -50,7 +50,7 @@ import ViewIcon from './icons/ViewIcon.vue'
 const emit = defineEmits(['login']);
 
 const editorStore = useEditorStore()
-const { saved, username, title, isLoggedIn, teamname } = storeToRefs(editorStore)
+const { saved, username, title, isLoggedIn, teamname, status } = storeToRefs(editorStore)
 
 const toggleView = () => {
   editorStore.toggleView()

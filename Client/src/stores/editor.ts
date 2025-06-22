@@ -16,7 +16,8 @@ export const useEditorStore = defineStore('editor', () => {
   const title = ref('CodeOnline');
   const account = ref('18812345678');
   const isLoggedIn = ref(false);
-  const status = ref(true)
+  const status = ref(true);
+  const previewFrame = ref<HTMLIFrameElement | null>(null);
 
   const updateCode = (type: 'html' | 'css' | 'js', code: string) => {
     if (type === 'html') htmlCode.value = code;
@@ -54,6 +55,7 @@ export const useEditorStore = defineStore('editor', () => {
     status.value = !status.value
   }
 
+
   return {
     htmlCode,
     cssCode,
@@ -72,6 +74,6 @@ export const useEditorStore = defineStore('editor', () => {
     setTitle,
     toggleView,
     setAccount,
-    logout,
+    logout
   };
 });

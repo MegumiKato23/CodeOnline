@@ -44,6 +44,7 @@ import Footer from '@/components/Footer.vue';
 import SettingsDialog from '@/components/icons/SettingsIcon.vue';
 import LoginDialog from '@/components/login/LoginDialog.vue';
 import RegisterDialog from '@/components/login/RegisterDialog.vue';
+import { watchEffect } from 'vue';
 
 const editorStore = useEditorStore();
 const { htmlCode, cssCode, jsCode, activeTab, status } = storeToRefs(editorStore);
@@ -70,6 +71,7 @@ const switchToLogin = () => {
   showLoginDialog.value = true;
 };
 
+
 const updatePreview = () => {
   if (!previewFrame.value) return;
   // <iframe>内部的文档对象
@@ -91,6 +93,12 @@ const updatePreview = () => {
   `);
   doc.close();
 };
+
+watchEffect(() => {
+    updatePreview();
+});
+
+
 // 在鼠标按下时触发
 const startResize = (e: MouseEvent) => {
   // 阻止默认事件，避免选中文本
@@ -143,6 +151,8 @@ const resetSize = () => {
 };
 
 watch([htmlCode, cssCode, jsCode], updatePreview, { deep: true });
+
+
 onMounted(() => {
   updatePreview();
 
