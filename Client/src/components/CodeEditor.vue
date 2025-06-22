@@ -33,6 +33,7 @@ import { useEditorStore } from '@/stores/editor';
 import HtmlIcon from './icons/HtmlIcon.vue';
 import CssIcon from './icons/CssIcon.vue';
 import JsIcon from './icons/JsIcon.vue';
+import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
 const props = defineProps<{
   activeTab: 'html' | 'css' | 'js';
@@ -159,7 +160,7 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
 }
 
-.tabs button {
+/* .tabs button {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -170,16 +171,16 @@ onBeforeUnmount(() => {
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
-}
+} */
 
-.tabs button.active {
+/* .tabs button.active {
   background: #333;
   color: white;
-}
+} */
 
-.tabs button:hover {
+/* .tabs button:hover {
   background: #333;
-}
+} */
 
 .editor {
   flex: 1;
@@ -187,8 +188,8 @@ onBeforeUnmount(() => {
   position: relative;
 }
 
-.icon {
+/* .icon {
   width: 16px;
   height: 16px;
-}
+} */
 </style>
