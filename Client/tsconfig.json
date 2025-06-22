@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2015", "DOM", "ES2015.Promise"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "types": ["vite/client"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "exclude": ["node_modules"]
+}
