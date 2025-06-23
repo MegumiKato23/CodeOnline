@@ -19,7 +19,6 @@
     "@codemirror/view": "^6.37.2",
     "@lezer/highlight": "^1.2.1",
     "codemirror": "^6.0.1",
-    "lodash-es": "^4.17.21",
     "lucide-vue-next": "^0.517.0",
     "path-browserify": "^1.0.1",
     "pinia": "^3.0.3",

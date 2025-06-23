@@ -18,9 +18,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted,onBeforeUnmount } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
-import { debounce } from 'lodash-es';
 import { useEditorStore } from '@/stores/editor';
 import Navbar from '@/components/Navbar.vue';
 import CodeEditor from '@/components/CodeEditor.vue';
@@ -42,10 +41,21 @@ const startX = ref(0);
 const startWidth = ref(0);
 const editorPanel = ref<HTMLElement | null>(null);
 
-// 创建防抖的预览更新函数 (500ms)
-const debouncedUpdatePreview = debounce(() => {
+// 切换到注册界面
+const switchToRegister = () => {
+  showLoginDialog.value = false;
+  showRegisterDialog.value = true;
+};
+
+// 切换到登录界面
+const switchToLogin = () => {
+  showRegisterDialog.value = false;
+  showLoginDialog.value = true;
+};
+
+const updatePreview = () => {
   if (!previewFrame.value) return;
-  
+  // <iframe>内部的文档对象
   const doc = previewFrame.value.contentDocument;
   if (!doc) return;
 
@@ -63,21 +73,7 @@ const debouncedUpdatePreview = debounce(() => {
     </html>
   `);
   doc.close();
-}, 500); // 500ms防抖延迟
-
-// 切换到注册界面
-const switchToRegister = () => {
-  showLoginDialog.value = false;
-  showRegisterDialog.value = true;
 };
-
-// 切换到登录界面
-const switchToLogin = () => {
-  showRegisterDialog.value = false;
-  showLoginDialog.value = true;
-};
-
-
 // 在鼠标按下时触发
 const startResize = (e: MouseEvent) => {
   // 阻止默认事件，避免选中文本
@@ -129,9 +125,9 @@ const resetSize = () => {
   }
 };
 
-watch([htmlCode, cssCode, jsCode], debouncedUpdatePreview, { deep: true });
+watch([htmlCode, cssCode, jsCode], updatePreview, { deep: true });
 onMounted(() => {
-  debouncedUpdatePreview();
+  updatePreview();
 
   // 仅在调整大小时禁用 iframe 事件
   const iframe = document.querySelector('.preview-frame') as HTMLIFrameElement;
@@ -140,10 +136,6 @@ onMounted(() => {
       document.body.style.cursor = 'col-resize';
     }
   });
-});
-// 组件卸载时取消防抖
-onBeforeUnmount(() => {
-  debouncedUpdatePreview.cancel();
 });
 </script>
 
