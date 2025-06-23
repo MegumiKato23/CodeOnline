@@ -28,7 +28,7 @@ router.get('/profile/:userId', getProfile);
 router.get('/project/:userId', getUserProjects);
 
 // 更新token
-// router.post('/refresh', authenticateToken, refreshToken);
+router.post('/refresh', authenticateToken, refreshToken);
 
 module.exports = router;
 
