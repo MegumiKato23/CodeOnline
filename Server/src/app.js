@@ -1,8 +1,11 @@
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-require('dotenv').config();
+
+const codeRoutes = require('./routes/code'); // 添加代码路由
 
 const userRoutes = require('./routes/users');
 const projectRoutes = require('./routes/projects');
@@ -36,6 +39,8 @@ app.use('/users', userRoutes);
 app.use('/projects', projectRoutes);
 app.use('/projects/:projectId/files', fileRoutes);
 
+app.use('/api/code', codeRoutes);
+
 // 错误处理中间件
 app.use((err, req, res, next) => {
   console.error('Error:', err);
@@ -55,13 +60,19 @@ app.use((err, req, res, next) => {
 app.use('*', (req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
-
-const PORT = process.env.PORT || 8080;
-
+const config = require('../config');
+const PORT =  8080;
+const PORT1 = config.server.port ;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
 });
+app.listen(PORT1, () => {
+  console.log(`
+    Redis: ${config.redis.host}:${config.redis.port}
+  `);
+});
+
 
 module.exports = app;
 
