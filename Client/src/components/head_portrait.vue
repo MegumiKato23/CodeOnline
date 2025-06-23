@@ -6,7 +6,6 @@
             <li><a2 style='color:white'>更换头像</a2></li>
         </ul>
     </div>
-    <LoginDialog :visible="login"/>login
 </template>
 
 <script setup lang="ts">
