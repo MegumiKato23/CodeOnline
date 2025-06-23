@@ -35,6 +35,6 @@ export const useCodeStore = defineStore('code', () => {
     saved,
     updateCode,
     saveCode,
-    setActiveTab
+    setActiveTab,
   };
 });

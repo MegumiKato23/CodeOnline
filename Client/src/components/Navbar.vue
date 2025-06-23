@@ -11,15 +11,11 @@
 
     <!-- 右侧部分：操作按钮 -->
     <div class="right">
-      <UnifiedButton 
-        class="btn view-btn" 
-        :class="{ status }"
-        @click="toggleView"
-      >
+      <UnifiedButton type="primary" size="large" :class="{ status }" :icon="ViewIcon" @click="toggleView">
         <!-- <ViewIcon class="icon" /> -->
         <span>{{ status ? 'View1' : 'View2' }}</span>
       </UnifiedButton>
-      
+
       <UnifiedButton type="primary" size="large" :class="{ saved }" :icon="CloudIcon" @click="saveCode">
         <!-- <CloudIcon class="icon" /> -->
         <span>{{ saved ? 'Saved' : 'Save' }}</span>
@@ -38,7 +34,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import { useUserStore } from '@/stores/userStore'; // 使用userStore
@@ -47,17 +42,18 @@ import CodePenLogo from './icons/CodePenLogo.vue';
 import CloudIcon from './icons/CloudIcon.vue';
 import SettingsIcon from './icons/SettingsIcon.vue';
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
+import ViewIcon from './icons/ViewIcon.vue';
 
 const emit = defineEmits(['login']);
 
 const userStore = useUserStore();
 const codeStore = useCodeStore();
-const {username, title, isLoggedIn, teamname, status } = storeToRefs(userStore);
+const { username, title, isLoggedIn, teamname, status } = storeToRefs(userStore);
 const { saved } = storeToRefs(codeStore);
 
 const toggleView = () => {
-  userStore.toggleView()
-}
+  userStore.toggleView();
+};
 const saveCode = () => {
   codeStore.saveCode();
   console.log('Code saved');
@@ -132,7 +128,6 @@ const login = () => {
   cursor: pointer;
   font-size: 14px;
 } */
-
 
 /* .view-btn {
   background: #5a5f73;

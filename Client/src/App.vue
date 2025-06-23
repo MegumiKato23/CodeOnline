@@ -12,17 +12,9 @@
     </div>
     <div v-else class="main-content">
       <div class="preview-panel">
-        <iframe 
-          ref="previewFrame" 
-          class="preview-frame"
-          :class="{ 'no-pointer-events': isResizing }"
-        ></iframe>
+        <iframe ref="previewFrame" class="preview-frame" :class="{ 'no-pointer-events': isResizing }"></iframe>
       </div>
-      <div 
-        class="resize-handle" 
-        @mousedown="startResize"
-        @dblclick="resetSize"
-      ></div>
+      <div class="resize-handle" @mousedown="startResize" @dblclick="resetSize"></div>
       <div class="editor-panel" ref="editorPanel">
         <CodeEditor :activeTab="activeTab" />
       </div>
@@ -46,11 +38,11 @@ import Footer from '@/components/Footer.vue';
 import SettingsDialog from '@/components/icons/SettingsIcon.vue';
 import LoginDialog from '@/components/login/LoginDialog.vue';
 import RegisterDialog from '@/components/login/RegisterDialog.vue';
-import { watchEffect } from 'vue';
 
 const codeStore = useCodeStore();
 const userStore = useUserStore();
-const { htmlCode, cssCode, jsCode, activeTab, status } = storeToRefs(codeStore);
+const { htmlCode, cssCode, jsCode, activeTab } = storeToRefs(codeStore);
+const { status } = storeToRefs(userStore);
 const previewFrame = ref<HTMLIFrameElement | null>(null);
 const showSettings = ref(false);
 const showLoginDialog = ref(false);
@@ -64,7 +56,7 @@ const editorPanel = ref<HTMLElement | null>(null);
 // 创建防抖的预览更新函数 (500ms)
 const debouncedUpdatePreview = debounce(() => {
   if (!previewFrame.value) return;
-  
+
   const doc = previewFrame.value.contentDocument;
   if (!doc) return;
 
@@ -83,15 +75,16 @@ const debouncedUpdatePreview = debounce(() => {
   `);
   doc.close();
 }, 500); // 500ms防抖延迟
+
+watch(status,()=> {
+  debouncedUpdatePreview();
+});
+
 // 切换到注册界面
 const switchToRegister = () => {
   showLoginDialog.value = false;
   showRegisterDialog.value = true;
 };
-
-watchEffect(() => {
-    debouncedUpdatePreview();
-});
 
 // 切换到登录界面
 const switchToLogin = () => {

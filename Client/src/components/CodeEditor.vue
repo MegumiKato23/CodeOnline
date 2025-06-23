@@ -102,11 +102,7 @@ const initializeEditor = () => {
   if (!editorElement.value) return;
 
   const currentCode =
-    activeTab.value === 'html'
-      ? codeStore.htmlCode
-      : activeTab.value === 'css'
-        ? codeStore.cssCode
-        : codeStore.jsCode;
+    activeTab.value === 'html' ? codeStore.htmlCode : activeTab.value === 'css' ? codeStore.cssCode : codeStore.jsCode;
 
   const state = EditorState.create({
     doc: currentCode,
