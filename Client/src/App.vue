@@ -21,7 +21,8 @@
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { storeToRefs } from 'pinia';
 import { debounce } from 'lodash-es'; // 导入防抖函数
-import { useEditorStore } from '@/stores/editor';
+import { useCodeStore } from '@/stores/codeStore';
+import { useUserStore } from '@/stores/userStore';
 import Navbar from '@/components/Navbar.vue';
 import CodeEditor from '@/components/CodeEditor.vue';
 import Footer from '@/components/Footer.vue';
@@ -29,8 +30,9 @@ import SettingsDialog from '@/components/icons/SettingsIcon.vue';
 import LoginDialog from '@/components/login/LoginDialog.vue';
 import RegisterDialog from '@/components/login/RegisterDialog.vue';
 
-const editorStore = useEditorStore();
-const { htmlCode, cssCode, jsCode, activeTab } = storeToRefs(editorStore);
+const codeStore = useCodeStore();
+const userStore = useUserStore();
+const { htmlCode, cssCode, jsCode, activeTab } = storeToRefs(codeStore);
 const previewFrame = ref<HTMLIFrameElement | null>(null);
 const showSettings = ref(false);
 const showLoginDialog = ref(false);

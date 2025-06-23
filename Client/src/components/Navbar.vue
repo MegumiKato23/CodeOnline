@@ -31,7 +31,8 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
-import { useEditorStore } from '@/stores/editor';
+import { useUserStore } from '@/stores/userStore'; // 使用userStore
+import { useCodeStore } from '@/stores/codeStore'; // 使用codeStore
 import CodePenLogo from './icons/CodePenLogo.vue';
 import CloudIcon from './icons/CloudIcon.vue';
 import SettingsIcon from './icons/SettingsIcon.vue';
@@ -39,11 +40,13 @@ import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
 const emit = defineEmits(['login']);
 
-const editorStore = useEditorStore();
-const { saved, username, title, isLoggedIn, teamname } = storeToRefs(editorStore);
+const userStore = useUserStore();
+const codeStore = useCodeStore();
+const {username, title, isLoggedIn, teamname } = storeToRefs(userStore);
+const { saved } = storeToRefs(codeStore);
 
 const saveCode = () => {
-  editorStore.saveCode();
+  codeStore.saveCode();
   console.log('Code saved');
 };
 
@@ -52,7 +55,7 @@ const openSettings = () => {
 };
 
 // const download = () => {
-//   editorStore.saveCode();
+//   codeStore.saveCode();
 //   console.log('Download code');
 // };
 

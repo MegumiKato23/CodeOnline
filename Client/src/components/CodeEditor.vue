@@ -30,7 +30,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import { defaultKeymap, undo, redo, history } from '@codemirror/commands';
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
-import { useEditorStore } from '@/stores/editor';
+import { useCodeStore } from '@/stores/codeStore';
 import HtmlIcon from './icons/HtmlIcon.vue';
 import CssIcon from './icons/CssIcon.vue';
 import JsIcon from './icons/JsIcon.vue';
@@ -41,12 +41,12 @@ const props = defineProps<{
 }>();
 
 const { activeTab } = toRefs(props);
-const editorStore = useEditorStore();
+const codeStore = useCodeStore();
 const editorElement = ref<HTMLElement | null>(null);
 const editorView = ref<EditorView | null>(null);
 // 创建防抖的代码更新函数 (300ms)
 const debouncedUpdateCode = debounce((code: string) => {
-  editorStore.updateCode(activeTab.value, code);
+  codeStore.updateCode(activeTab.value, code);
 }, 300); // 300ms防抖延迟
 // 自定义高亮样式
 const myHighlightStyle = HighlightStyle.define([
@@ -103,10 +103,10 @@ const initializeEditor = () => {
 
   const currentCode =
     activeTab.value === 'html'
-      ? editorStore.htmlCode
+      ? codeStore.htmlCode
       : activeTab.value === 'css'
-        ? editorStore.cssCode
-        : editorStore.jsCode;
+        ? codeStore.cssCode
+        : codeStore.jsCode;
 
   const state = EditorState.create({
     doc: currentCode,
@@ -132,7 +132,7 @@ const recreateEditor = () => {
 };
 
 const setActiveTab = (tab: 'html' | 'css' | 'js') => {
-  editorStore.setActiveTab(tab);
+  codeStore.setActiveTab(tab);
 };
 
 onMounted(() => {
