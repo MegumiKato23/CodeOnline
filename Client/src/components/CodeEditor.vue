@@ -20,7 +20,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch, toRefs, onBeforeUnmount } from 'vue';
-import { debounce } from 'lodash-es';
 import { EditorState } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
@@ -44,11 +43,6 @@ const { activeTab } = toRefs(props);
 const editorStore = useEditorStore();
 const editorElement = ref<HTMLElement | null>(null);
 const editorView = ref<EditorView | null>(null);
-
-// 创建防抖的代码更新函数 (300ms)
-const debouncedUpdateCode = debounce((code: string) => {
-  editorStore.updateCode(activeTab.value, code);
-}, 300); // 300ms防抖延迟
 
 // 自定义高亮样式
 const myHighlightStyle = HighlightStyle.define([
@@ -82,7 +76,7 @@ const baseExtensions = [
   EditorView.updateListener.of((update) => {
     if (update.docChanged) {
       const code = update.state.doc.toString();
-      debouncedUpdateCode(code); // 使用防抖函数
+      editorStore.updateCode(activeTab.value, code);
     }
   }),
 ];
@@ -146,7 +140,6 @@ watch(activeTab, () => {
 });
 
 onBeforeUnmount(() => {
-  debouncedUpdateCode.cancel();
   destroyEditor();
 });
 </script>
