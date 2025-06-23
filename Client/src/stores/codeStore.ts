@@ -25,7 +25,7 @@ export const useCodeStore = defineStore('code', () => {
         userId,
         html: htmlCode.value,
         css: cssCode.value,
-        js: jsCode.value
+        js: jsCode.value,
       });
       console.log('代码已保存到Redis');
     } catch (error) {
@@ -35,13 +35,13 @@ export const useCodeStore = defineStore('code', () => {
 
   // 新增的loadCode方法
   const loadCode = async (userId: string) => {
-  try {
-    const response = await api.getCode(userId);
-    htmlCode.value = response.data.html || htmlCode.value;
-    cssCode.value = response.data.css || cssCode.value;
-    jsCode.value = response.data.js || jsCode.value;
-  } catch (error) {
-    console.error('加载失败:', error);
+    try {
+      const response = await api.getCode(userId);
+      htmlCode.value = response.data.html || htmlCode.value;
+      cssCode.value = response.data.css || cssCode.value;
+      jsCode.value = response.data.js || jsCode.value;
+    } catch (error) {
+      console.error('加载失败:', error);
     }
   };
 
@@ -58,6 +58,6 @@ export const useCodeStore = defineStore('code', () => {
     updateCode,
     saveCode,
     setActiveTab,
-    loadCode 
+    loadCode,
   };
 });

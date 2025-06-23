@@ -46,7 +46,7 @@ const editorPanel = ref<HTMLElement | null>(null);
 // 创建防抖的预览更新函数 (500ms)
 const debouncedUpdatePreview = debounce(() => {
   if (!previewFrame.value) return;
-  
+
   const doc = previewFrame.value.contentDocument;
   if (!doc) return;
 

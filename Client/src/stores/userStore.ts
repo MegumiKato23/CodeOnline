@@ -34,6 +34,6 @@ export const useUserStore = defineStore('user', () => {
     setTitle,
     setUsername,
     setAccount,
-    logout
+    logout,
   };
 });

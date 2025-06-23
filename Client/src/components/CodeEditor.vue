@@ -110,11 +110,7 @@ const initializeEditor = () => {
   if (!editorElement.value) return;
 
   const currentCode =
-    activeTab.value === 'html'
-      ? codeStore.htmlCode
-      : activeTab.value === 'css'
-        ? codeStore.cssCode
-        : codeStore.jsCode;
+    activeTab.value === 'html' ? codeStore.htmlCode : activeTab.value === 'css' ? codeStore.cssCode : codeStore.jsCode;
 
   const state = EditorState.create({
     doc: currentCode,
@@ -149,10 +145,11 @@ const setActiveTab = (tab: 'html' | 'css' | 'js') => {
 onMounted(() => {
   // 立即初始化编辑器（使用默认值）
   initializeEditor();
-  
+
   // 异步加载远程代码（如果用户已登录）
   if (userStore.isLoggedIn) {
-    codeStore.loadCode(userStore.account)
+    codeStore
+      .loadCode(userStore.account)
       .then(() => {
         // 代码加载成功后重新初始化编辑器
         recreateEditor();
@@ -165,17 +162,17 @@ onMounted(() => {
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
-watch([() => codeStore.htmlCode, () => codeStore.cssCode, () => codeStore.jsCode], 
+watch(
+  [() => codeStore.htmlCode, () => codeStore.cssCode, () => codeStore.jsCode],
   () => {
     if (saveTimer) clearTimeout(saveTimer);
-    
+
     saveTimer = setTimeout(() => {
       if (userStore.isLoggedIn) {
-        codeStore.saveCode(userStore.account)
-          .catch(error => console.error('保存失败:', error));
+        codeStore.saveCode(userStore.account).catch((error) => console.error('保存失败:', error));
       }
     }, 1000);
-  }, 
+  },
   { deep: true }
 );
 

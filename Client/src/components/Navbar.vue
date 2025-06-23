@@ -42,7 +42,7 @@ const emit = defineEmits(['login']);
 
 const userStore = useUserStore();
 const codeStore = useCodeStore();
-const {username, title, isLoggedIn, teamname } = storeToRefs(userStore);
+const { username, title, isLoggedIn, teamname } = storeToRefs(userStore);
 const { saved } = storeToRefs(codeStore);
 
 const saveCode = () => {
@@ -50,9 +50,10 @@ const saveCode = () => {
     console.log('请先登录再保存');
     return;
   }
-  
+
   // 传递当前登录用户的account作为userId
-  codeStore.saveCode(userStore.account)
+  codeStore
+    .saveCode(userStore.account)
     .then(() => {
       console.log('代码保存成功');
     })
