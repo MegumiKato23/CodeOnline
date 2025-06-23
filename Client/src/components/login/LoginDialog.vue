@@ -26,7 +26,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
-import { useEditorStore } from '@/stores/editor';
+import { useUserStore } from '@/stores/userStore';
 
 const props = defineProps<{
   visible: boolean;
@@ -34,7 +34,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['close', 'register']);
 
-const editorStore = useEditorStore();
+const userStore = useUserStore();
 const errorMessage = ref('');
 
 const loginForm = reactive({
@@ -65,7 +65,7 @@ const handleLogin = () => {
   console.log('登录信息:', loginForm);
 
   // 更新账号
-  editorStore.setAccount(loginForm.account);
+  userStore.setAccount(loginForm.account);
 
   // 关闭登录框
   close();
