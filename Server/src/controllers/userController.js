@@ -1,8 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { validationResult } = require('express-validator');
 const prisma = require('../utils/prisma');
-const { generateToken } = require('../utils/jwt');
-const { create } = require('domain');
+const { generateAccessToken, generateRefreshToken } = require('../utils/jwt');
 
 // 用户注册
 const register = async (req, res) => {
@@ -85,11 +84,34 @@ const login = async (req, res) => {
     }
 
     // 生成JWT令牌
-    const token = generateToken({ 
+    const accessToken = generateAccessToken({ 
       id: user.id, 
       username: user.name,
       account: user.account 
     });
+
+    const refreshToken = generateRefreshToken({
+      id: user.id,
+      username: user.name,
+      account: user.account
+    });
+
+    //设置HttpOnly Cookie
+  res.cookie('access_token', accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 24 * 60 * 60 * 1000, // 24小时
+    path: '/'
+  });
+  
+  res.cookie('refresh_token', refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7天
+    path: '/auth/refresh' 
+  });
 
     // 更新最后登录时间
     await prisma.user.update({
@@ -97,10 +119,10 @@ const login = async (req, res) => {
       data: { lastLogin: new Date() }
     });
 
+    // 在会话中存储用户id
+    req.session.userId = user.id;
+
     res.status(200).json({
-      access_token: token,
-      token_type: 'Bearer',
-      expires_in: 7 * 24 * 60 * 60, // 7天，单位秒
       user: {
         id: user.id,
         username: user.name,
@@ -116,6 +138,23 @@ const login = async (req, res) => {
   }
 };
 
+// 用户登出
+const logout = async (req, res) => {
+  try {
+    // 清除会话中的用户id
+    req.session.userId = null;
+
+    // 清除HttpOnly Cookie
+    res.clearCookie('access_token');
+    res.clearCookie('refresh_token');
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ error: 'Logout failed' });
+  }
+};
+
 // 更新用户资料
 const updateProfile = async (req, res) => {
   try {
@@ -123,7 +162,7 @@ const updateProfile = async (req, res) => {
     const userId = userData.id;
 
     // 验证用户是否有权限更新此资料
-    if (req.user.id !== userId) {
+    if (req.session.userId !== userId) {
       return res.status(403).json({ error: 'Permission denied' });
     }
 
@@ -132,7 +171,8 @@ const updateProfile = async (req, res) => {
       data: {
         name: userData.username,
         account: userData.account,
-        avatar: userData.avatar
+        avatar: userData.avatar,
+        
       }
     });
 
@@ -154,7 +194,8 @@ const updateProfile = async (req, res) => {
 // 获取用户资料
 const getProfile = async (req, res) => {
   try {
-    const userId = req.params.userId;
+    const userId = req.session.userId;
+    console.log(userId);
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -162,7 +203,8 @@ const getProfile = async (req, res) => {
         id: true,
         name: true,
         account: true,
-        avatar: true
+        avatar: true,
+        status: true
       }
     });
 
@@ -175,7 +217,8 @@ const getProfile = async (req, res) => {
         id: user.id,
         username: user.name,
         account: user.account,
-        avatar: user.avatar
+        avatar: user.avatar,
+        status: user.status
       }
     });
 
@@ -188,7 +231,7 @@ const getProfile = async (req, res) => {
 // 获取用户项目集
 const getUserProjects = async (req, res) => {
   try {
-    const userId = req.params.userId;
+    const userId = req.session.userId;
 
     const userWithProjects = await prisma.user.findUnique({
       where: { id: userId },
@@ -227,19 +270,31 @@ const getUserProjects = async (req, res) => {
 // 更新token
 const refreshToken = async (req, res) => {
   try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.session.userId }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
     // 生成新的访问令牌
-    const newToken = generateToken({
+    const newAccessToken = generateAccessToken({
       id: user.id,
       username: user.name,
       account: user.account
     });
 
-    // 返回新的访问令牌
-    res.status(200).json({
-      access_token: newToken,
-      token_type: 'Bearer',
-      expires_in: 7 * 24 * 60 * 60
+    // 设置HttpOnly Cookie
+    res.cookie('access_token', newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000, // 24小时
+      path: '/'
     });
+
+    res.json({ success: true })
   } catch(error) {
     console.error('Refresh token error:', error);
     res.status(500).json({ error: 'Failed to refresh token' });
@@ -249,6 +304,7 @@ const refreshToken = async (req, res) => {
 module.exports = {
   register,
   login,
+  logout,
   updateProfile,
   getProfile,
   getUserProjects,
