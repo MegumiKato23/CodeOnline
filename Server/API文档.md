@@ -147,7 +147,6 @@
 {
   "id": "string, 项目ID",
   "name": "string, 项目名",
-  "owner": "User, 所属者信息",
   "files": "File[], 文件数组",
   "createdAt": "Date, 创建时间", 
   "updatedAt": "Date, 更新时间"
@@ -169,7 +168,6 @@
 ```json
 {
   "id": "string, 项目ID",
-  "ownerId": "string, 所属者ID",
   "name": "string, 项目名",
   "files": "File[], 文件数组",
   "createdAt": "Date, 创建时间", 
@@ -195,7 +193,6 @@
 - **响应**:
 ```json
 {
-  "shareUrl": "string, 分享链接",
   "shareId": "string, 分享id",
   "expiresAt": "Date, 到期时间"
 }
@@ -203,14 +200,13 @@
 
 #### 2.6 获取分享项目
 - **方法**: GET
-- **路径**: `/share/{shareId}`
+- **路径**: `/projects/share/to/{shareId}`
 - **认证**: 需要Token
 - **响应**:
 ```json
 {
   "id": "string, 项目ID",
   "name": "string, 项目名",
-  "owner": "User, 所属者信息",
   "files": "File[], 文件数组",
   "createdAt": "Date, 创建时间", 
   "updatedAt": "Date, 更新时间"
