@@ -6,6 +6,7 @@
             <li><a2 style='color:white'>更换头像</a2></li>
         </ul>
     </div>
+    
 </template>
 
 <script setup lang="ts">
@@ -22,7 +23,6 @@ const emit = defineEmits(['login']);
 const login = () => {
   emit('login');
 };
-
 </script>
 
 <style  scoped>
