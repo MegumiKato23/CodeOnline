@@ -262,7 +262,6 @@ const tests = {
             assertTest(Array.isArray(response.data.files), '应返回文件数组');
 
             this.files = response.data.files;
-
             console.log('✅ 获取项目成功:', response.data);
             return true;
         } catch (error) {
@@ -293,7 +292,6 @@ const tests = {
         }
     },
 
-    
 
     // 获取文件测试
     async getFile() {
@@ -377,7 +375,6 @@ const tests = {
             assertTest(response.data.expiresAt, '应返回过期时间');
 
             this.shareId = response.data.shareId;
-
             console.log('✅ 获取分享链接成功:', response.data);
             return true;
         } catch (error) {

@@ -86,11 +86,12 @@ const scrollToBottom = () => {
 
 /* 展开状态 */
 .footer.expanded {
-  height: 250px;
+  height: 40%;
 }
 
 .tabs {
-  height: 100%;
+  height: 30px;
+  padding: 0 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;

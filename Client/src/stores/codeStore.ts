@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 
-export const useEditorStore = defineStore('editor', () => {
+export const useCodeStore = defineStore('code', () => {
   const htmlCode = ref(
     '<div class="root">\n  <div>\n    <svg viewBox="0 0 100 100" fill="white" width="60px" height="60px">\n      <circle cx="50" cy="50" r="40" />\n    </svg>\n    <h1>CodePen Clone</h1>\n    <p>CodePen is a clone of a famous web IDE developed by Diwanshu Midha</p>\n  </div>\n</div>'
   );
@@ -11,11 +11,6 @@ export const useEditorStore = defineStore('editor', () => {
   const jsCode = ref('console.log("Hello from CodePen Clone")');
   const activeTab = ref<'html' | 'css' | 'js'>('html');
   const saved = ref(true);
-  const teamname = ref('从容应队');
-  const username = ref('NaN');
-  const title = ref('CodeOnline');
-  const account = ref('18812345678');
-  const isLoggedIn = ref(false);
 
   const updateCode = (type: 'html' | 'css' | 'js', code: string) => {
     if (type === 'html') htmlCode.value = code;
@@ -32,39 +27,14 @@ export const useEditorStore = defineStore('editor', () => {
     activeTab.value = tab;
   };
 
-  const setTitle = (newTitle: string) => {
-    title.value = newTitle;
-  };
-
-  const setUsername = (newUsername: string) => {
-    username.value = newUsername;
-  };
-
-  const setAccount = (newAccount: string) => {
-    account.value = newAccount;
-    isLoggedIn.value = true;
-  };
-
-  const logout = () => {
-    isLoggedIn.value = false;
-  };
-
   return {
     htmlCode,
     cssCode,
     jsCode,
     activeTab,
-    username,
-    teamname,
     saved,
-    account,
-    title,
-    isLoggedIn,
     updateCode,
     saveCode,
-    setActiveTab,
-    setTitle,
-    setAccount,
-    logout,
+    setActiveTab
   };
 });

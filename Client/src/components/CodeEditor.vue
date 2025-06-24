@@ -20,6 +20,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch, toRefs, onBeforeUnmount } from 'vue';
+import { debounce } from 'lodash-es'; // 导入防抖函数
 import { EditorState } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
@@ -29,20 +30,24 @@ import { javascript } from '@codemirror/lang-javascript';
 import { defaultKeymap, undo, redo, history } from '@codemirror/commands';
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
-import { useEditorStore } from '@/stores/editor';
+import { useCodeStore } from '@/stores/codeStore';
 import HtmlIcon from './icons/HtmlIcon.vue';
 import CssIcon from './icons/CssIcon.vue';
 import JsIcon from './icons/JsIcon.vue';
+import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
 const props = defineProps<{
   activeTab: 'html' | 'css' | 'js';
 }>();
 
 const { activeTab } = toRefs(props);
-const editorStore = useEditorStore();
+const codeStore = useCodeStore();
 const editorElement = ref<HTMLElement | null>(null);
 const editorView = ref<EditorView | null>(null);
-
+// 创建防抖的代码更新函数 (300ms)
+const debouncedUpdateCode = debounce((code: string) => {
+  codeStore.updateCode(activeTab.value, code);
+}, 300); // 300ms防抖延迟
 // 自定义高亮样式
 const myHighlightStyle = HighlightStyle.define([
   { tag: tags.keyword, color: '#c678dd' },
@@ -75,7 +80,7 @@ const baseExtensions = [
   EditorView.updateListener.of((update) => {
     if (update.docChanged) {
       const code = update.state.doc.toString();
-      editorStore.updateCode(activeTab.value, code);
+      debouncedUpdateCode(code); // 使用防抖函数
     }
   }),
 ];
@@ -98,10 +103,10 @@ const initializeEditor = () => {
 
   const currentCode =
     activeTab.value === 'html'
-      ? editorStore.htmlCode
+      ? codeStore.htmlCode
       : activeTab.value === 'css'
-        ? editorStore.cssCode
-        : editorStore.jsCode;
+        ? codeStore.cssCode
+        : codeStore.jsCode;
 
   const state = EditorState.create({
     doc: currentCode,
@@ -127,7 +132,7 @@ const recreateEditor = () => {
 };
 
 const setActiveTab = (tab: 'html' | 'css' | 'js') => {
-  editorStore.setActiveTab(tab);
+  codeStore.setActiveTab(tab);
 };
 
 onMounted(() => {
@@ -139,6 +144,7 @@ watch(activeTab, () => {
 });
 
 onBeforeUnmount(() => {
+  debouncedUpdateCode.cancel();
   destroyEditor();
 });
 </script>
@@ -159,7 +165,7 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
 }
 
-.tabs button {
+/* .tabs button {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -170,16 +176,16 @@ onBeforeUnmount(() => {
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
-}
+} */
 
-.tabs button.active {
+/* .tabs button.active {
   background: #333;
   color: white;
-}
+} */
 
-.tabs button:hover {
+/* .tabs button:hover {
   background: #333;
-}
+} */
 
 .editor {
   flex: 1;
@@ -187,8 +193,8 @@ onBeforeUnmount(() => {
   position: relative;
 }
 
-.icon {
+/* .icon {
   width: 16px;
   height: 16px;
-}
+} */
 </style>
