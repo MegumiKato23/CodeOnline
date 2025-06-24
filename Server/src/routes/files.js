@@ -10,15 +10,16 @@ const {
 
 const { authenticateToken } = require('../middleware/auth');
 const { validateFile } = require('../middleware/validation');
+const { cookieAuth } = require('../middleware/cookie');
 
 // 创建文件 (需要认证)
-router.post('/', authenticateToken, validateFile, createFile);
+router.post('/', cookieAuth, authenticateToken, validateFile, createFile);
 
 // 更新文件 (需要认证)
-router.put('/:fileId', authenticateToken, validateFile, updateFile);
+router.put('/:fileId', cookieAuth, authenticateToken, validateFile, updateFile);
 
 // 删除文件 (需要认证)
-router.delete('/:fileId', authenticateToken, deleteFile);
+router.delete('/:fileId', cookieAuth, authenticateToken, deleteFile);
 
 // 获取文件
 router.get('/:fileId', getFile);

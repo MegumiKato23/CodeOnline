@@ -21,7 +21,7 @@ const createFile = async (req, res) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (project.ownerId !== req.user.id) {
+    if (project.ownerId !== req.session.userId) {
       return res.status(403).json({ error: 'Permission denied' });
     }
 
@@ -73,7 +73,7 @@ const updateFile = async (req, res) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (project.ownerId !== req.user.id) {
+    if (project.ownerId !== req.session.userId) {
       return res.status(403).json({ error: 'Permission denied' });
     }
 
@@ -131,7 +131,7 @@ const deleteFile = async (req, res) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (project.ownerId !== req.user.id) {
+    if (project.ownerId !== req.session.userId) {
       return res.status(403).json({ error: 'Permission denied' });
     }
 
