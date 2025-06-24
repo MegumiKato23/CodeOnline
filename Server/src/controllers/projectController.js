@@ -41,13 +41,6 @@ const getProject = async (req, res) => {
     const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
-        owner: {
-          select: {
-            id: true,
-            name: true,
-            account: true
-          }
-        },
         files: true
       }
     });
@@ -59,12 +52,7 @@ const getProject = async (req, res) => {
     res.status(200).json({
       id: project.id,
       name: project.name,
-      owner: {
-        id: project.owner.id,
-        username: project.owner.name,
-        account: project.owner.account
-      },
-      files: project.files.map(file => file.id),
+      files: project.files,
       createdAt: project.createdAt.toISOString(),
       updatedAt: project.updatedAt.toISOString()
     });
@@ -79,7 +67,7 @@ const getProject = async (req, res) => {
 const updateProject = async (req, res) => {
   try {
     const projectId = req.params.projectId;
-    const { name, files } = req.body;
+    const { name } = req.body;
 
     // 检查项目是否存在并且用户有权限
     const existingProject = await prisma.project.findUnique({
@@ -96,14 +84,12 @@ const updateProject = async (req, res) => {
 
     const updatedProject = await prisma.project.update({
       where: { id: projectId },
-      data: { name: name, files: files }
+      data: { name: name }
     });
 
     res.status(200).json({
       id: updatedProject.id,
       name: updatedProject.name,
-      ownerId: updatedProject.ownerId,
-      files: updatedProject.files,
       createdAt: updatedProject.createdAt.toISOString(),
       updatedAt: updatedProject.updatedAt.toISOString()
     });
@@ -170,10 +156,7 @@ const getShareLink = async (req, res) => {
       }
     });
 
-    const shareUrl = `${req.protocol}://${req.get('host')}/share/${share.id}`;
-
     res.status(200).json({
-      shareUrl: shareUrl,
       shareId: share.id,
       expiresAt: keeptime.toISOString()
     });
@@ -198,7 +181,10 @@ const getShareProject = async (req, res) => {
     }
 
     const project = await prisma.project.findUnique({
-      where: { id: share.projectId }
+      where: { id: share.projectId },
+      include: {
+        files: true
+      }
     });
 
     if (!project) {
@@ -208,12 +194,7 @@ const getShareProject = async (req, res) => {
     res.status(200).json({
       id: project.id,
       name: project.name,
-      owner: {
-        id: project.owner.id,
-        username: project.owner.name,
-        account: project.owner.account
-      },
-      files: project.files.map(file => file.id),
+      files: project.files,
       createdAt: project.createdAt.toISOString(),
       updatedAt: project.updatedAt.toISOString()
     });

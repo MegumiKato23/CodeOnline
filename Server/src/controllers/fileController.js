@@ -35,6 +35,16 @@ const createFile = async (req, res) => {
       }
     });
 
+    // 更新项目
+    await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        files: {
+          connect: { id: file.id }
+        }
+      }
+    });
+
     res.status(200).json({
       id: file.id,
       name: file.name,

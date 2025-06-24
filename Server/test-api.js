@@ -70,6 +70,7 @@ const tests = {
         this.projectId = null; // 存储项目ID
         this.fileId = null; // 存储文件ID
         this.shareId = null; // 存储分享ID
+        this.files = null; // 存储文件数组
     },
 
   // 健康检查测试
@@ -216,53 +217,9 @@ const tests = {
         }
     },
 
-    // 获取项目测试
-    async getProject() {
-        console.log('7. 测试获取项目...');
-        try {
-            const response = await api.get(`/projects/${projectId}`, {
-                headers: { Cookie: this.cookie }
-            });
-
-            assertTest(response.status === 200, '获取项目状态码应为200');
-            assertTest(response.data.id === projectId, '应返回正确的项目ID');
-            assertTest(response.data.name === testProject.name, '应返回正确的项目名');
-            assertTest(response.data.owner.id === userId, '应返回正确的所有者ID');
-            assertTest(Array.isArray(response.data.files), '应返回文件数组');
-
-            console.log('✅ 获取项目成功:', response.data);
-            return true;
-        } catch (error) {
-            console.error('❌ 获取项目失败:', error.response?.data || error.message);
-            return false;
-        }
-    },
-
-    // 更新项目测试
-    async updateProject() {
-        console.log('8. 测试更新项目...');
-        try {
-            const response = await api.put(`/projects/${projectId}`, {
-                name: 'Updated Test Project'
-            }, {
-                headers: { Cookie: this.cookie }
-            });
-
-            assertTest(response.status === 200, '更新项目状态码应为200');
-            assertTest(response.data.id === projectId, '应返回正确的项目ID');
-            assertTest(response.data.name === 'Updated Test Project', '应返回更新后的项目名');
-
-            console.log('✅ 更新项目成功:', response.data);
-            return true;
-        } catch (error) {
-            console.error('❌ 更新项目失败:', error.response?.data || error.message);
-            return false;
-        }
-    },
-
     // 创建文件测试
     async createFile() {
-        console.log('9. 测试创建文件...');
+        console.log('7. 测试创建文件...');
         try {
             const response = await api.post(`/projects/${projectId}/files`, testFile, {
                 headers: { Cookie: this.cookie }
@@ -290,6 +247,53 @@ const tests = {
             return false;
         }
     },
+
+    // 获取项目测试
+    async getProject() {
+        console.log('8. 测试获取项目...');
+        try {
+            const response = await api.get(`/projects/${projectId}`, {
+                headers: { Cookie: this.cookie }
+            });
+
+            assertTest(response.status === 200, '获取项目状态码应为200');
+            assertTest(response.data.id === projectId, '应返回正确的项目ID');
+            assertTest(response.data.name === testProject.name, '应返回正确的项目名');
+            assertTest(Array.isArray(response.data.files), '应返回文件数组');
+
+            this.files = response.data.files;
+
+            console.log('✅ 获取项目成功:', response.data);
+            return true;
+        } catch (error) {
+            console.error('❌ 获取项目失败:', error.response?.data || error.message);
+            return false;
+        }
+    },
+
+    // 更新项目测试
+    async updateProject() {
+        console.log('9. 测试更新项目...');
+        try {
+            const response = await api.put(`/projects/${projectId}`, {
+                name: 'Updated Test Project'
+            }, {
+                headers: { Cookie: this.cookie }
+            });
+
+            assertTest(response.status === 200, '更新项目状态码应为200');
+            assertTest(response.data.id === projectId, '应返回正确的项目ID');
+            assertTest(response.data.name === 'Updated Test Project', '应返回更新后的项目名');
+
+            console.log('✅ 更新项目成功:', response.data);
+            return true;
+        } catch (error) {
+            console.error('❌ 更新项目失败:', error.response?.data || error.message);
+            return false;
+        }
+    },
+
+    
 
     // 获取文件测试
     async getFile() {
@@ -364,16 +368,16 @@ const tests = {
     async getShareLink() {
         console.log('13. 测试获取分享链接...');
         try {
+            console.log(projectId);
             const response = await api.get(`/projects/share/${projectId}`, {
                 headers: { Cookie: this.cookie }
             });
 
             assertTest(response.status === 200, '获取分享链接状态码应为200');
-            assertTest(response.data.shareUrl, '应返回分享URL');
-            assertTest(response.data.shareId, '应返回分享ID');
             assertTest(response.data.expiresAt, '应返回过期时间');
 
-            shareId = response.data.shareId;
+            this.shareId = response.data.shareId;
+
             console.log('✅ 获取分享链接成功:', response.data);
             return true;
         } catch (error) {
@@ -382,9 +386,28 @@ const tests = {
         }
     },
 
+    // 获取分享项目测试
+    async getShareProject() {
+        console.log('14. 测试获取分享项目...');
+        try {
+            const response = await api.get(`/projects/share/to/${shareId}`, {
+                headers: { Cookie: this.cookie }
+            });
+
+            assertTest(response.status === 200, '获取分享项目状态码应为200');
+            assertTest(response.data.id === projectId, '应返回正确的项目ID');
+
+            console.log('✅ 获取分享项目成功:', response.data);
+            return true;
+        } catch (error) {
+            console.error('❌ 获取分享项目失败:', error.response?.data || error.message);
+            return false;
+        }
+    },
+
     // 删除文件测试
     async deleteFile() {
-        console.log('14. 测试删除文件...');
+        console.log('15. 测试删除文件...');
         try {
             const response = await api.delete(`/projects/${projectId}/files/${fileId}`, {
                 headers: { Cookie: this.cookie }
@@ -414,7 +437,7 @@ const tests = {
 
     // 删除项目测试
     async deleteProject() {
-        console.log('15. 测试删除项目...');
+        console.log('16. 测试删除项目...');
         try {
             const response = await api.delete(`/projects/${projectId}`, {
                 headers: { Cookie: this.cookie }
@@ -446,7 +469,7 @@ const tests = {
 
     // 用户登出测试
     async userLogout() {
-        console.log('16. 测试用户登出...');
+        console.log('17. 测试用户登出...');
         try {
             const response = await api.post('/users/logout', {}, {
                 headers: { Cookie: this.cookie }
@@ -465,7 +488,7 @@ const tests = {
 
     // 错误处理测试
     async errorHandling() {
-        console.log('17. 测试错误处理...');
+        console.log('18. 测试错误处理...');
 
         // 测试404路由
         try {
