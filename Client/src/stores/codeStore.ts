@@ -47,9 +47,5 @@ export const useCodeStore = defineStore('code', () => {
     updateCode,
     saveCode,
     setActiveTab
-=======
-    setActiveTab,
-    clearCode
->>>>>>> Stashed changes
   };
 });
