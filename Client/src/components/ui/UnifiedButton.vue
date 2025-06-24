@@ -121,8 +121,6 @@ const handleClick = (event: MouseEvent) => {
 .btn-tab.btn-active {
   color: #fff;
   background: hsla(223, 33%, 96%, 0.639);
-
-  /* border-bottom-color: #1a1a1a; */
 }
 
 /* 状态 */

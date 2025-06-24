@@ -8,7 +8,20 @@
         <UnifiedButton type="primary" size="small" @click="closeConsole">Assets</UnifiedButton>
       </div>
       <div class="tabs_right">
-        <UnifiedButton type="primary" size="small">share</UnifiedButton>
+        <UnifiedButton type="primary" size="small" @click.stop="openShareBox">share</UnifiedButton>
+        <div v-if="isShareExpanded" class="share" ref="shareRef">
+          <h2>Share</h2>
+          <span class="share_link">{{ shareLink }}</span>
+          <UnifiedButton type="primary" size="large" class="copy_link" @click="copyLink">Copy Link</UnifiedButton>
+        </div>
+      </div>
+    </div>
+
+    <!-- 复制成功提示弹窗 -->
+    <div v-if="showCopyToast" class="copy-toast">
+      <div class="toast-content">
+        <span class="toast-icon">✓</span>
+        <span class="toast-text">Copied Url to Clipboard!</span>
       </div>
     </div>
 
@@ -36,12 +49,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue';
+import { ref, nextTick, onMounted, onUnmounted } from 'vue';
 
 const isConsoleExpanded = ref(false);
+const isShareExpanded = ref(false);
+const shareRef = ref(null);
+const shareLink = ref('http');
 const consoleLogs = ref<string[]>([]);
 const command = ref('');
 const consoleOutput = ref<HTMLElement | null>(null);
+// 添加复制提示状态
+const showCopyToast = ref(false);
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
 const toggleConsole = () => {
@@ -71,6 +89,57 @@ const scrollToBottom = () => {
     }
   });
 };
+
+const openShareBox = () => {
+  isShareExpanded.value = true;
+};
+
+const copyLink = async () => {
+  try {
+    await navigator.clipboard.writeText(shareLink.value);
+    console.log('复制成功');
+    // 显示复制成功提示
+    showCopyToast.value = true;
+    // 2秒后自动隐藏提示
+    setTimeout(() => {
+      showCopyToast.value = false;
+    }, 1000);
+  } catch (err) {
+    console.error('复制失败 ', err);
+  }
+};
+
+// 外部点击处理
+function handleClickOutside(e: MouseEvent) {
+  // 点击分享弹窗外部
+  if (shareRef.value && !shareRef.value.contains(e.target)) {
+    isShareExpanded.value = false;
+  }
+}
+
+// 处理来自iframe的消息
+function handleIframeMessage(event: MessageEvent) {
+  // 验证消息来源和类型
+  if (event.data && event.data.type === 'iframe-click') {
+    console.log('收到iframe点击消息:', event.data);
+    // 触发handleClickOutside逻辑
+    if (isShareExpanded.value) {
+      isShareExpanded.value = false;
+    }
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside);
+  // 监听来自iframe的postMessage
+  window.addEventListener('message', handleIframeMessage);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside);
+  // 移除postMessage监听
+  window.removeEventListener('message', handleIframeMessage);
+});
 </script>
 
 <style scoped>
@@ -109,6 +178,84 @@ const scrollToBottom = () => {
   display: flex;
 }
 
+.share {
+  position: absolute;
+  /* bottom: 35px; */
+  right: 0;
+  width: 200px;
+  height: 128px;
+  padding: 10px 15px;
+  background-color: rgb(30, 31, 38);
+  animation: shareBox 0.3s ease forwards;
+}
+
+.copy_link {
+  margin-top: 10px;
+  width: 100%;
+  background-color: hsl(226, 28%, 69%);
+}
+
+.copy_link:hover {
+  background-color: hsl(225, 75%, 75%) !important;
+}
+
+@keyframes shareBox {
+  from {
+    opacity: 0;
+    bottom: 0;
+  }
+  to {
+    opacity: 1;
+    bottom: 35px;
+  }
+}
+
+/* 复制成功提示弹窗样式 */
+.copy-toast {
+  position: fixed;
+  top: 5px;
+  right: 50%;
+  transform: translateX(50%);
+  z-index: 9999;
+  animation: slideInRight 0.2s ease-out;
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  height: 40px;
+  color: white;
+  border: 2px solid #4caf50;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.toast-icon {
+  font-size: 16px;
+  font-weight: bold;
+  color: #4caf50;
+}
+
+.toast-text {
+  white-space: nowrap;
+}
+
+@keyframes slideInRight {
+  from {
+    /* transform: translateX(100%); */
+    /* top: 5px; */
+    opacity: 0;
+  }
+  to {
+    /* transform: translateX(0); */
+    /* top: 50px; */
+    opacity: 1;
+  }
+}
 /* .tabs button {
   padding: 0.4rem 1rem;
   background: #2a2a2a;

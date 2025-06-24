@@ -59,7 +59,18 @@ const debouncedUpdatePreview = debounce(() => {
       </head>
       <body>
         ${htmlCode.value}
-        <script>${jsCode.value}<\/script>
+        <script>
+        // 监听iframe内部的点击事件
+          document.addEventListener('click', function(e) {
+            // 向父页面发送消息
+            window.parent.postMessage({
+              type: 'iframe-click',
+              target: e.target.tagName,
+              timestamp: Date.now()
+            }, '*');
+          });
+        ${jsCode.value}
+        <\/script>
       </body>
     </html>
   `);
