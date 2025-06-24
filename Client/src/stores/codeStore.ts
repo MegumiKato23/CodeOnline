@@ -18,18 +18,7 @@ export const useCodeStore = defineStore('code', () => {
     else if (type === 'js') jsCode.value = code;
     saved.value = false;
   };
-
-<<<<<<< Updated upstream
-=======
-  const clearCode = (type: 'html' | 'css' | 'js', code: string) => {
-    code='';
-    if (type === 'html') htmlCode.value = code;
-    else if (type === 'css') cssCode.value = code;
-    else if (type === 'js') jsCode.value = code;
-    saved.value = false;
-  };
-
->>>>>>> Stashed changes
+  
   const saveCode = () => {
     saved.value = true;
   };
