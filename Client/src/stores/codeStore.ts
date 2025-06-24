@@ -46,7 +46,6 @@ export const useCodeStore = defineStore('code', () => {
     saved,
     updateCode,
     saveCode,
-<<<<<<< Updated upstream
     setActiveTab
 =======
     setActiveTab,
