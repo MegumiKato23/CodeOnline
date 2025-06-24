@@ -14,7 +14,7 @@
     <SettingsDialog v-if="showSettings" @close="showSettings = false" />
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
-    <head_portrait  @login="showLoginDialog = true"/>
+    <head_portrait @login="showLoginDialog = true"/>
   </div>
 </template>
 
