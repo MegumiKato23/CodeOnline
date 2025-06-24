@@ -8,9 +8,13 @@
         <UnifiedButton type="primary" size="small" @click="closeConsole">Assets</UnifiedButton>
       </div>
       <div class="tabs_right">
+<<<<<<< HEAD
         <UnifiedButton type="primary" size="small" :disabled="props.isReadOnly" @click.stop="openShareBox">
           share
         </UnifiedButton>
+=======
+        <UnifiedButton type="primary" size="small" @click.stop="openShareBox">share</UnifiedButton>
+>>>>>>> 997fea6 (复制链接功能实现)
         <div v-if="isShareExpanded" class="share" ref="shareRef">
           <h2>Share</h2>
           <span class="share_link">{{ shareLink }}</span>
@@ -23,10 +27,14 @@
     <div v-if="showCopyToast" class="copy-toast">
       <div class="toast-content">
         <span class="toast-icon">✓</span>
+<<<<<<< HEAD
         <span class="toast-text"
           >Copied Url to Clipboard!
           <span v-if="shareTime">The link is valid until {{ shareTime }}</span>
         </span>
+=======
+        <span class="toast-text">Copied Url to Clipboard!</span>
+>>>>>>> 997fea6 (复制链接功能实现)
       </div>
     </div>
 
@@ -55,12 +63,16 @@
 
 <script setup lang="ts">
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { ref, nextTick, onMounted, onUnmounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import { api } from '@/api/index';
 =======
 import { ref, nextTick } from 'vue';
 >>>>>>> bfca8a1 (解决冲突)
+=======
+import { ref, nextTick, onMounted, onUnmounted } from 'vue';
+>>>>>>> 997fea6 (复制链接功能实现)
 
 const userStore = useUserStore();
 const props = defineProps<{
@@ -69,6 +81,7 @@ const props = defineProps<{
 const isConsoleExpanded = ref(false);
 const isShareExpanded = ref(false);
 const shareRef = ref(null);
+<<<<<<< HEAD
 const shareLink = ref(window.location.origin);
 const shareTime = ref(null);
 const consoleLogs = ref<string[]>([]);
@@ -81,6 +94,14 @@ const showCopyToast = ref(false);
 const emit = defineEmits(['login']);
 =======
 >>>>>>> bfca8a1 (解决冲突)
+=======
+const shareLink = ref('http');
+const consoleLogs = ref<string[]>([]);
+const command = ref('');
+const consoleOutput = ref<HTMLElement | null>(null);
+// 添加复制提示状态
+const showCopyToast = ref(false);
+>>>>>>> 997fea6 (复制链接功能实现)
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
 const toggleConsole = () => {
@@ -111,6 +132,7 @@ const scrollToBottom = () => {
   });
 };
 
+<<<<<<< HEAD
 // 获取分享链接
 const getProjectShareLink = async () => {
   try {
@@ -147,6 +169,10 @@ const openShareBox = async () => {
     await getProjectShareLink();
     isShareExpanded.value = true;
   }
+=======
+const openShareBox = () => {
+  isShareExpanded.value = true;
+>>>>>>> 997fea6 (复制链接功能实现)
 };
 
 const copyLink = async () => {
@@ -238,17 +264,24 @@ onUnmounted(() => {
   /* bottom: 35px; */
   right: 0;
   width: 200px;
+<<<<<<< HEAD
   height: 150px;
+=======
+  height: 128px;
+>>>>>>> 997fea6 (复制链接功能实现)
   padding: 10px 15px;
   background-color: rgb(30, 31, 38);
   animation: shareBox 0.3s ease forwards;
 }
 
+<<<<<<< HEAD
 .share_link {
   width: 180px;
   font-size: 10px;
 }
 
+=======
+>>>>>>> 997fea6 (复制链接功能实现)
 .copy_link {
   margin-top: 10px;
   width: 100%;
