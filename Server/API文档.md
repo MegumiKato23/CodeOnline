@@ -82,6 +82,17 @@
   }
 }
 ```
+- **响应**: 返回用户信息
+```json
+{
+  "user": {
+    "id": "string, 用户ID",
+    "username": "string, 用户名",
+    "account": "string, 账户",
+    "avatar": "string, 头像URL",
+    "status": "string, 状态栏"
+  }
+}
 
 #### 1.4 获取用户资料
 - **方法**: GET
@@ -221,6 +232,7 @@
   "id": "string, 项目ID",
   "name": "string, 项目名",
   "files": "File[], 文件数组",
+  "ownerId": "string, 所属者ID",
   "createdAt": "Date, 创建时间", 
   "updatedAt": "Date, 更新时间"
 }

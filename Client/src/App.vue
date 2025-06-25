@@ -37,7 +37,7 @@ import SettingsDialog from '@/components/icons/SettingsIcon.vue';
 import LoginDialog from '@/components/login/LoginDialog.vue';
 import RegisterDialog from '@/components/login/RegisterDialog.vue';
 import head_portrait from './components/head_portrait.vue';
-import api from '@/api/index';
+import { api } from '@/api/index';
 import { Users } from 'lucide-vue-next';
 
 const codeStore = useCodeStore();

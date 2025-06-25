@@ -56,8 +56,18 @@ const { username, isLoggedIn } = storeToRefs(userStore);
 const { saved } = storeToRefs(codeStore);
 
 const saveCode = () => {
-  codeStore.saveCode();
-  console.log('Code saved');
+  if (!userStore.isLoggedIn) {
+    console.log('请先登录再保存');
+    return;
+  }
+  codeStore
+    .saveCode(userStore.account)
+    .then(() => {
+      console.log('代码保存成功');
+    })
+    .catch(() => {
+      console.log('代码保存失败');
+    });
 };
 
 const openSettings = () => {

@@ -190,6 +190,7 @@ const getShareProject = async (req, res) => {
       id: project.id,
       name: project.name,
       files: project.files,
+      ownerId: project.ownerId,
       createdAt: project.createdAt.toISOString(),
       updatedAt: project.updatedAt.toISOString(),
     });

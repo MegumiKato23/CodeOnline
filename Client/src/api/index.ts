@@ -13,7 +13,6 @@ export interface Project {
   id: string;
   name: string;
   ownerId?: string;
-  owner?: User;
   files?: File[];
   createdAt?: string;
   updatedAt?: string;
@@ -226,7 +225,21 @@ class ApiClient {
     const response = await this.client.get<{ file: File }>(`/projects/${projectId}/files/${fileId}`);
     return response.data;
   }
+  //模拟文件内容
+  async getFile_1(projectId: string, fileId: string): Promise<{ file: File }> {
+    const mockFile: File = {
+      id: fileId,
+      name: 'ExampleComponent.vue',
+      path: '/src/components',
+      content: '<template>\n  <div>Hello</div>\n</template>',
+      type: FileType.HTML,
+      projectId: projectId,
+      createdAt: '2023-10-01T10:00:00Z',
+      updatedAt: '2023-10-01T10:00:00Z',
+    };
 
+    return { file: mockFile };
+  }
   async updateFile(projectId: string, fileId: string, data: UpdateFileRequest): Promise<{ file: File }> {
     const response = await this.client.put<{ file: File }>(`/projects/${projectId}/files/${fileId}`, data);
     return response.data;
@@ -240,4 +253,37 @@ class ApiClient {
 
 export const api = new ApiClient();
 
+<<<<<<< HEAD
 export default api;
+=======
+// export default api;
+export interface FileContent {
+  id: string;
+  name: string;
+  path: string;
+  content: string;
+  type: FileType;
+  projectId: string;
+}
+
+export interface SaveCodeRequest {
+  userId: string;
+  file: FileContent;
+}
+
+export interface GetCodeResponse {
+  files: FileContent[];
+}
+
+interface CodeData {
+  html: string;
+  css: string;
+  js: string;
+}
+export default {
+  saveCode: (data: { userId: string; html: string; css: string; js: string }) =>
+    axios.post('http://localhost:3001/api/code/save', data),
+
+  getCode: (userId: string) => axios.get<CodeData>(`http://localhost:3001/api/code/${userId}`),
+};
+>>>>>>> 3fb1550496d517ad49ff6ec3c3825666ebab2797
