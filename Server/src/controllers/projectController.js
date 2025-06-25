@@ -15,8 +15,8 @@ const createProject = async (req, res) => {
     const project = await prisma.project.create({
       data: {
         name: name,
-        ownerId: userId
-      }
+        ownerId: userId,
+      },
     });
 
     res.status(200).json({
@@ -24,9 +24,8 @@ const createProject = async (req, res) => {
       name: project.name,
       ownerId: project.ownerId,
       createdAt: project.createdAt.toISOString(),
-      updatedAt: project.updatedAt.toISOString()
+      updatedAt: project.updatedAt.toISOString(),
     });
-
   } catch (error) {
     console.error('Create project error:', error);
     res.status(500).json({ error: 'Failed to create project' });
@@ -41,8 +40,8 @@ const getProject = async (req, res) => {
     const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
-        files: true
-      }
+        files: true,
+      },
     });
 
     if (!project) {
@@ -54,9 +53,8 @@ const getProject = async (req, res) => {
       name: project.name,
       files: project.files,
       createdAt: project.createdAt.toISOString(),
-      updatedAt: project.updatedAt.toISOString()
+      updatedAt: project.updatedAt.toISOString(),
     });
-
   } catch (error) {
     console.error('Get project error:', error);
     res.status(500).json({ error: 'Failed to get project' });
@@ -71,7 +69,7 @@ const updateProject = async (req, res) => {
 
     // 检查项目是否存在并且用户有权限
     const existingProject = await prisma.project.findUnique({
-      where: { id: projectId }
+      where: { id: projectId },
     });
 
     if (!existingProject) {
@@ -84,16 +82,15 @@ const updateProject = async (req, res) => {
 
     const updatedProject = await prisma.project.update({
       where: { id: projectId },
-      data: { name: name, files: files }
+      data: { name: name, files: files },
     });
 
     res.status(200).json({
       id: updatedProject.id,
       name: updatedProject.name,
       createdAt: updatedProject.createdAt.toISOString(),
-      updatedAt: updatedProject.updatedAt.toISOString()
+      updatedAt: updatedProject.updatedAt.toISOString(),
     });
-
   } catch (error) {
     console.error('Update project error:', error);
     res.status(500).json({ error: 'Failed to update project' });
@@ -107,7 +104,7 @@ const deleteProject = async (req, res) => {
 
     // 检查项目是否存在并且用户有权限
     const existingProject = await prisma.project.findUnique({
-      where: { id: projectId }
+      where: { id: projectId },
     });
 
     if (!existingProject) {
@@ -120,11 +117,10 @@ const deleteProject = async (req, res) => {
 
     // 删除项目
     await prisma.project.delete({
-      where: { id: projectId }
+      where: { id: projectId },
     });
 
     res.status(200).json({ message: 'Project deleted successfully' });
-
   } catch (error) {
     console.error('Delete project error:', error);
     res.status(500).json({ error: 'Failed to delete project' });
@@ -138,7 +134,7 @@ const getShareLink = async (req, res) => {
 
     // 检查项目是否存在
     const project = await prisma.project.findUnique({
-      where: { id: projectId }
+      where: { id: projectId },
     });
 
     if (!project) {
@@ -152,15 +148,14 @@ const getShareLink = async (req, res) => {
     const share = await prisma.share.create({
       data: {
         projectId: projectId,
-        keeptime: keeptime
-      }
+        keeptime: keeptime,
+      },
     });
 
     res.status(200).json({
       shareId: share.id,
-      expiresAt: keeptime.toISOString()
+      expiresAt: keeptime.toISOString(),
     });
-
   } catch (error) {
     console.error('Get share link error:', error);
     res.status(500).json({ error: 'Failed to generate share link' });
@@ -173,7 +168,7 @@ const getShareProject = async (req, res) => {
     const shareId = req.params.shareId;
 
     const share = await prisma.share.findUnique({
-      where: { id: shareId }
+      where: { id: shareId },
     });
 
     if (!share) {
@@ -183,8 +178,8 @@ const getShareProject = async (req, res) => {
     const project = await prisma.project.findUnique({
       where: { id: share.projectId },
       include: {
-        files: true
-      }
+        files: true,
+      },
     });
 
     if (!project) {
@@ -196,9 +191,8 @@ const getShareProject = async (req, res) => {
       name: project.name,
       files: project.files,
       createdAt: project.createdAt.toISOString(),
-      updatedAt: project.updatedAt.toISOString()
+      updatedAt: project.updatedAt.toISOString(),
     });
-
   } catch (error) {
     console.error('Get share project error:', error);
     res.status(500).json({ error: 'Failed to get share project' });
@@ -211,6 +205,5 @@ module.exports = {
   updateProject,
   deleteProject,
   getShareLink,
-  getShareProject
+  getShareProject,
 };
-

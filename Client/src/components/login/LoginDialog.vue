@@ -27,6 +27,7 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
 import { useUserStore } from '@/stores/userStore';
+import { api } from '@/api';
 
 const props = defineProps<{
   visible: boolean;
@@ -50,7 +51,7 @@ const close = () => {
   errorMessage.value = '';
 };
 
-const handleLogin = () => {
+const handleLogin = async () => {
   // 验证表单
   if (!loginForm.account.trim()) {
     errorMessage.value = '请输入账号';
@@ -61,14 +62,24 @@ const handleLogin = () => {
     return;
   }
 
-  // TODO: 调用登录接口
-  console.log('登录信息:', loginForm);
+  try {
+    const { user } = await api.login({
+      account: loginForm.account,
+      password: loginForm.password
+    });
 
-  // 更新账号
-  userStore.setAccount(loginForm.account);
+    // 更新用户信息
+    userStore.setUsername(user.username);
+    userStore.setAccount(user.account);
+    userStore.setAvatar(user.avatar);
+    userStore.setStatus(user.status);
+    userStore.login();
 
-  // 关闭登录框
-  close();
+    // 关闭登录框
+    close();
+  } catch (error) {
+    errorMessage.value = error.response?.data?.message || '登录失败';
+  }
 };
 
 const switchToRegister = () => {

@@ -27,10 +27,7 @@
 - **响应**:
 ```json
 {
-  "id": "string, 用户ID",
-  "username": "string, 用户名",
-  "account": "string, 账户",
-  "createdAt": "string, ISO8601时间格式"
+  "success": "boolean, 是否成功"
 }
 ```
 
@@ -68,10 +65,22 @@
     "id": "string, 用户ID",
     "username": "string, 用户名",
     "account": "string, 账户",
-    "avatar": "string, 头像URL"
+    "avatar": "string, 头像URL",
+    "status": "string, 状态栏"
   }
 }
 ```
+- **响应**: 返回用户信息
+```json
+{
+  "user": {
+    "id": "string, 用户ID",
+    "username": "string, 用户名",
+    "account": "string, 账户",
+    "avatar": "string, 头像URL",
+    "status": "string, 状态栏"
+  }
+}
 
 #### 1.4 获取用户资料
 - **方法**: GET
@@ -85,7 +94,9 @@
     "username": "string, 用户名",
     "account": "string, 账户",
     "avatar": "string, 头像URL",
-    "status": "string, 状态栏"
+    "status": "string, 状态栏",
+    "createdAt": "Date, 创建时间",
+    "lastLogin": "Date, 上次登录时间"
   }
 }
 ```
@@ -99,7 +110,10 @@
 {
   "projects": [
     {
-      "id": "string, 项目ID"
+      "id": "string, 项目ID",
+      "name": "string, 项目名",
+      "createdAt": "Date, 创建时间",
+      "updatedAt": "Date, 更新时间"
     }
   ]
 }

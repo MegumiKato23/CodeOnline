@@ -14,7 +14,7 @@ const createFile = async (req, res) => {
 
     // 检查项目是否存在并且用户有权限
     const project = await prisma.project.findUnique({
-      where: { id: projectId }
+      where: { id: projectId },
     });
 
     if (!project) {
@@ -31,8 +31,8 @@ const createFile = async (req, res) => {
         path: path,
         content: content,
         type: type,
-        ownerId: projectId
-      }
+        ownerId: projectId,
+      },
     });
 
     // 更新项目
@@ -40,9 +40,9 @@ const createFile = async (req, res) => {
       where: { id: projectId },
       data: {
         files: {
-          connect: { id: file.id }
-        }
-      }
+          connect: { id: file.id },
+        },
+      },
     });
 
     res.status(200).json({
@@ -53,9 +53,8 @@ const createFile = async (req, res) => {
       type: file.type,
       projectId: projectId,
       createdAt: file.createdAt.toISOString(),
-      updatedAt: file.updatedAt.toISOString()
+      updatedAt: file.updatedAt.toISOString(),
     });
-
   } catch (error) {
     console.error('Create file error:', error);
     res.status(500).json({ error: 'Failed to create file' });
@@ -76,7 +75,7 @@ const updateFile = async (req, res) => {
 
     // 检查项目是否存在并且用户有权限
     const project = await prisma.project.findUnique({
-      where: { id: projectId }
+      where: { id: projectId },
     });
 
     if (!project) {
@@ -91,8 +90,8 @@ const updateFile = async (req, res) => {
     const existingFile = await prisma.file.findFirst({
       where: {
         id: fileId,
-        ownerId: projectId
-      }
+        ownerId: projectId,
+      },
     });
 
     if (!existingFile) {
@@ -105,8 +104,8 @@ const updateFile = async (req, res) => {
         name: name,
         path: path,
         content: content,
-        type: type
-      }
+        type: type,
+      },
     });
 
     res.status(200).json({
@@ -117,9 +116,8 @@ const updateFile = async (req, res) => {
       type: updatedFile.type,
       projectId: projectId,
       createdAt: updatedFile.createdAt.toISOString(),
-      updatedAt: updatedFile.updatedAt.toISOString()
+      updatedAt: updatedFile.updatedAt.toISOString(),
     });
-
   } catch (error) {
     console.error('Update file error:', error);
     res.status(500).json({ error: 'Failed to update file' });
@@ -134,7 +132,7 @@ const deleteFile = async (req, res) => {
 
     // 检查项目是否存在并且用户有权限
     const project = await prisma.project.findUnique({
-      where: { id: projectId }
+      where: { id: projectId },
     });
 
     if (!project) {
@@ -149,8 +147,8 @@ const deleteFile = async (req, res) => {
     const existingFile = await prisma.file.findFirst({
       where: {
         id: fileId,
-        ownerId: projectId
-      }
+        ownerId: projectId,
+      },
     });
 
     if (!existingFile) {
@@ -158,11 +156,10 @@ const deleteFile = async (req, res) => {
     }
 
     await prisma.file.delete({
-      where: { id: fileId }
+      where: { id: fileId },
     });
 
     res.status(200).json({ message: 'File deleted successfully' });
-
   } catch (error) {
     console.error('Delete file error:', error);
     res.status(500).json({ error: 'Failed to delete file' });
@@ -177,7 +174,7 @@ const getFile = async (req, res) => {
 
     // 检查项目是否存在
     const project = await prisma.project.findUnique({
-      where: { id: projectId }
+      where: { id: projectId },
     });
 
     if (!project) {
@@ -188,8 +185,8 @@ const getFile = async (req, res) => {
     const file = await prisma.file.findFirst({
       where: {
         id: fileId,
-        ownerId: projectId
-      }
+        ownerId: projectId,
+      },
     });
 
     if (!file) {
@@ -204,9 +201,8 @@ const getFile = async (req, res) => {
       type: file.type,
       projectId: projectId,
       createdAt: file.createdAt.toISOString(),
-      updatedAt: file.updatedAt.toISOString()
+      updatedAt: file.updatedAt.toISOString(),
     });
-
   } catch (error) {
     console.error('Get file error:', error);
     res.status(500).json({ error: 'Failed to get file' });
@@ -217,6 +213,5 @@ module.exports = {
   createFile,
   updateFile,
   deleteFile,
-  getFile
+  getFile,
 };
-

@@ -14,7 +14,7 @@
     <SettingsDialog v-if="showSettings" @close="showSettings = false" />
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
-    <head_portrait  @login="showLoginDialog = true"/>
+    <head_portrait @login="showLoginDialog = true" />
   </div>
 </template>
 
@@ -48,7 +48,7 @@ const editorPanel = ref<HTMLElement | null>(null);
 // 创建防抖的预览更新函数 (500ms)
 const debouncedUpdatePreview = debounce(() => {
   if (!previewFrame.value) return;
-  
+
   const doc = previewFrame.value.contentDocument;
   if (!doc) return;
 

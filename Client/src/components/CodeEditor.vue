@@ -31,6 +31,7 @@ import { defaultKeymap, undo, redo, history } from '@codemirror/commands';
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
 import { useCodeStore } from '@/stores/codeStore';
+import { useUserStore } from '@/stores/userStore';
 import HtmlIcon from './icons/HtmlIcon.vue';
 import CssIcon from './icons/CssIcon.vue';
 import JsIcon from './icons/JsIcon.vue';
@@ -41,9 +42,18 @@ const props = defineProps<{
 }>();
 
 const { activeTab } = toRefs(props);
+const userStore = useUserStore();
 const codeStore = useCodeStore();
 const editorElement = ref<HTMLElement | null>(null);
 const editorView = ref<EditorView | null>(null);
+
+// 添加对 activeTab 的 watch
+ watch(activeTab, (newTab, oldTab) => {
+   if (newTab !== oldTab) {
+     recreateEditor();
+   }
+ });
+
 // 创建防抖的代码更新函数 (300ms)
 const debouncedUpdateCode = debounce((code: string) => {
   codeStore.updateCode(activeTab.value, code);
@@ -102,16 +112,17 @@ const initializeEditor = () => {
   if (!editorElement.value) return;
 
   const currentCode =
-    activeTab.value === 'html'
-      ? codeStore.htmlCode
-      : activeTab.value === 'css'
-        ? codeStore.cssCode
-        : codeStore.jsCode;
+    activeTab.value === 'html' ? codeStore.htmlCode : activeTab.value === 'css' ? codeStore.cssCode : codeStore.jsCode;
 
   const state = EditorState.create({
     doc: currentCode,
     extensions: [...baseExtensions, getLanguageExtension()],
   });
+
+    // 在创建新编辑器前销毁旧的
+   if (editorView.value) {
+     editorView.value.destroy();
+   }
 
   editorView.value = new EditorView({
     state,
