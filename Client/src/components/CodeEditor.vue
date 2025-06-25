@@ -27,21 +27,9 @@
   </div>
 </template>
 
-watch(() => editorStore.activeTab, (newTab) => {
-  if (editorView.value) {
-    // 更新编辑器状态以强制刷新补全
-    editorView.value.dispatch({
-      effects: EditorView.reconfigure.of([
-        ...baseExtensions,
-        getLanguageExtension()
-      ])
-    });
-  }
-});
-
 <script setup lang="ts">
 import { ref, onMounted, watch, toRefs, onBeforeUnmount } from 'vue'
-import { EditorState } from '@codemirror/state'
+import { EditorState, StateEffect } from '@codemirror/state'
 import { EditorView, keymap } from '@codemirror/view'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { html } from '@codemirror/lang-html'
@@ -50,8 +38,10 @@ import { javascript } from '@codemirror/lang-javascript'
 import { defaultKeymap, undo, redo, history } from '@codemirror/commands'
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language'
 import { tags } from '@lezer/highlight'
+import { linter, lintGutter, lintKeymap } from '@codemirror/lint'
 import { useEditorStore } from '@/stores/editor'
 import { createCompletions } from '@/utils/codeCompletions/index'
+import { createErrorChecker } from '@/utils/errorChecker'
 import HtmlIcon from './icons/HtmlIcon.vue'
 import CssIcon from './icons/CssIcon.vue'
 import JsIcon from './icons/JsIcon.vue'
@@ -77,18 +67,43 @@ const myHighlightStyle = HighlightStyle.define([
   { tag: tags.className, color: '#61afef' },
 ])
 
+// 定义错误检查效果
+const setLintSource = StateEffect.define<(tab: 'html' | 'css' | 'js') => (view: EditorView) => any>()
+
 // 基础扩展配置
 const baseExtensions = [
   history(),
   oneDark,
   keymap.of([
     ...defaultKeymap,
+    ...lintKeymap,
     { key: "Mod-z", run: undo, preventDefault: true },
     { key: "Mod-y", run: redo, preventDefault: true },
     { key: "Mod-Shift-z", run: redo, preventDefault: true }
   ]),
   syntaxHighlighting(myHighlightStyle),
-  createCompletions(), // 使用自动语言检测的补全
+  createCompletions(),
+
+  //报错提示
+  linter(async (view) => {
+    const checker = createErrorChecker(activeTab.value);
+    const result = await checker(view.state.doc.toString());
+    return result.diagnostics.map(d => ({
+      from: d.from,
+      to: d.to,
+      severity: d.severity,
+      message: d.message,
+      actions: d.fix ? [{
+        name: d.fix.label,
+        apply: (v, from, to) => v.dispatch({
+          changes: {from, to, insert: d.fix.edit[0].insert}
+        })
+      }] : []
+    }));
+  }),
+
+
+  lintGutter(),
   EditorView.theme({
     "&": { height: "100%" },
     ".cm-scroller": { overflow: "auto" },
@@ -98,6 +113,12 @@ const baseExtensions = [
       color: "#abb2bf",
       borderRight: "1px solid #3a3f4b"
     },
+    ".cm-lintRange-error": {
+      backgroundImage: "url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%206%203%22%20enable-background%3D%22new%200%200%206%203%22%20height%3D%223%22%20width%3D%226%22%3E%3Cg%20fill%3D%22%23e51400%22%3E%3Cpolygon%20points%3D%225.5%2C0%202.5%2C3%201.5%2C3%204.5%2C0%22%2F%3E%3Cpolygon%20points%3D%224%2C0%206%2C2%206%2C0.6%205.4%2C0%22%2F%3E%3Cpolygon%20points%3D%220%2C2%201%2C3%202.5%2C3%200%2C0.6%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E\")"
+    },
+    ".cm-lintRange-warning": {
+      backgroundImage: "url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%206%203%22%20enable-background%3D%22new%200%200%206%203%22%20height%3D%223%22%20width%3D%226%22%3E%3Cg%20fill%3D%22%23ffcc00%22%3E%3Cpolygon%20points%3D%225.5%2C0%202.5%2C3%201.5%2C3%204.5%2C0%22%2F%3E%3Cpolygon%20points%3D%224%2C0%206%2C2%206%2C0.6%205.4%2C0%22%2F%3E%3Cpolygon%20points%3D%220%2C2%201%2C3%202.5%2C3%200%2C0.6%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E\")"
+    }
   }),
   EditorView.lineWrapping,
   EditorView.updateListener.of((update) => {
@@ -111,13 +132,13 @@ const baseExtensions = [
 // 获取当前语言扩展
 const getLanguageExtension = () => {
   switch (activeTab.value) {
-     case 'html': 
+    case 'html': 
       return html({ 
         matchClosingTags: true,
         autoCloseTags: true,
-        })
+      })
     case 'css': return css()
-    case 'js': return javascript()
+    case 'js': return javascript({ jsx: true })
     default: return javascript()
   }
 }

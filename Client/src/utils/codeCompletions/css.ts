@@ -5,39 +5,57 @@ const CSS_SELECTORS: Completion[] = [
   { label: "element", type: "selector", apply: "$0" },
   { label: "[attribute]", type: "selector", apply: "[$0]" }
 ]
-// é¢„ç”Ÿæˆçš„CSSæ•°æ®
+// 0è0„1¤7„1¤7„1¤70¯2„1¤7CSS„1¤7„1¤7„1¤7„1¤7
 const CSS_DATA = {
   properties: [
-   { label: "display", type: "property", apply: "display: $0", boost: 10 },
-    { label: "position", type: "property", apply: "position: $0", boost: 10 },
-    { label: "flex", type: "property", apply: "flex: $0", boost: 10 },
-    { label: "grid", type: "property", apply: "grid: $0", boost: 10 },
-    { label: "float", type: "property", apply: "float: $0", boost: 9 },
+   { label: "display", type: "property", apply: "display: $0", boost: 10, info: "CSS display property" },
+    { label: "position", type: "property", apply: "position: $0", boost: 10, info: "CSS position property" },
+    { label: "flex", type: "property", apply: "flex: $0", boost: 10, info: "CSS flex property" },
+    { label: "grid", type: "property", apply: "grid: $0", boost: 10, info: "CSS grid property" },
+    { label: "float", type: "property", apply: "float: $0", boost: 9, info: "CSS float property" },
     
-    // ç›’æ¨¡åž‹
-    { label: "width", type: "property", apply: "width: $0", boost: 10 },
-    { label: "height", type: "property", apply: "height: $0", boost: 10 },
-    { label: "margin", type: "property", apply: "margin: $0", boost: 10 },
-    { label: "padding", type: "property", apply: "padding: $0", boost: 10 },
-    { label: "border", type: "property", apply: "border: $0", boost: 10 },
+    // Box model
+    { label: "width", type: "property", apply: "width: $0", boost: 10, info: "CSS width property" },
+    { label: "height", type: "property", apply: "height: $0", boost: 10, info: "CSS height property" },
+    { label: "margin", type: "property", apply: "margin: $0", boost: 10, info: "CSS margin property" },
+    { label: "padding", type: "property", apply: "padding: $0", boost: 10, info: "CSS padding property" },
+    { label: "border", type: "property", apply: "border: $0", boost: 10, info: "CSS border property" },
     
-    // æ–‡æœ¬æ ·å¼
-    { label: "color", type: "property", apply: "color: $0", boost: 10 },
-    { label: "font-size", type: "property", apply: "font-size: $0", boost: 10 },
-    { label: "font-family", type: "property", apply: "font-family: $0", boost: 9 },
-    { label: "text-align", type: "property", apply: "text-align: $0", boost: 9 },
-    { label: "line-height", type: "property", apply: "line-height: $0", boost: 9 },
+    // Text styling
+    { label: "color", type: "property", apply: "color: $0", boost: 10, info: "CSS color property" },
+    { label: "font-size", type: "property", apply: "font-size: $0", boost: 10, info: "CSS font size" },
+    { label: "font-family", type: "property", apply: "font-family: $0", boost: 9, info: "CSS font family" },
+    { label: "text-align", type: "property", apply: "text-align: $0", boost: 9, info: "CSS text alignment" },
+    { label: "line-height", type: "property", apply: "line-height: $0", boost: 9, info: "CSS line height" },
     
-    // èƒŒæ™¯å’Œæ¸å˜
-    { label: "background", type: "property", apply: "background: $0", boost: 10 },
-    { label: "background-color", type: "property", apply: "background-color: $0", boost: 9 },
-    { label: "background-image", type: "property", apply: "background-image: $0", boost: 9 },
-    { label: "linear-gradient", type: "function", apply: "linear-gradient($0)", boost: 9 },
+    // Backgrounds and gradients
+    { label: "background", type: "property", apply: "background: $0", boost: 10, info: "CSS background shorthand" },
+    { label: "background-color", type: "property", apply: "background-color: $0", boost: 9, info: "CSS background color" },
+    { label: "background-image", type: "property", apply: "background-image: $0", boost: 9, info: "CSS background image" },
+    { label: "linear-gradient", type: "function", apply: "linear-gradient($0)", boost: 9, info: "CSS linear gradient" },
+    { label: "radial-gradient", type: "function", apply: "radial-gradient($0)", boost: 9, info: "CSS radial gradient" },
+    { label: "conic-gradient", type: "function", apply: "conic-gradient($0)", boost: 9, info: "CSS conic gradient" },
     
-    // åŠ¨ç”»å’Œè¿‡æ¸¡
-    { label: "transition", type: "property", apply: "transition: $0", boost: 9 },
-    { label: "animation", type: "property", apply: "animation: $0", boost: 9 },
-    { label: "transform", type: "property", apply: "transform: $0", boost: 9 }
+    // Transitions and animations
+    { label: "transition", type: "property", apply: "transition: $0", boost: 9, info: "CSS transition property" },
+    { label: "animation", type: "property", apply: "animation: $0", boost: 9, info: "CSS animation property" },
+    { label: "transform", type: "property", apply: "transform: $0", boost: 9, info: "CSS transform property" },
+    
+    // CSS variables
+    { label: "--*", type: "variable", apply: "--$0", boost: 8, info: "CSS custom property" },
+    { label: "var", type: "function", apply: "var(--$0)", boost: 8, info: "CSS variable usage" },
+    
+    // Preprocessor support
+    { label: "@mixin", type: "directive", apply: "@mixin $0($1) {\n\t$2\n}", boost: 8, info: "SCSS mixin" },
+    { label: "@include", type: "directive", apply: "@include $0($1)", boost: 8, info: "SCSS include" },
+    { label: "@extend", type: "directive", apply: "@extend $0", boost: 8, info: "SCSS extend" },
+    { label: "@function", type: "directive", apply: "@function $0($1) {\n\t@return $2\n}", boost: 8, info: "SCSS function" },
+    { label: "@if", type: "directive", apply: "@if $0 {\n\t$1\n}", boost: 8, info: "SCSS conditional" },
+    { label: "@for", type: "directive", apply: "@for $0 from $1 through $2 {\n\t$3\n}", boost: 8, info: "SCSS loop" },
+    { label: "@each", type: "directive", apply: "@each $0 in $1 {\n\t$2\n}", boost: 8, info: "SCSS iteration" },
+    { label: "@while", type: "directive", apply: "@while $0 {\n\t$1\n}", boost: 8, info: "SCSS while loop" },
+    { label: "@use", type: "directive", apply: "@use '$0'", boost: 8, info: "SCSS module import" },
+    { label: "@forward", type: "directive", apply: "@forward '$0'", boost: 8, info: "SCSS module forwarding" },
   ],
   values: [
     { label: "flex", type: "value", apply: "flex", boost: 10 },
@@ -46,13 +64,13 @@ const CSS_DATA = {
     { label: "inline-block", type: "value", apply: "inline-block", boost: 9 },
     { label: "none", type: "value", apply: "none", boost: 9 },
     
-    // å®šä½å€¼
+    // „1¤7„1¤7¦Ë0ö5
     { label: "absolute", type: "value", apply: "absolute", boost: 10 },
     { label: "relative", type: "value", apply: "relative", boost: 10 },
     { label: "fixed", type: "value", apply: "fixed", boost: 9 },
     { label: "sticky", type: "value", apply: "sticky", boost: 9 },
     
-    // æ–‡æœ¬å¯¹é½
+    // „1¤703„1¤7„1¤7„1¤7„1¤7„1¤7
     { label: "center", type: "value", apply: "center", boost: 10 },
     { label: "left", type: "value", apply: "left", boost: 9 },
     { label: "right", type: "value", apply: "right", boost: 9 },
@@ -73,8 +91,10 @@ const CSS_DATA = {
 export const cssCompletions = (context: CompletionContext) => {
   const line = context.state.doc.lineAt(context.pos)
   const textBefore = line.text.slice(0, context.pos - line.from)
+  const isScss = context.state.doc.toString().includes('@mixin') || 
+                context.state.doc.toString().includes('@include')
   
-  // æƒ…å†µ1ï¼šåœ¨é€‰æ‹©å™¨ä½ç½®
+  // „1¤7„1¤7„1¤71„1¤7„1¤7„1¤7„1¤70Ô5„1¤7„1¤7„1¤7„1¤7¦Ë„1¤7„1¤7
   const selectorMatch = /([.#a-zA-Z][^{]*)$/.exec(textBefore)
   if (selectorMatch && !textBefore.includes('{')) {
     return {
@@ -84,17 +104,20 @@ export const cssCompletions = (context: CompletionContext) => {
     }
   }
 
-  // æƒ…å†µ2ï¼šåœ¨å±žæ€§åä½ç½®
+  // „1¤7„1¤7„1¤72„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7¦Ë„1¤7„1¤7
   const propMatch = /([a-z-]+)\s*:\s*[^;]*$/i.exec(textBefore)
   if (!propMatch) {
     return {
       from: context.pos,
-      options: CSS_DATA.properties,
+      options: [
+        ...CSS_DATA.properties,
+        ...(isScss ? CSS_DATA.properties.filter(p => p.type === 'directive') : [])
+      ],
       filter: false
     }
   }
 
-  // æƒ…å†µ3ï¼šåœ¨å±žæ€§å€¼ä½ç½®
+  // „1¤7„1¤7„1¤73„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤70ö5¦Ë„1¤7„1¤7
   const isAfterColon = /:\s*[^;]*$/.test(textBefore)
   if (isAfterColon) {
     const currentProp = propMatch[1].toLowerCase()
@@ -105,7 +128,8 @@ export const cssCompletions = (context: CompletionContext) => {
           v.apply.includes(currentProp) || 
           currentProp.includes(v.apply)
         ),
-        ...CSS_DATA.units
+        ...CSS_DATA.units,
+        ...(currentProp === 'var' ? CSS_DATA.properties.filter(p => p.label.startsWith('--')) : [])
       ],
       filter: false
     }
@@ -114,7 +138,7 @@ export const cssCompletions = (context: CompletionContext) => {
   return null
 }
 
-// 4. è¾…åŠ©å‡½æ•°ï¼ˆç¡®ä¿æ­£ç¡®é—­åˆï¼‰
+// 4. „1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤70©2„1¤7„1¤7„1¤7„1¤70©2„1¤70ð60Î5„1¤7
 function getCssValuesForProp(prop: string): Completion[] {
   return CSS_DATA.values.filter(v => 
     v.apply.includes(prop) || 

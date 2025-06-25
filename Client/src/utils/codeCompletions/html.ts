@@ -1,8 +1,8 @@
 import { Completion, CompletionContext } from '@codemirror/autocomplete'
 
-// é¢„ç”Ÿæˆçš„HTMLæ ‡ç­¾æ•°æ®
+// 0è0„1¤7„1¤7„1¤70¯2„1¤7HTML„1¤7„1¤70¡5„1¤7„1¤7„1¤7„1¤7
 const HTML_TAGS: Completion[] = [
-  { label: "div", type: "tag", apply: "div>$0</div>", boost: 10 },
+  { label: "div", type: "tag", apply: "div>$0</div>", boost: 10, info: "Generic container element" },
     { label: "span", type: "tag", apply: "span>$0</span>", boost: 9 },
     { label: "section", type: "tag", apply: "section>$0</section>", boost: 9 },
     { label: "article", type: "tag", apply: "article>$0</article>", boost: 9 },
@@ -12,7 +12,7 @@ const HTML_TAGS: Completion[] = [
     { label: "nav", type: "tag", apply: "nav>$0</nav>", boost: 9 },
     { label: "aside", type: "tag", apply: "aside>$0</aside>", boost: 8 },
     
-    // æ–‡æœ¬æ ‡ç­¾
+    // „1¤703„1¤7„1¤7„1¤70¡5
     { label: "h1", type: "tag", apply: "h1>$0</h1>", boost: 9 },
     { label: "h2", type: "tag", apply: "h2>$0</h2>", boost: 9 },
     { label: "h3", type: "tag", apply: "h3>$0</h3>", boost: 9 },
@@ -22,7 +22,7 @@ const HTML_TAGS: Completion[] = [
     { label: "em", type: "tag", apply: "em>$0</em>", boost: 8 },
     { label: "code", type: "tag", apply: "code>$0</code>", boost: 8 },
     
-    // è¡¨å•æ ‡ç­¾
+    // „1¤7„1¤7„1¤7„1¤7„1¤7„1¤70¡5
     { label: "form", type: "tag", apply: "form action=\"$1\" method=\"$2\">\n\t$0\n</form>", boost: 9 },
     { label: "input", type: "tag", apply: "input type=\"$1\" name=\"$0\">", boost: 9 },
     { label: "button", type: "tag", apply: "button type=\"$1\">$0</button>", boost: 9 },
@@ -30,25 +30,25 @@ const HTML_TAGS: Completion[] = [
     { label: "textarea", type: "tag", apply: "textarea name=\"$1\">$0</textarea>", boost: 8 },
     { label: "label", type: "tag", apply: "label for=\"$1\">$0</label>", boost: 8 },
     
-    // åª’ä½“æ ‡ç­¾
+    // 0‹5„1¤7„1¤7„1¤70¡5
     { label: "img", type: "tag", apply: "img src=\"$1\" alt=\"$0\">", boost: 9 },
     { label: "video", type: "tag", apply: "video controls>\n\t<source src=\"$1\" type=\"video/mp4\">\n\t$0\n</video>", boost: 8 },
     { label: "audio", type: "tag", apply: "audio controls>\n\t<source src=\"$1\" type=\"audio/mpeg\">\n\t$0\n</audio>", boost: 8 },
     
-    // åˆ—è¡¨å’Œè¡¨æ ¼
+    // „1¤7§Ò„1¤7„1¤70Ç9„1¤7„1¤7„1¤7
     { label: "ul", type: "tag", apply: "ul>\n\t<li>$0</li>\n</ul>", boost: 9 },
     { label: "ol", type: "tag", apply: "ol>\n\t<li>$0</li>\n</ol>", boost: 9 },
     { label: "li", type: "tag", apply: "li>$0</li>", boost: 8 },
     { label: "table", type: "tag", apply: "table>\n\t<tr>\n\t\t<th>$0</th>\n\t</tr>\n</table>", boost: 8 },
     
-    // å…ƒæ ‡ç­¾
+    // 0è6„1¤7„1¤70¡5
     { label: "meta", type: "tag", apply: "meta name=\"$1\" content=\"$0\">", boost: 7 },
     { label: "link", type: "tag", apply: "link rel=\"$1\" href=\"$0\">", boost: 7 },
     { label: "script", type: "tag", apply: "script src=\"$1\">$0</script>", boost: 8 },
     { label: "style", type: "tag", apply: "style>$0</style>", boost: 8 }
 ]
 
-// é¢„ç”Ÿæˆçš„HTMLå±žæ€§æ•°æ®
+// 0è0„1¤7„1¤7„1¤70¯2„1¤7HTML„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7
 const HTML_ATTRIBUTES: Completion[] = 
 [
   { label: "class", type: "property", apply: "class=\"$0\"", boost: 10 },
@@ -57,7 +57,7 @@ const HTML_ATTRIBUTES: Completion[] =
     { label: "title", type: "property", apply: "title=\"$0\"", boost: 8 },
     { label: "data-*", type: "property", apply: "data-$0=\"$1\"", boost: 7 },
     
-    // è¡¨å•ç›¸å…³å±žæ€§
+    // „1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7
     { label: "name", type: "property", apply: "name=\"$0\"", boost: 9 },
     { label: "value", type: "property", apply: "value=\"$0\"", boost: 9 },
     { label: "placeholder", type: "property", apply: "placeholder=\"$0\"", boost: 8 },
@@ -65,14 +65,14 @@ const HTML_ATTRIBUTES: Completion[] =
     { label: "disabled", type: "property", apply: "disabled", boost: 8 },
     { label: "readonly", type: "property", apply: "readonly", boost: 7 },
     
-    // é“¾æŽ¥å’Œåª’ä½“å±žæ€§
+    // „1¤7„1¤7„1¤70ã8„1¤70‹5„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7
     { label: "href", type: "property", apply: "href=\"$0\"", boost: 10 },
     { label: "src", type: "property", apply: "src=\"$0\"", boost: 10 },
     { label: "alt", type: "property", apply: "alt=\"$0\"", boost: 9 },
     { label: "target", type: "property", apply: "target=\"$0\"", boost: 8 },
     { label: "rel", type: "property", apply: "rel=\"$0\"", boost: 7 },
     
-    // äº‹ä»¶å±žæ€§
+    // „1¤70†4„1¤7„1¤7„1¤7„1¤7„1¤7
     { label: "onclick", type: "event", apply: "onclick=\"$0\"", boost: 7 },
     { label: "onchange", type: "event", apply: "onchange=\"$0\"", boost: 7 },
 ]
@@ -85,9 +85,9 @@ const HTML_ATTRIBUTE_VALUES: Record<string, Completion[]> = {
     { label: "_blank", apply: "_blank" }
   ]
 };
-// ç§æœ‰å·¥å…·å‡½æ•°
+// 0¼3„1¤7§Û„1¤7„1¤71²6„1¤7„1¤7„1¤7
 function getAttributeValueCompletions(attr: string, pos: number) {
-  // å®žçŽ°å±žæ€§å€¼æç¤ºé€»è¾‘
+  // 0µ6„1¤7„1¤7„1¤7„1¤7„1¤7„1¤70ö5„1¤7„1¤70¶5„1¤71²8„1¤7
   return { from: pos, options: [] }
 }
 
@@ -97,27 +97,49 @@ function getSnippetCompletions(): Completion[] {
   ]
 }
 const JSX_ATTRIBUTES: Completion[] = [
-  { label: "className", apply: "className=\"$0\"", boost: 11 }, // æ›¿æ¢ class
-  { label: "onClick", apply: "onClick={$0}", boost: 10 },
-  { label: "key", apply: "key=\"$0\"", boost: 9 }
+  { label: "className", apply: "className=\"$0\"", boost: 11, info: "React class name attribute" },
+  { label: "onClick", apply: "onClick={$0}", boost: 10, info: "React click handler" },
+  { label: "key", apply: "key=\"$0\"", boost: 9, info: "React list key" },
+  { label: "style", apply: "style={{ $0 }}", boost: 9, info: "React inline style" },
+  { label: "ref", apply: "ref={$0}", boost: 9, info: "React element reference" },
+  { label: "children", apply: "children={$0}", boost: 8, info: "React children prop" },
+  { label: "defaultValue", apply: "defaultValue=\"$0\"", boost: 8, info: "React uncontrolled input" },
+  { label: "value", apply: "value={$0}", boost: 8, info: "React controlled input" },
+  { label: "onChange", apply: "onChange={$0}", boost: 9, info: "React change handler" },
+  { label: "disabled", apply: "disabled={$0}", boost: 8, info: "React disabled state" },
+  { label: "onKeyDown", apply: "onKeyDown={$0}", boost: 8, info: "React key down handler" },
+  { label: "onKeyUp", apply: "onKeyUp={$0}", boost: 8, info: "React key up handler" },
+  { label: "onMouseEnter", apply: "onMouseEnter={$0}", boost: 8, info: "React mouse enter handler" },
+  { label: "onMouseLeave", apply: "onMouseLeave={$0}", boost: 8, info: "React mouse leave handler" },
+  { label: "onFocus", apply: "onFocus={$0}", boost: 8, info: "React focus handler" },
+  { label: "onBlur", apply: "onBlur={$0}", boost: 8, info: "React blur handler" },
+  { label: "onSubmit", apply: "onSubmit={$0}", boost: 8, info: "React form submit handler" },
+  { label: "htmlFor", apply: "htmlFor=\"$0\"", boost: 8, info: "React label for attribute" },
+  { label: "dangerouslySetInnerHTML", apply: "dangerouslySetInnerHTML={{ __html: $0 }}", boost: 7, info: "React raw HTML insertion" },
+  { label: "defaultChecked", apply: "defaultChecked={$0}", boost: 7, info: "React uncontrolled checkbox" },
+  { label: "readOnly", apply: "readOnly={$0}", boost: 7, info: "React read-only input" }
 ]
 export function htmlCompletions(context: CompletionContext) {
   const line = context.state.doc.lineAt(context.pos)
   const textBefore = line.text.slice(0, context.pos - line.from)
+  const isJsx = context.state.doc.toString().includes('return (')
   
-  // 1. æ ‡ç­¾åè¡¥å…¨ï¼ˆè¾“å…¥ <d è¡¥å…¨ divï¼‰
+  // 1. „1¤7„1¤70¡5„1¤7„1¤7„1¤7„1¤70¨0„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7 <d „1¤7„1¤70¨0 div„1¤7„1¤7
   const tagOpenMatch = /<([a-z][a-z0-9]*)$/i.exec(textBefore)
   if (tagOpenMatch) {
     return {
       from: context.pos - tagOpenMatch[1].length,
       options: HTML_TAGS.filter(tag => 
         tag.label.startsWith(tagOpenMatch[1].toLowerCase())
-      ),
+      ).map(tag => isJsx ? {
+        ...tag,
+        apply: typeof tag.apply === 'string' ? tag.apply.replace(/=\"/g, '={').replace(/\"/g, '}') : tag.apply
+      } : tag),
       filter: false
     }
   }
 
-  // 2. å±žæ€§åè¡¥å…¨ï¼ˆè¾“å…¥ <div c è¡¥å…¨ classï¼‰
+  // 2. „1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤70¨0„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7 <div c „1¤7„1¤70¨0 class„1¤7„1¤7
   const attrMatch = /<[a-z][a-z0-9]*\s+([^\s>]*)$/i.exec(textBefore)
   if (attrMatch) {
     return {
@@ -139,8 +161,7 @@ export function htmlCompletions(context: CompletionContext) {
       filter: false
     };
   }
-   const isJsx = context.state.doc.toString().includes('return (')
-  return {
+   return {
     from: context.pos,
     options: isJsx ? [...JSX_ATTRIBUTES, ...HTML_ATTRIBUTES] : HTML_ATTRIBUTES,
     filter: false

@@ -1,7 +1,7 @@
 import { Completion, CompletionContext } from '@codemirror/autocomplete'
 import { analyzeAST, type VariableInfo } from '../astAnalyzer'
 const JS_KEYWORDS: Completion[] = [
- // æŽ§åˆ¶ç»“æž„
+ // „1¤7„1¤7„1¤7095ú5
     { label: "if", type: "keyword", apply: "if ($0) {\n\t$1\n}", boost: 10 },
     { label: "else", type: "keyword", apply: "else {\n\t$0\n}", boost: 10 },
     { label: "for", type: "keyword", apply: "for (let i = 0; i < $1; i++) {\n\t$0\n}", boost: 10 },
@@ -9,54 +9,78 @@ const JS_KEYWORDS: Completion[] = [
     { label: "switch", type: "keyword", apply: "switch ($0) {\n\tcase $1:\n\t\t$2\n\t\tbreak;\n\tdefault:\n\t\t$3\n}", boost: 9 },
     { label: "try", type: "keyword", apply: "try {\n\t$0\n} catch (e) {\n\t$1\n}", boost: 9 },
     
-    // å˜é‡å£°æ˜Ž
+    // „1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7
     { label: "const", type: "keyword", apply: "const $0 = $1", boost: 10 },
     { label: "let", type: "keyword", apply: "let $0 = $1", boost: 10 },
     { label: "var", type: "keyword", apply: "var $0 = $1", boost: 8 },
     
-    // å‡½æ•°
+    // „1¤7„1¤7„1¤7„1¤7
     { label: "function", type: "keyword", apply: "function $0($1) {\n\t$2\n}", boost: 10 },
     { label: "return", type: "keyword", apply: "return $0", boost: 10 },
     { label: "async", type: "keyword", apply: "async function $0($1) {\n\t$2\n}", boost: 9 },
     { label: "await", type: "keyword", apply: "await $0", boost: 9 },
     
-    // ç±»
+    // „1¤7„1¤7
     { label: "class", type: "keyword", apply: "class $0 {\n\tconstructor($1) {\n\t\t$2\n\t}\n}", boost: 9 },
     { label: "extends", type: "keyword", apply: "extends $0", boost: 9 },
     
-    // DOMæ“ä½œ
+    // DOM„1¤7„1¤7„1¤7„1¤7
     { label: "document.querySelector", type: "function", apply: "document.querySelector('$0')", boost: 10 },
     { label: "document.querySelectorAll", type: "function", apply: "document.querySelectorAll('$0')", boost: 9 },
     { label: "addEventListener", type: "function", apply: "addEventListener('$0', $1)", boost: 9 },
     
-    // æŽ§åˆ¶å°
+    // „1¤7„1¤7„1¤7„1¤70À6
     { label: "console.log", type: "function", apply: "console.log($0)", boost: 10 },
     { label: "console.error", type: "function", apply: "console.error($0)", boost: 9 },
     { label: "console.warn", type: "function", apply: "console.warn($0)", boost: 9 },
     
-    // å¸¸ç”¨æ–¹æ³•
+    // „1¤7„1¤7„1¤7¡Â„1¤7„1¤7„1¤7
     { label: "setTimeout", type: "function", apply: "setTimeout(() => {\n\t$0\n}, $1)", boost: 9 },
     { label: "setInterval", type: "function", apply: "setInterval(() => {\n\t$0\n}, $1)", boost: 9 },
     { label: "JSON.parse", type: "function", apply: "JSON.parse($0)", boost: 9 },
     { label: "JSON.stringify", type: "function", apply: "JSON.stringify($0)", boost: 9 },
     
-    // ES6+ç‰¹æ€§
+    // ES6+„1¤7„1¤7„1¤7„1¤7
     { label: "Promise", type: "class", apply: "new Promise((resolve, reject) => {\n\t$0\n})", boost: 9 },
     { label: "fetch", type: "function", apply: "fetch('$0')", boost: 9 },
     { label: "import", type: "keyword", apply: "import $0 from '$1'", boost: 9 },
     { label: "export", type: "keyword", apply: "export $0", boost: 9 }
 ]
-// è¡¥å……æ¡†æž¶APIï¼ˆå¦‚Vue/Reactï¼‰
+// „1¤7„1¤7„1¤7„1¤7„1¤7„1¤7API„1¤7„1¤7„1¤7„1¤7Vue/React„1¤7„1¤7
 const FRAME_APIS: Record<string, Completion[]> = {
   "vue": [
-    { label: "ref", apply: "ref($0)" },
-    { label: "computed", apply: "computed(() => $0)" }
+    { label: "ref", apply: "ref($0)", boost: 10, info: "Vue reactive reference" },
+    { label: "computed", apply: "computed(() => $0)", boost: 9, info: "Vue computed property" },
+    { label: "reactive", apply: "reactive($0)", boost: 9, info: "Vue reactive object" },
+    { label: "watch", apply: "watch($0, () => {\n\t$1\n})", boost: 9, info: "Vue watcher" },
+    { label: "onMounted", apply: "onMounted(() => {\n\t$0\n})", boost: 8, info: "Vue lifecycle hook" },
+    { label: "onUpdated", apply: "onUpdated(() => {\n\t$0\n})", boost: 8, info: "Vue lifecycle hook" },
+    { label: "onUnmounted", apply: "onUnmounted(() => {\n\t$0\n})", boost: 8, info: "Vue lifecycle hook" },
+    { label: "provide", apply: "provide($0, $1)", boost: 8, info: "Vue dependency injection" },
+    { label: "inject", apply: "inject($0)", boost: 8, info: "Vue dependency injection" },
+    { label: "nextTick", apply: "nextTick(() => {\n\t$0\n})", boost: 8, info: "Vue next DOM update" }
   ],
   "react": [
-    { label: "useState", apply: "const [$0, set${0/(.*)/${1:/capitalize}/}] = useState()" }
+    { label: "useState", apply: "const [$0, set${0/(.*)/${1:/capitalize}/}] = useState($1)", boost: 10, info: "React state hook" },
+    { label: "useEffect", apply: "useEffect(() => {\n\t$0\n}, [$1])", boost: 10, info: "React side effect hook" },
+    { label: "useContext", apply: "useContext($0)", boost: 9, info: "React context hook" },
+    { label: "useReducer", apply: "useReducer($0, $1)", boost: 9, info: "React reducer hook" },
+    { label: "useCallback", apply: "useCallback(() => {\n\t$0\n}, [$1])", boost: 9, info: "React callback hook" },
+    { label: "useMemo", apply: "useMemo(() => $0, [$1])", boost: 9, info: "React memo hook" },
+    { label: "useRef", apply: "useRef($0)", boost: 9, info: "React ref hook" },
+    { label: "useLayoutEffect", apply: "useLayoutEffect(() => {\n\t$0\n}, [$1])", boost: 8, info: "React layout effect hook" },
+    { label: "useImperativeHandle", apply: "useImperativeHandle($0, () => {\n\t$1\n}, [$2])", boost: 8, info: "React imperative handle hook" },
+    { label: "useDebugValue", apply: "useDebugValue($0)", boost: 7, info: "React debug hook" }
+  ],
+  "svelte": [
+    { label: "onMount", apply: "onMount(() => {\n\t$0\n})", boost: 9, info: "Svelte lifecycle hook" },
+    { label: "onDestroy", apply: "onDestroy(() => {\n\t$0\n})", boost: 8, info: "Svelte lifecycle hook" },
+    { label: "beforeUpdate", apply: "beforeUpdate(() => {\n\t$0\n})", boost: 8, info: "Svelte lifecycle hook" },
+    { label: "afterUpdate", apply: "afterUpdate(() => {\n\t$0\n})", boost: 8, info: "Svelte lifecycle hook" },
+    { label: "tick", apply: "tick().then(() => {\n\t$0\n})", boost: 8, info: "Svelte DOM update" }
   ]
 };
-// ç±»åž‹å®‰å…¨çš„è¡¥å…¨é€‰é¡¹è½¬æ¢
+// „1¤7„1¤7„1¤70Ç8„1¤70¨0„1¤704„1¤70¨00Ô5„1¤7„1¤70û8„1¤7„1¤7
 const mapVariableToCompletion = (v: VariableInfo): Completion => ({
   label: v.name,
   type: v.type === 'function' ? 'function' : 
@@ -68,7 +92,11 @@ export const jsCompletions = (context: CompletionContext) => {
   const line = context.state.doc.lineAt(context.pos)
   const textBefore = line.text.slice(0, context.pos - line.from)
   
-  // 1. æ ‡è¯†ç¬¦è¡¥å…¨ï¼ˆè¾“å…¥ docu è¡¥å…¨ documentï¼‰
+  // „1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7
+  const isVue = context.state.doc.toString().includes('setup(')
+  const isReact = context.state.doc.toString().includes('useState(')
+  
+  // 1. „1¤7„1¤70µ7„1¤7„1¤7„1¤7„1¤70¨0„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7 docu „1¤7„1¤70¨0 document„1¤7„1¤7
   const identifierMatch = /([a-zA-Z_$][0-9a-zA-Z_$]*)$/.exec(textBefore)
   if (identifierMatch) {
     const prefix = identifierMatch[1]
@@ -93,11 +121,11 @@ export const jsCompletions = (context: CompletionContext) => {
     }
   }
 
-  // 2. å¯¹è±¡å±žæ€§è¡¥å…¨ï¼ˆè¾“å…¥ console.l è¡¥å…¨ logï¼‰
+  // 2. „1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤70é4„1¤70¨0„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7 console.l „1¤7„1¤70¨0 log„1¤7„1¤7
   const memberExprMatch = /([a-zA-Z_$][\w$]*)\.([\w$]*)$/.exec(textBefore)
   if (memberExprMatch) {
     const [_, obj, prop] = memberExprMatch
-    const objCompletions = getObjectCompletions(obj) // è‡ªå®šä¹‰å‡½æ•°èŽ·å–å¯¹è±¡å±žæ€§
+    const objCompletions = getObjectCompletions(obj) // „1¤70é8„1¤7„1¤7Žï„1¤7„1¤7„1¤7„1¤70§0„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7
     
     return {
       from: context.pos - prop.length,
@@ -107,23 +135,28 @@ export const jsCompletions = (context: CompletionContext) => {
       filter: false
     }
   }
-  // ä¿®æ”¹è¡¥å…¨é€‰é¡¹ç”Ÿæˆé€»è¾‘
+  // „1¤71¬004„1¤70¨00Ô5„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤71²8„1¤7
   const userVars = analyzeAST(context.state.doc.toString())
-    .filter(v => v.position < context.pos) // åªä½¿ç”¨å½“å‰ä½ç½®ä¹‹å‰çš„å˜é‡
+    .filter(v => v.position < context.pos) // 0÷10¶0„1¤70‹1„1¤70¢2¦Ë„1¤7„1¤70õ80¢2„1¤703„1¤7„1¤7„1¤7
     .map(v => ({
       label: v.name,
       type: v.type === 'function' ? 'function' : 
             v.type === 'class' ? 'class' : 'variable',
-      detail: v.type.toUpperCase() // æ˜¾ç¤ºæ›´è¯¦ç»†çš„ç±»åž‹ä¿¡æ¯
+      detail: v.type.toUpperCase() // „1¤7„1¤70¶5„1¤7„1¤7„1¤7„1¤70Ð6„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤70Î4
     }))
   return {
     from: context.pos,
-    options: [...JS_KEYWORDS, ...userVars],
+    options: [
+      ...JS_KEYWORDS, 
+      ...userVars,
+      ...(isVue ? FRAME_APIS.vue : []),
+      ...(isReact ? FRAME_APIS.react : [])
+    ],
     filter: false
   }
 }
 
-// ç¤ºä¾‹è¾…åŠ©å‡½æ•°
+// 0¶5„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7
 function getObjectCompletions(obj: string): Completion[] {
   const OBJ_PROPS: Record<string, Completion[]> = {
     console: [
