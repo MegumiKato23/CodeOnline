@@ -56,7 +56,7 @@
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onUnmounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
-import api from '@/api/index';
+import { api } from '@/api/index';
 
 const userStore = useUserStore();
 const props = defineProps<{

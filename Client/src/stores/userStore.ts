@@ -48,10 +48,6 @@ export const useUserStore = defineStore('user', () => {
   };
 
   const login = () => {
-<<<<<<< HEAD
-    console.log(isLoggedIn);
-=======
->>>>>>> 3fb1550496d517ad49ff6ec3c3825666ebab2797
     isLoggedIn.value = true;
   };
 

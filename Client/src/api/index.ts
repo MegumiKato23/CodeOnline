@@ -253,9 +253,6 @@ class ApiClient {
 
 export const api = new ApiClient();
 
-<<<<<<< HEAD
-export default api;
-=======
 // export default api;
 export interface FileContent {
   id: string;
@@ -286,4 +283,3 @@ export default {
 
   getCode: (userId: string) => axios.get<CodeData>(`http://localhost:3001/api/code/${userId}`),
 };
->>>>>>> 3fb1550496d517ad49ff6ec3c3825666ebab2797
