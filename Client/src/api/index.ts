@@ -286,6 +286,9 @@ class ApiClient {
 export const api = new ApiClient();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e68ac7c (合并冲突)
 // export default api;
 export interface FileContent {
   id: string;
@@ -316,6 +319,9 @@ export default {
 
   getCode: (userId: string) => axios.get<CodeData>(`http://localhost:3001/api/code/${userId}`),
 };
+<<<<<<< HEAD
 =======
 export default api;
 >>>>>>> f8bf5fe (权限控制功能实现)
+=======
+>>>>>>> e68ac7c (合并冲突)
