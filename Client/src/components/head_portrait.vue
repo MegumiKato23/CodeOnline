@@ -45,10 +45,16 @@ const logout = async () => {
   /* background-color:red; */
   width: 40px;
   height: 40px;
+<<<<<<< HEAD
   position: relative;
   /* top: 80px;
   margin: 0; */
   left: 2px;
+=======
+  position: absolute;
+  top: 80px;
+  margin: 0;
+>>>>>>> e4835d5 (完善权限控制功能)
   right: 20px;
 }
 .img {
@@ -68,7 +74,10 @@ const logout = async () => {
   position: absolute;
   top: 40px;
   left: 0px;
+<<<<<<< HEAD
   z-index: 999;
+=======
+>>>>>>> e4835d5 (完善权限控制功能)
 }
 #box:hover .droplist {
   display: block;
