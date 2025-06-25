@@ -71,7 +71,11 @@ import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
 const props = defineProps<{
   activeTab: 'html' | 'css' | 'js';
+<<<<<<< HEAD
 >>>>>>> bfca8a1 (解决冲突)
+=======
+  isReadOnly?: boolean;
+>>>>>>> f8bf5fe (权限控制功能实现)
 }>();
 
 const { activeTab, isReadOnly } = toRefs(props);
@@ -165,6 +169,7 @@ const initializeEditor = () => {
   if (isReadOnly?.value) {
     extensions.push(EditorState.readOnly.of(true));
   }
+<<<<<<< HEAD
 =======
     activeTab.value === 'html'
       ? editorStore.htmlCode
@@ -176,6 +181,11 @@ const initializeEditor = () => {
   const state = EditorState.create({
     doc: currentCode,
 <<<<<<< HEAD
+=======
+
+  const state = EditorState.create({
+    doc: currentCode,
+>>>>>>> f8bf5fe (权限控制功能实现)
     extensions,
   });
 
@@ -183,10 +193,13 @@ const initializeEditor = () => {
   if (editorView.value) {
     editorView.value.destroy();
   }
+<<<<<<< HEAD
 =======
     extensions: [...baseExtensions, getLanguageExtension()],
   });
 >>>>>>> f5ef146 (合并冲突)
+=======
+>>>>>>> f8bf5fe (权限控制功能实现)
 
   editorView.value = new EditorView({
     state,
@@ -222,8 +235,9 @@ onMounted(() => {
   }
 });
 
-watch(activeTab, () => {
-  recreateEditor();
+// 添加对 activeTab 和 isReadOnly 的 watch
+watch([activeTab, isReadOnly], () => {
+  initializeEditor();
 });
 
 // 分别监听各种代码类型的变化

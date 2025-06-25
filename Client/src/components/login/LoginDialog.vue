@@ -30,11 +30,14 @@ import { ref, reactive } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import { api } from '@/api';
 import { Users } from 'lucide-vue-next';
+<<<<<<< HEAD
 import { useCodeStore } from '@/stores/codeStore';
 import { ShareService } from '@/services/shareService';
 =======
 import { useEditorStore } from '@/stores/editor';
 >>>>>>> bfca8a1 (解决冲突)
+=======
+>>>>>>> f8bf5fe (权限控制功能实现)
 
 const props = defineProps<{
   visible: boolean;
@@ -93,6 +96,7 @@ const handleLogin = async () => {
 
     api.getUserProjects().then(async (res) => {
       if (res['projects'].length == 0) {
+<<<<<<< HEAD
         const { data } = await api.createProject({ name: 'New Project' });
         const projectData = data.project; // Assuming the first project is the new one created by the registratio
         console.log(projectData);
@@ -133,6 +137,15 @@ const handleLogin = async () => {
     if (shareResult.success) {
       ShareService.applyShareAccess(shareResult);
     }
+=======
+        const projectData = await api.createProject({ name: 'New Project' });
+        userStore.currentProjectId = projectData['project']['id'];
+      } else {
+        userStore.currentProjectId = res['projects'][0]['id'];
+      }
+    });
+
+>>>>>>> f8bf5fe (权限控制功能实现)
     // 关闭登录框
     resetForm();
     close();

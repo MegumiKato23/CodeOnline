@@ -11,8 +11,6 @@
 
     <!-- 右侧部分：操作按钮 -->
     <div class="right">
-<<<<<<< HEAD
-<<<<<<< HEAD
       <UnifiedButton
         type="primary"
         size="large"
@@ -21,43 +19,23 @@
         :disabled="userStore.isReadOnlyMode"
         @click="saveCode"
       >
-=======
-      <UnifiedButton type="primary" :class="{ saved }" :icon="CloudIcon" @click="saveCode">
-=======
-      <UnifiedButton type="primary" size="large" :class="{ saved }" :icon="CloudIcon" @click="saveCode">
->>>>>>> 628c62c (修改按钮样式)
-        <!-- <CloudIcon class="icon" /> -->
->>>>>>> bfca8a1 (解决冲突)
         <span>{{ saved ? 'Saved' : 'Save' }}</span>
       </UnifiedButton>
 
       <UnifiedButton type="primary" size="large" :icon="SettingsIcon" @click="openSettings">
-<<<<<<< HEAD
         <span>Settings</span>
       </UnifiedButton>
 
       <!-- 根据登录状态显示登录按钮或头像 -->
       <UnifiedButton v-if="!isLoggedIn" type="primary" size="large" @click="login">
-=======
-        <!-- <SettingsIcon class="icon" /> -->
-        <span>Settings</span>
-      </UnifiedButton>
-
-      <UnifiedButton type="primary" size="large" @click="login">
->>>>>>> 628c62c (修改按钮样式)
         <span>Log In</span>
       </UnifiedButton>
-<<<<<<< HEAD
       <HeadPortrait v-else />
-=======
->>>>>>> f5ef146 (合并冲突)
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
-<<<<<<< HEAD
-<<<<<<< HEAD
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import { useUserStore } from '@/stores/userStore';
@@ -74,34 +52,6 @@ const userStore = useUserStore();
 const codeStore = useCodeStore();
 const { username, isLoggedIn } = storeToRefs(userStore);
 const { saved } = storeToRefs(codeStore);
-=======
-import { storeToRefs } from "pinia";
-import { computed } from "vue";
-import { useEditorStore } from "@/stores/editor";
-import CodePenLogo from "./icons/CodePenLogo.vue";
-import DownloadIcon from "./icons/DownloadIcon.vue";
-import CloudIcon from "./icons/CloudIcon.vue";
-import SettingsIcon from "./icons/SettingsIcon.vue";
-=======
-import { storeToRefs } from 'pinia';
-import { computed } from 'vue';
-import { useEditorStore } from '@/stores/editor';
-import CodePenLogo from './icons/CodePenLogo.vue';
-import CloudIcon from './icons/CloudIcon.vue';
-import SettingsIcon from './icons/SettingsIcon.vue';
-<<<<<<< HEAD
->>>>>>> bfca8a1 (解决冲突)
-=======
-import UnifiedButton from '@/components/ui/UnifiedButton.vue';
->>>>>>> 628c62c (修改按钮样式)
-
-const emit = defineEmits(['login']);
-
-const editorStore = useEditorStore();
-<<<<<<< HEAD
-const { saved, username, title, isLoggedIn, teamname } =
-  storeToRefs(editorStore);
->>>>>>> f5ef146 (合并冲突)
 
 const saveCode = () => {
   if (!userStore.isLoggedIn) {
@@ -116,37 +66,14 @@ const saveCode = () => {
     .catch(() => {
       console.log('代码保存失败');
     });
-=======
-const { saved, username, title, isLoggedIn, teamname } = storeToRefs(editorStore);
-
-const saveCode = () => {
-  editorStore.saveCode();
-  console.log('Code saved');
->>>>>>> bfca8a1 (解决冲突)
 };
 
 const openSettings = () => {
   console.log('Open settings');
-<<<<<<< HEAD
 };
 
 const login = () => {
-<<<<<<< HEAD
   emit('login');
-=======
-  emit("login");
->>>>>>> f5ef146 (合并冲突)
-=======
-};
-
-// const download = () => {
-//   editorStore.saveCode();
-//   console.log('Download code');
-// };
-
-const login = () => {
-  emit('login');
->>>>>>> bfca8a1 (解决冲突)
 };
 </script>
 

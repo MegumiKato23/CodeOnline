@@ -9,12 +9,18 @@
       </div>
       <div class="tabs_right">
 <<<<<<< HEAD
+<<<<<<< HEAD
         <UnifiedButton type="primary" size="small" :disabled="props.isReadOnly" @click.stop="openShareBox">
           share
         </UnifiedButton>
 =======
         <UnifiedButton type="primary" size="small" @click.stop="openShareBox">share</UnifiedButton>
 >>>>>>> 997fea6 (复制链接功能实现)
+=======
+        <UnifiedButton type="primary" size="small" :disabled="props.isReadOnly" @click.stop="openShareBox">
+          share
+        </UnifiedButton>
+>>>>>>> f8bf5fe (权限控制功能实现)
         <div v-if="isShareExpanded" class="share" ref="shareRef">
           <h2>Share</h2>
           <span class="share_link">{{ shareLink }}</span>
@@ -28,13 +34,19 @@
       <div class="toast-content">
         <span class="toast-icon">✓</span>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f8bf5fe (权限控制功能实现)
         <span class="toast-text"
           >Copied Url to Clipboard!
           <span v-if="shareTime">The link is valid until {{ shareTime }}</span>
         </span>
+<<<<<<< HEAD
 =======
         <span class="toast-text">Copied Url to Clipboard!</span>
 >>>>>>> 997fea6 (复制链接功能实现)
+=======
+>>>>>>> f8bf5fe (权限控制功能实现)
       </div>
     </div>
 
@@ -66,6 +78,7 @@
 <<<<<<< HEAD
 import { ref, nextTick, onMounted, onUnmounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
+<<<<<<< HEAD
 import { api } from '@/api/index';
 =======
 import { ref, nextTick } from 'vue';
@@ -73,6 +86,9 @@ import { ref, nextTick } from 'vue';
 =======
 import { ref, nextTick, onMounted, onUnmounted } from 'vue';
 >>>>>>> 997fea6 (复制链接功能实现)
+=======
+import api from '@/api/index';
+>>>>>>> f8bf5fe (权限控制功能实现)
 
 const userStore = useUserStore();
 const props = defineProps<{
@@ -81,6 +97,7 @@ const props = defineProps<{
 const isConsoleExpanded = ref(false);
 const isShareExpanded = ref(false);
 const shareRef = ref(null);
+<<<<<<< HEAD
 <<<<<<< HEAD
 const shareLink = ref(window.location.origin);
 const shareTime = ref(null);
@@ -96,12 +113,20 @@ const emit = defineEmits(['login']);
 >>>>>>> bfca8a1 (解决冲突)
 =======
 const shareLink = ref('http');
+=======
+const shareLink = ref(window.location.origin);
+const shareTime = ref(null);
+>>>>>>> f8bf5fe (权限控制功能实现)
 const consoleLogs = ref<string[]>([]);
 const command = ref('');
 const consoleOutput = ref<HTMLElement | null>(null);
 // 添加复制提示状态
 const showCopyToast = ref(false);
+<<<<<<< HEAD
 >>>>>>> 997fea6 (复制链接功能实现)
+=======
+
+>>>>>>> f8bf5fe (权限控制功能实现)
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
 const toggleConsole = () => {
@@ -133,6 +158,9 @@ const scrollToBottom = () => {
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f8bf5fe (权限控制功能实现)
 // 获取分享链接
 const getProjectShareLink = async () => {
   try {
@@ -143,18 +171,30 @@ const getProjectShareLink = async () => {
     // }
 
     const response = await api.getShareLink(userStore.currentProjectId);
+<<<<<<< HEAD
     const { data } = response;
     // 生成完整的分享链接
     console.log(window.location.origin);
     shareLink.value = `${window.location.origin}/share/${data.shareId}`;
 
     shareTime.value = new Date(data.expiresAt).toLocaleDateString('en-US', {
+=======
+    // 生成完整的分享链接
+    console.log(window.location.origin);
+    shareLink.value = `${window.location.origin}/share/${response.shareId}`;
+
+    shareTime.value = new Date(response.expiresAt).toLocaleDateString('en-US', {
+>>>>>>> f8bf5fe (权限控制功能实现)
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     });
 
     console.log('获取分享链接成功:', shareLink.value);
+<<<<<<< HEAD
+=======
+    // console.log(time);
+>>>>>>> f8bf5fe (权限控制功能实现)
   } catch (error) {
     console.error('获取分享链接失败:', error);
     // 失败时使用默认链接
@@ -163,6 +203,7 @@ const getProjectShareLink = async () => {
 };
 
 const openShareBox = async () => {
+<<<<<<< HEAD
   if (!userStore.isLoggedIn) {
     emit('login');
   } else {
@@ -171,6 +212,9 @@ const openShareBox = async () => {
   }
 =======
 const openShareBox = () => {
+=======
+  await getProjectShareLink();
+>>>>>>> f8bf5fe (权限控制功能实现)
   isShareExpanded.value = true;
 >>>>>>> 997fea6 (复制链接功能实现)
 };
@@ -265,23 +309,33 @@ onUnmounted(() => {
   right: 0;
   width: 200px;
 <<<<<<< HEAD
+<<<<<<< HEAD
   height: 150px;
 =======
   height: 128px;
 >>>>>>> 997fea6 (复制链接功能实现)
+=======
+  height: 150px;
+>>>>>>> f8bf5fe (权限控制功能实现)
   padding: 10px 15px;
   background-color: rgb(30, 31, 38);
   animation: shareBox 0.3s ease forwards;
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f8bf5fe (权限控制功能实现)
 .share_link {
   width: 180px;
   font-size: 10px;
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> 997fea6 (复制链接功能实现)
+=======
+>>>>>>> f8bf5fe (权限控制功能实现)
 .copy_link {
   margin-top: 10px;
   width: 100%;

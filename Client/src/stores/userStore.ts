@@ -14,6 +14,7 @@ export const useUserStore = defineStore('user', () => {
   const avatar = ref('');
   const status = ref('');
   const createAt = ref('');
+  const userId = ref('');
 
   const isLoggedIn = ref(false);
 
@@ -41,6 +42,10 @@ export const useUserStore = defineStore('user', () => {
 
   const setCreateAt = (newCreateAt: string) => {
     createAt.value = newCreateAt;
+  };
+
+  const setUserId = (newUserId: string) => {
+    userId.value = newUserId;
   };
 
   const login = () => {
@@ -81,6 +86,7 @@ export const useUserStore = defineStore('user', () => {
     account,
     avatar,
     status,
+    userId,
     isLoggedIn,
     currentProjectId,
     currentPermissions,
@@ -90,6 +96,7 @@ export const useUserStore = defineStore('user', () => {
     setAvatar,
     setStatus,
     setCreateAt,
+    setUserId,
     login,
     logout,
     setPermissions,

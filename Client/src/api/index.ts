@@ -127,7 +127,12 @@ class ApiClient {
               await this.refreshToken();
             } catch (refreshError) {
               // 刷新token失败，清除本地存储的用户信息
+<<<<<<< HEAD
 
+=======
+              // 重定向到登录页面等
+              window.location.href = '/login';
+>>>>>>> f8bf5fe (权限控制功能实现)
               return Promise.reject(refreshError);
             }
           }
@@ -212,6 +217,7 @@ class ApiClient {
     return response.data;
   }
 
+<<<<<<< HEAD
   async getShareLink(
     projectId: string
   ): Promise<{ code: number; message: string; data: { shareId: string; expiresAt: Date } }> {
@@ -220,6 +226,10 @@ class ApiClient {
       message: string;
       data: { shareId: string; expiresAt: Date };
     }>(`/projects/share/${projectId}`);
+=======
+  async getShareLink(projectId: string): Promise<{ shareId: string; expiresAt: Date }> {
+    const response = await this.client.get<{ shareId: string; expiresAt: Date }>(`/projects/share/${projectId}`);
+>>>>>>> f8bf5fe (权限控制功能实现)
     return response.data;
   }
 
@@ -275,6 +285,7 @@ class ApiClient {
 
 export const api = new ApiClient();
 
+<<<<<<< HEAD
 // export default api;
 export interface FileContent {
   id: string;
@@ -305,3 +316,6 @@ export default {
 
   getCode: (userId: string) => axios.get<CodeData>(`http://localhost:3001/api/code/${userId}`),
 };
+=======
+export default api;
+>>>>>>> f8bf5fe (权限控制功能实现)

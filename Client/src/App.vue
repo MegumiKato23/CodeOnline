@@ -8,18 +8,27 @@
       <div class="resize-handle" @mousedown="startResize" @dblclick="resetSize"></div>
       <div class="preview-panel">
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f8bf5fe (权限控制功能实现)
         <iframe
           sandbox="allow-scripts  allow-same-origin"
           ref="previewFrame"
           class="preview-frame"
           :class="{ 'no-pointer-events': isResizing }"
         ></iframe>
+<<<<<<< HEAD
 =======
         <iframe ref="previewFrame" class="preview-frame" :class="{ 'no-pointer-events': isResizing }"></iframe>
 >>>>>>> bfca8a1 (解决冲突)
       </div>
     </div>
     <Footer :isReadOnly="userStore.isReadOnlyMode" @login="showLoginDialog = true" />
+=======
+      </div>
+    </div>
+    <Footer :isReadOnly="userStore.isReadOnlyMode" />
+>>>>>>> f8bf5fe (权限控制功能实现)
     <SettingsDialog v-if="showSettings" @close="showSettings = false" />
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
@@ -38,11 +47,14 @@ import { debounce } from 'lodash-es'; // 导入防抖函数
 import { useCodeStore } from '@/stores/codeStore';
 import { useUserStore } from '@/stores/userStore';
 import type { ProjectPermissions } from '@/stores/userStore';
+<<<<<<< HEAD
 =======
 import { ref, watch, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useEditorStore } from '@/stores/editor';
 >>>>>>> bfca8a1 (解决冲突)
+=======
+>>>>>>> f8bf5fe (权限控制功能实现)
 import Navbar from '@/components/Navbar.vue';
 import CodeEditor from '@/components/CodeEditor.vue';
 import Footer from '@/components/Footer.vue';
@@ -51,9 +63,14 @@ import LoginDialog from '@/components/login/LoginDialog.vue';
 import RegisterDialog from '@/components/login/RegisterDialog.vue';
 <<<<<<< HEAD
 import head_portrait from './components/head_portrait.vue';
+<<<<<<< HEAD
 import { api } from '@/api/index';
 import { Users } from 'lucide-vue-next';
 import { ShareService } from '@/services/shareService';
+=======
+import api from '@/api/index';
+import { Users } from 'lucide-vue-next';
+>>>>>>> f8bf5fe (权限控制功能实现)
 
 const codeStore = useCodeStore();
 const userStore = useUserStore();
@@ -88,6 +105,7 @@ const debouncedUpdatePreview = debounce(() => {
   // 设置sandbox属性
   previewFrame.value.setAttribute('sandbox', 'allow-scripts  allow-same-origin');
 
+<<<<<<< HEAD
 =======
 
 // 切换到注册界面
@@ -109,6 +127,8 @@ const updatePreview = () => {
   if (!doc) return;
 
 >>>>>>> bfca8a1 (解决冲突)
+=======
+>>>>>>> f8bf5fe (权限控制功能实现)
   doc.open();
   doc.write(`
     <!DOCTYPE html>
@@ -221,18 +241,57 @@ onMounted(() => {
     }
   });
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f8bf5fe (权限控制功能实现)
   checkShareAccess();
   debouncedUpdatePreview();
 });
 
 // 检查是否为分享链接访问
 const checkShareAccess = async () => {
+<<<<<<< HEAD
   const result = await ShareService.checkShareAccess();
 
   if (result.success) {
     ShareService.applyShareAccess(result);
   } else {
     console.log(result.error);
+=======
+  const url = window.location.pathname;
+  const shareMatch = url.match(/\/share\/(.+)/);
+
+  if (shareMatch) {
+    const shareId = shareMatch[1];
+    try {
+      const projectData = await api.getSharedProject(shareId);
+
+      if (projectData.project.ownerId === userStore.userId) {
+        permissions.value = {
+          isOwner: true,
+          accessType: 'owner',
+        };
+      } else {
+        permissions.value = {
+          isOwner: false,
+          accessType: 'readonly',
+        };
+      }
+      // 设置权限
+      userStore.setPermissions(permissions.value);
+
+      // 加载项目数据到编辑器
+      // codeStore.loadProjectFromShare(projectData);
+
+      // 如果是只读模式，显示提示
+      if (permissions.value.accessType === 'readonly') {
+        console.log('您正在以只读模式访问此项目');
+      }
+    } catch (error) {
+      console.error('Failed to load shared project:', error);
+      // 处理错误（如链接过期、不存在等）
+    }
+>>>>>>> f8bf5fe (权限控制功能实现)
   }
 };
 
