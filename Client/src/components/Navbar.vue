@@ -11,17 +11,17 @@
 
     <!-- 右侧部分：操作按钮 -->
     <div class="right">
-      <UnifiedButton type="primary" :class="{ saved }" :icon="CloudIcon" @click="saveCode">
+      <UnifiedButton type="primary" size="large" :class="{ saved }" :icon="CloudIcon" @click="saveCode">
         <!-- <CloudIcon class="icon" /> -->
         <span>{{ saved ? 'Saved' : 'Save' }}</span>
       </UnifiedButton>
 
-      <UnifiedButton type="primary" :icon="SettingsIcon" @click="openSettings">
+      <UnifiedButton type="primary" size="large" :icon="SettingsIcon" @click="openSettings">
         <!-- <SettingsIcon class="icon" /> -->
         <span>Settings</span>
       </UnifiedButton>
 
-      <UnifiedButton type="primary" @click="login">
+      <UnifiedButton type="primary" size="large" @click="login">
         <span>Log In</span>
       </UnifiedButton>
     </div>
@@ -31,19 +31,22 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
-import { useEditorStore } from '@/stores/editor';
+import { useUserStore } from '@/stores/userStore'; // 使用userStore
+import { useCodeStore } from '@/stores/codeStore'; // 使用codeStore
 import CodePenLogo from './icons/CodePenLogo.vue';
-import DownloadIcon from './icons/DownloadIcon.vue';
 import CloudIcon from './icons/CloudIcon.vue';
 import SettingsIcon from './icons/SettingsIcon.vue';
+import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
 const emit = defineEmits(['login']);
 
-const editorStore = useEditorStore();
-const { saved, username, title, isLoggedIn, teamname } = storeToRefs(editorStore);
+const userStore = useUserStore();
+const codeStore = useCodeStore();
+const {username, title, isLoggedIn, teamname } = storeToRefs(userStore);
+const { saved } = storeToRefs(codeStore);
 
 const saveCode = () => {
-  editorStore.saveCode();
+  codeStore.saveCode();
   console.log('Code saved');
 };
 
@@ -51,10 +54,10 @@ const openSettings = () => {
   console.log('Open settings');
 };
 
-const download = () => {
-  editorStore.saveCode();
-  console.log('Download code');
-};
+// const download = () => {
+//   codeStore.saveCode();
+//   console.log('Download code');
+// };
 
 const login = () => {
   emit('login');
@@ -106,7 +109,7 @@ const login = () => {
   gap: 8px;
 }
 
-.btn {
+/* .btn {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -115,32 +118,27 @@ const login = () => {
   border: none;
   cursor: pointer;
   font-size: 14px;
-}
+} */
 
-.save-btn {
+/* .save-btn {
   background: #5a5f73;
   color: white;
-}
+} */
 
-.save-btn.saved {
+/* .save-btn.saved {
   background: rgba(0, 200, 0, 0.2);
   color: #0f0;
-}
+} */
 
-.settings-btn {
+/* .settings-btn {
   background: #5a5f73;
   color: white;
-}
-
-.download-btn {
-  background: #47cf73;
-  color: black;
 }
 
 .login-btn {
   background: #5a5f73;
   color: white;
-}
+} */
 
 .user-btn {
   background-color: #333;
@@ -153,8 +151,8 @@ const login = () => {
   color: #999;
 }
 
-.icon {
+/* .icon {
   width: 16px;
   height: 16px;
-}
+} */
 </style>

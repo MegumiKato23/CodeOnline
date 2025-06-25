@@ -67,7 +67,7 @@ const getProject = async (req, res) => {
 const updateProject = async (req, res) => {
   try {
     const projectId = req.params.projectId;
-    const { name } = req.body;
+    const { name, files } = req.body;
 
     // 检查项目是否存在并且用户有权限
     const existingProject = await prisma.project.findUnique({
@@ -84,7 +84,7 @@ const updateProject = async (req, res) => {
 
     const updatedProject = await prisma.project.update({
       where: { id: projectId },
-      data: { name: name }
+      data: { name: name, files: files }
     });
 
     res.status(200).json({

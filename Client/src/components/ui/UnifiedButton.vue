@@ -85,8 +85,9 @@ const handleClick = (event: MouseEvent) => {
 }
 
 .btn-large {
+  gap: 0.4rem;
   padding: 0.75rem 1.5rem;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   min-height: 2rem;
   height: 2.2rem;
 }
@@ -104,12 +105,12 @@ const handleClick = (event: MouseEvent) => {
 }
 
 .btn-tab {
-  background: transparent;
-  color: hsl(227.37deg 12.26% 30.39%);
+  background: hsl(227.37deg 12.26% 30.39%);
+  color: #fff;
+  gap: 0.4rem;
   border: none;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  padding: 0.5rem 1.2rem;
 }
 
 .btn-tab:hover:not(.btn-disabled) {
@@ -118,7 +119,7 @@ const handleClick = (event: MouseEvent) => {
 }
 
 .btn-tab.btn-active {
-  color: white;
+  color: #fff;
   background: hsla(223, 33%, 96%, 0.639);
 
   /* border-bottom-color: #1a1a1a; */
@@ -136,9 +137,7 @@ const handleClick = (event: MouseEvent) => {
   align-items: center;
   width: 1em;
   height: 1em;
-}
-
-.btn-text {
-  white-space: nowrap;
+  margin-bottom: -1px;
+  flex-shrink: 0;
 }
 </style>
