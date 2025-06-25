@@ -65,7 +65,7 @@ const handleLogin = async () => {
   try {
     const { user } = await api.login({
       account: loginForm.account,
-      password: loginForm.password
+      password: loginForm.password,
     });
 
     // 更新用户信息

@@ -20,12 +20,7 @@
       </UnifiedButton>
 
       <!-- 根据登录状态显示登录按钮或头像 -->
-      <UnifiedButton 
-        v-if="!isLoggedIn"
-        type="primary" 
-        size="large" 
-        @click="login"
-      >
+      <UnifiedButton v-if="!isLoggedIn" type="primary" size="large" @click="login">
         <span>Log In</span>
       </UnifiedButton>
       <UnifiedButton v-else>

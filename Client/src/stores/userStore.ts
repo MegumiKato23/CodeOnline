@@ -32,7 +32,7 @@ export const useUserStore = defineStore('user', () => {
   };
 
   const login = () => {
-    console.log(isLoggedIn)
+    console.log(isLoggedIn);
     isLoggedIn.value = true;
   };
 

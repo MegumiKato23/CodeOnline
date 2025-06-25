@@ -88,7 +88,7 @@ app.listen(PORT, () => {
   console.log(`Health check: http://localhost:${PORT}/health`);
 });
 const config = require('../config');
-const PORT1 = config.server.port ;
+const PORT1 = config.server.port;
 app.listen(PORT1, () => {
   console.log(`
     Redis: ${config.redis.host}:${config.redis.port}

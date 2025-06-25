@@ -1,5 +1,5 @@
 const Redis = require('ioredis');
-const config = require('../../config');  // 修正路径
+const config = require('../../config'); // 修正路径
 
 const redis = new Redis(config.redis);
 
@@ -20,14 +20,14 @@ module.exports = {
     }
     return redis.hset(key, serialized);
   },
-  
+
   hgetall: async (key) => {
     const data = await redis.hgetall(key);
     return data && Object.keys(data).length > 0 ? data : null;
   },
-  
+
   expire: (key, seconds) => redis.expire(key, seconds),
-  
+
   ping: async () => {
     try {
       await redis.ping();
@@ -36,5 +36,5 @@ module.exports = {
       console.error('Redis ping failed:', err);
       return false;
     }
-  }
+  },
 };
