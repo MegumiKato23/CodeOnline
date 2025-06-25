@@ -6,7 +6,7 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const crypto = require('crypto');
 require('dotenv').config();
-
+const codeRoutes = require('./routes/code');
 const userRoutes = require('./routes/users');
 const projectRoutes = require('./routes/projects');
 const fileRoutes = require('./routes/files');
@@ -60,7 +60,7 @@ app.get('/health', (req, res) => {
 app.use('/users', userRoutes);
 app.use('/projects', projectRoutes);
 app.use('/projects/:projectId/files', fileRoutes);
-
+app.use('/api/code', codeRoutes);
 // 错误处理中间件
 app.use((err, req, res, next) => {
   console.error('Error:', err);
@@ -87,5 +87,11 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
 });
-
+const config = require('../config');
+const PORT1 = config.server.port;
+app.listen(PORT1, () => {
+  console.log(`
+    Redis: ${config.redis.host}:${config.redis.port}
+  `);
+});
 module.exports = app;

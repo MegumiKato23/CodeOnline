@@ -148,6 +148,18 @@ const setActiveTab = (tab: 'html' | 'css' | 'js') => {
 
 onMounted(() => {
   initializeEditor();
+  // 异步加载远程代码（如果用户已登录）
+  if (userStore.isLoggedIn) {
+    codeStore
+      .loadCode(userStore.account)
+      .then(() => {
+        // 代码加载成功后重新初始化编辑器
+        recreateEditor();
+      })
+      .catch(() => {
+        console.log('使用本地默认代码');
+      });
+  }
 });
 
 watch(activeTab, () => {

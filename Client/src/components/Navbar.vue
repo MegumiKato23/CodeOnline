@@ -20,12 +20,7 @@
       </UnifiedButton>
 
       <!-- 根据登录状态显示登录按钮或头像 -->
-      <UnifiedButton 
-        v-if="!isLoggedIn"
-        type="primary" 
-        size="large" 
-        @click="login"
-      >
+      <UnifiedButton v-if="!isLoggedIn" type="primary" size="large" @click="login">
         <span>Log In</span>
       </UnifiedButton>
       <UnifiedButton v-else>
@@ -54,8 +49,18 @@ const { username, isLoggedIn } = storeToRefs(userStore);
 const { saved } = storeToRefs(codeStore);
 
 const saveCode = () => {
-  codeStore.saveCode();
-  console.log('Code saved');
+  if (!userStore.isLoggedIn) {
+    console.log('请先登录再保存');
+    return;
+  }
+  codeStore
+    .saveCode(userStore.account)
+    .then(() => {
+      console.log('代码保存成功');
+    })
+    .catch(() => {
+      console.log('代码保存失败');
+    });
 };
 
 const openSettings = () => {
