@@ -12,6 +12,7 @@ export const useCodeStore = defineStore('code', () => {
   const jsCode = ref('console.log("Hello from CodePen Clone")');
   const activeTab = ref<'html' | 'css' | 'js'>('html');
   const saved = ref(true);
+
   const updateCode = (type: 'html' | 'css' | 'js', code: string) => {
     if (type === 'html') htmlCode.value = code;
     else if (type === 'css') cssCode.value = code;

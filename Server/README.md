@@ -36,16 +36,25 @@ DATABASE_URL="mysql://username:password@localhost:3306/your_database_name"
 
 # 示例:
 # DATABASE_URL="mysql://root:password123@localhost:3306/codeonline_db"
+
+# 如果.env不存在就创建一个
+touch .env
 ```
 
-### 4. 数据库初始化
+### 4. 初始化
 
 ```bash
-npx prisma generate \
-npx prisma migrate deploy 
+npx prisma generate
 ```
 
-### 5. 启动服务
+### 5. 创建数据库
+
+```bash
+npx prisma migrate dev
+```
+
+### 6. 启动服务
+
 ```bash
 npm start
 ```
@@ -60,15 +69,15 @@ npx prisma studio
 
 这将在浏览器中打开 Prisma Studio，你可以可视化地查看和编辑数据。
 
-## API接口
+## API 接口
 
-具体的请查看API文档。
+具体的请查看 API 文档。
 
 ## 数据库架构
 
 ### 数据模型概览
 
-系统包含以下4个主要数据模型：
+系统包含以下 4 个主要数据模型：
 
 1. **User (用户)** - 管理用户账户和认证信息
 2. **Project (项目)** - 管理用户创建的代码项目
@@ -78,54 +87,91 @@ npx prisma studio
 ### 详细数据模型
 
 #### User 用户表
+
 ```sql
-CREATE TABLE User (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  account VARCHAR(255) UNIQUE NOT NULL,  -- 用户账号
-  name VARCHAR(255) NOT NULL,            -- 用户姓名
-  password VARCHAR(255) NOT NULL,        -- 密码
-  avatar VARCHAR(255),                   -- 头像URL (可选)
-  createdAt DATETIME DEFAULT NOW(),      -- 创建时间
-  lastLogin DATETIME,                    -- 最后登录时间
-  status VARCHAR(255) NOT NULL           -- 用户状态
+CREATE TABLE `User` (
+    -- 用户唯一标识符
+    `id` VARCHAR(191) NOT NULL, 
+    -- 用户账号，用于登录
+    `account` VARCHAR(191) NOT NULL,
+    -- 用户昵称
+    `name` VARCHAR(191) NOT NULL,
+    -- 用户密码
+    `password` VARCHAR(191) NOT NULL,
+    -- 用户头像URL，允许为空
+    `avatar` VARCHAR(191) NULL,
+    -- 用户创建时间，自动设置为当前时间
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    -- 用户最后登录时间
+    `lastLogin` DATETIME(3) NOT NULL,
+    -- 状态栏
+    `status` VARCHAR(191) NOT NULL,
+
+    -- 创建账号唯一索引，确保账号不重复
+    UNIQUE INDEX `User_account_key`(`account`),
+    -- 设置主键
+    PRIMARY KEY (`id`)
 );
 ```
 
 #### Project 项目表
+
 ```sql
-CREATE TABLE Project (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  name VARCHAR(255),                     -- 项目名称
-  ownerId INT NOT NULL,                  -- 项目所有者ID
-  createdAt DATETIME DEFAULT NOW(),      -- 创建时间
-  updatedAt DATETIME DEFAULT NOW() ON UPDATE NOW(), -- 更新时间
-  FOREIGN KEY (ownerId) REFERENCES User(id)
+CREATE TABLE `Project` (
+    -- 项目唯一标识符
+    `id` VARCHAR(191) NOT NULL,
+    -- 项目名称
+    `name` VARCHAR(191) NULL,
+    -- 项目所有者ID
+    `ownerId` VARCHAR(191) NOT NULL,
+    -- 项目创建时间，自动设置为当前时间
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    -- 项目更新时间，自动设置为当前时间，更新时更新
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
 );
 ```
 
 #### File 文件表
+
 ```sql
-CREATE TABLE File (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  name VARCHAR(255),                     -- 文件名
-  ownerId INT NOT NULL,                  -- 所属项目ID
-  path VARCHAR(255) NOT NULL,            -- 文件路径
-  content LONGTEXT,                      -- 文件内容
-  type ENUM('HTML', 'CSS', 'JS', 'JSX', 'TS', 'VUE', 'SCSS', 'LESS'), -- 文件类型
-  createdAt DATETIME DEFAULT NOW(),      -- 创建时间
-  updatedAt DATETIME DEFAULT NOW() ON UPDATE NOW(), -- 更新时间
-  FOREIGN KEY (ownerId) REFERENCES Project(id)
-);
+CREATE TABLE `File` (
+    -- 文件唯一标识符
+    `id` VARCHAR(191) NOT NULL,
+    -- 文件名称
+    `name` VARCHAR(191) NULL,
+    -- 文件所属项目ID
+    `ownerId` VARCHAR(191) NOT NULL,
+    -- 文件路径
+    `path` VARCHAR(191) NOT NULL,
+    -- 文件内容
+    `content` LONGTEXT NULL,
+    -- 文件类型
+    `type` ENUM('HTML', 'CSS', 'JS', 'JSX', 'TS', 'VUE', 'SCSS', 'LESS') NOT NULL,
+    -- 文件创建时间，自动设置为当前时间
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    -- 文件更新时间，自动设置为当前时间，更新时更新
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) ;
 ```
 
 #### Share 分享表
+
 ```sql
-CREATE TABLE Share (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  projectId INT NOT NULL,                -- 分享的项目ID
-  createdAt DATETIME DEFAULT NOW(),      -- 分享创建时间
-  keeptime DATETIME NOT NULL,            -- 分享保持时间
-  FOREIGN KEY (projectId) REFERENCES Project(id)
+CREATE TABLE `Share` (
+    -- 分享唯一标识符
+    `id` VARCHAR(191) NOT NULL,
+    -- 分享的项目ID
+    `projectId` VARCHAR(191) NOT NULL,
+    -- 分享创建时间，自动设置为当前时间
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    -- 分享保持时间
+    `keeptime` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
 );
 ```
 
@@ -155,6 +201,7 @@ npx prisma migrate dev --name "描述性名称"
 ### 1. 连接问题
 
 如果遇到数据库连接错误：
+
 - 检查 MySQL 服务是否运行
 - 验证 `.env` 文件中的数据库连接字符串是否正确
 - 确保数据库用户有足够的权限
@@ -162,6 +209,7 @@ npx prisma migrate dev --name "描述性名称"
 ### 2. 架构同步问题
 
 如果数据库架构与 Prisma schema 不同步：
+
 ```bash
 npx prisma db pull  # 从数据库拉取架构
 npx prisma generate # 重新生成客户端
@@ -170,10 +218,9 @@ npx prisma generate # 重新生成客户端
 ### 3. 迁移问题
 
 如果迁移失败：
+
 ```bash
 npx prisma migrate resolve --rolled-back "迁移名称"
 ```
 
 ---
-
-

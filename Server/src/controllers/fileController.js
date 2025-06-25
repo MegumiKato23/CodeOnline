@@ -21,7 +21,7 @@ const createFile = async (req, res) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (project.ownerId !== req.user.id) {
+    if (project.ownerId !== req.session.userId) {
       return res.status(403).json({ error: 'Permission denied' });
     }
 
@@ -32,6 +32,16 @@ const createFile = async (req, res) => {
         content: content,
         type: type,
         ownerId: projectId
+      }
+    });
+
+    // 更新项目
+    await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        files: {
+          connect: { id: file.id }
+        }
       }
     });
 
@@ -73,7 +83,7 @@ const updateFile = async (req, res) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (project.ownerId !== req.user.id) {
+    if (project.ownerId !== req.session.userId) {
       return res.status(403).json({ error: 'Permission denied' });
     }
 
@@ -131,7 +141,7 @@ const deleteFile = async (req, res) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (project.ownerId !== req.user.id) {
+    if (project.ownerId !== req.session.userId) {
       return res.status(403).json({ error: 'Permission denied' });
     }
 

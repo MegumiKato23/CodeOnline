@@ -4,14 +4,34 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-
-const codeRoutes = require('./routes/code'); // 添加代码路由
+const cookieParser = require('cookie-parser')
+const session = require('express-session');
+const crypto = require('crypto');
+require('dotenv').config();
 
 const userRoutes = require('./routes/users');
 const projectRoutes = require('./routes/projects');
 const fileRoutes = require('./routes/files');
 
 const app = express();
+app.use(cookieParser())
+
+// 会话存储配置
+const sessionStore = new session.MemoryStore();
+
+app.use(session({
+  name: 'sessionId',
+  secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
+  resave: false,
+  saveUninitialized: false,
+  store: sessionStore,
+  cookie: {
+    httpOnly: true, 
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict', 
+    maxAge: 24 * 60 * 60 * 1000
+  }
+}));
 
 // 安全中间件
 app.use(helmet());
