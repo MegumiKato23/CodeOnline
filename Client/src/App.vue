@@ -14,6 +14,7 @@
     <SettingsDialog v-if="showSettings" @close="showSettings = false" />
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
+    <head_portrait @login="showLoginDialog = true" />
   </div>
 </template>
 
@@ -29,6 +30,7 @@ import Footer from '@/components/Footer.vue';
 import SettingsDialog from '@/components/icons/SettingsIcon.vue';
 import LoginDialog from '@/components/login/LoginDialog.vue';
 import RegisterDialog from '@/components/login/RegisterDialog.vue';
+import head_portrait from './components/head_portrait.vue';
 
 const codeStore = useCodeStore();
 const userStore = useUserStore();
@@ -46,7 +48,7 @@ const editorPanel = ref<HTMLElement | null>(null);
 // 创建防抖的预览更新函数 (500ms)
 const debouncedUpdatePreview = debounce(() => {
   if (!previewFrame.value) return;
-  
+
   const doc = previewFrame.value.contentDocument;
   if (!doc) return;
 

@@ -2,15 +2,14 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
 export const useUserStore = defineStore('user', () => {
-  const teamname = ref('从容应队');
-  const username = ref('NaN');
-  const title = ref('CodeOnline');
-  const account = ref('18812345678');
-  const isLoggedIn = ref(false);
+  // 用户信息
+  const username = ref('');
+  const account = ref('');
+  const avatar = ref('');
+  const status = ref('');
+  const createAt = ref('');
 
-  const setTitle = (newTitle: string) => {
-    title.value = newTitle;
-  };
+  const isLoggedIn = ref(false);
 
   const setUsername = (newUsername: string) => {
     username.value = newUsername;
@@ -18,6 +17,22 @@ export const useUserStore = defineStore('user', () => {
 
   const setAccount = (newAccount: string) => {
     account.value = newAccount;
+  };
+
+  const setAvatar = (newAvatar: string) => {
+    avatar.value = newAvatar;
+  };
+
+  const setStatus = (newStatus: string) => {
+    status.value = newStatus;
+  };
+
+  const setCreateAt = (newCreateAt: string) => {
+    createAt.value = newCreateAt;
+  };
+
+  const login = () => {
+    console.log(isLoggedIn)
     isLoggedIn.value = true;
   };
 
@@ -26,14 +41,17 @@ export const useUserStore = defineStore('user', () => {
   };
 
   return {
-    teamname,
     username,
-    title,
     account,
+    avatar,
+    status,
     isLoggedIn,
-    setTitle,
     setUsername,
     setAccount,
-    logout
+    setAvatar,
+    setStatus,
+    setCreateAt,
+    login,
+    logout,
   };
 });
