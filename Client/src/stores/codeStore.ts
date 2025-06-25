@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-
+import api from '@/api';
 export const useCodeStore = defineStore('code', () => {
   const htmlCode = ref(
     '<div class="root">\n  <div>\n    <svg viewBox="0 0 100 100" fill="white" width="60px" height="60px">\n      <circle cx="50" cy="50" r="40" />\n    </svg>\n    <h1>CodePen Clone</h1>\n    <p>CodePen is a clone of a famous web IDE developed by Diwanshu Midha</p>\n  </div>\n</div>'
@@ -19,10 +19,30 @@ export const useCodeStore = defineStore('code', () => {
     saved.value = false;
   };
 
-  const saveCode = () => {
-    saved.value = true;
+  const saveCode = async (userId: string) => {
+    try {
+      await api.saveCode({
+        userId,
+        html: htmlCode.value,
+        css: cssCode.value,
+        js: jsCode.value,
+      });
+      console.log('代码已保存到Redis');
+    } catch (error) {
+      console.error('保存失败:', error);
+    }
   };
-
+  // 新增的loadCode方法
+  const loadCode = async (userId: string) => {
+    try {
+      const response = await api.getCode(userId);
+      htmlCode.value = response.data.html || htmlCode.value;
+      cssCode.value = response.data.css || cssCode.value;
+      jsCode.value = response.data.js || jsCode.value;
+    } catch (error) {
+      console.error('加载失败:', error);
+    }
+  };
   const setActiveTab = (tab: 'html' | 'css' | 'js') => {
     activeTab.value = tab;
   };
@@ -36,5 +56,6 @@ export const useCodeStore = defineStore('code', () => {
     updateCode,
     saveCode,
     setActiveTab,
+    loadCode,
   };
 });

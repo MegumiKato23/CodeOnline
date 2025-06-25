@@ -66,7 +66,7 @@ const close = () => {
   errorMessage.value = '';
 };
 
-const handleRegister =  async () => {
+const handleRegister = async () => {
   // 验证表单
   if (!registerForm.username.trim()) {
     errorMessage.value = '请输入用户名';
@@ -97,7 +97,6 @@ const handleRegister =  async () => {
     if (success) {
       switchToLogin();
     }
-
   } catch (error) {
     errorMessage.value = error.response?.data?.message || '注册失败';
   }

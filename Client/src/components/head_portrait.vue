@@ -1,11 +1,11 @@
 <template>
-    <div id='box' >
-       <img :src="userStore.avatar || '../../public/avatar/doro.png'" class="img" alt="用户头像" />
-        <ul class='droplist'>
-            <li><a1 style='color:white'>更换头像</a1></li>
-            <li><a2 @click='login' style='color:white'>退出登录</a2></li>
-        </ul>
-    </div>
+  <div id="box">
+    <img :src="userStore.avatar || '../../public/avatar/doro.png'" class="img" alt="用户头像" />
+    <ul class="droplist">
+      <li><a1 style="color: white">更换头像</a1></li>
+      <li><a2 @click="logout" style="color: white">退出登录</a2></li>
+    </ul>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -22,7 +22,7 @@ import { api } from '@/api';
 const userStore = useUserStore();
 const codeStore = useCodeStore();
 const emit = defineEmits(['login']);
-const login = async () => {
+const logout = async () => {
   try {
     const { success } = await api.logout();
     if (success) {
@@ -32,82 +32,76 @@ const login = async () => {
     console.error('退出登录失败:', error);
   }
 };
-
 </script>
 
-<style  scoped>
-#box{
-    /* background-color:red; */
-    width:40px;
-    height:40px;
-    position:absolute;
-    top:80px;
-    margin:0;
-    right:20px;
+<style scoped>
+#box {
+  /* background-color:red; */
+  width: 40px;
+  height: 40px;
+  position: absolute;
+  top: 80px;
+  margin: 0;
+  right: 20px;
 }
-.img{
-    width:40px;
-    height:40px;
-    position:absolute;
-    border-radius:100%;
-    top:0;
-    left:0;
+.img {
+  width: 40px;
+  height: 40px;
+  position: absolute;
+  border-radius: 100%;
+  top: 0;
+  left: 0;
 }
-#box .img:hover{
-    cursor:pointer;
+#box .img:hover {
+  cursor: pointer;
 }
-.droplist{
-    background-color:black;
-    display:none;
-    position:absolute;
-    top:40px;
-    left:0px;
+.droplist {
+  background-color: black;
+  display: none;
+  position: absolute;
+  top: 40px;
+  left: 0px;
 }
-#box:hover .droplist{
-    display:block;
+#box:hover .droplist {
+  display: block;
 }
-.droplist a1{
-    height:20px;
-    width:38px;
-    font-size:8px;
-    text-align:center;
-    line-height:20px;
-    position:absolute;
-    border:1px solid grey;
-    top:0px;
-    left:0px;
-    
+.droplist a1 {
+  height: 20px;
+  width: 38px;
+  font-size: 8px;
+  text-align: center;
+  line-height: 20px;
+  position: absolute;
+  border: 1px solid grey;
+  top: 0px;
+  left: 0px;
 }
-.droplist a2{
-    height:20px;
-    width:38px;
-    font-size:8px;
-    text-align:center;
-    line-height:20px;
-    position:absolute;
-    top:20px;
-    left:0px;
-    border-left:1px solid grey;
-    border-right:1px solid grey;
-    border-bottom: 1px solid grey;
-}
-
-*{
-    margin:0;
-    padding:0;
-    text-decoration:none;
-    list-style:none;
-}
-a1:hover{
-    cursor:pointer;
-    background-color:rgba(196, 205, 215, 0.83)
-}
-a2:hover{
-    cursor:pointer;
-    background-color:rgba(196, 205, 215, 0.83)
+.droplist a2 {
+  height: 20px;
+  width: 38px;
+  font-size: 8px;
+  text-align: center;
+  line-height: 20px;
+  position: absolute;
+  top: 20px;
+  left: 0px;
+  border-left: 1px solid grey;
+  border-right: 1px solid grey;
+  border-bottom: 1px solid grey;
 }
 
+* {
+  margin: 0;
+  padding: 0;
+  text-decoration: none;
+  list-style: none;
+}
+a1:hover {
+  cursor: pointer;
+  background-color: rgba(196, 205, 215, 0.83);
+}
+a2:hover {
+  cursor: pointer;
+  background-color: rgba(196, 205, 215, 0.83);
+}
 </style>
-
-
-
