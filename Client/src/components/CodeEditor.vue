@@ -48,11 +48,11 @@ const editorElement = ref<HTMLElement | null>(null);
 const editorView = ref<EditorView | null>(null);
 
 // 添加对 activeTab 的 watch
- watch(activeTab, (newTab, oldTab) => {
-   if (newTab !== oldTab) {
-     recreateEditor();
-   }
- });
+watch(activeTab, (newTab, oldTab) => {
+  if (newTab !== oldTab) {
+    recreateEditor();
+  }
+});
 
 // 创建防抖的代码更新函数 (300ms)
 const debouncedUpdateCode = debounce((code: string) => {
@@ -119,10 +119,10 @@ const initializeEditor = () => {
     extensions: [...baseExtensions, getLanguageExtension()],
   });
 
-    // 在创建新编辑器前销毁旧的
-   if (editorView.value) {
-     editorView.value.destroy();
-   }
+  // 在创建新编辑器前销毁旧的
+  if (editorView.value) {
+    editorView.value.destroy();
+  }
 
   editorView.value = new EditorView({
     state,

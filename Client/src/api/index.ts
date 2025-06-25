@@ -13,7 +13,6 @@ export interface Project {
   id: string;
   name: string;
   ownerId?: string;
-  owner?: User;
   files?: File[];
   createdAt?: string;
   updatedAt?: string;
@@ -206,8 +205,8 @@ class ApiClient {
     return response.data;
   }
 
-  async getShareLink(projectId: string): Promise<{ shareId: string }> {
-    const response = await this.client.get<{ shareId: string }>(`/projects/share/${projectId}`);
+  async getShareLink(projectId: string): Promise<{ shareId: string; expiresAt: Date }> {
+    const response = await this.client.get<{ shareId: string; expiresAt: Date }>(`/projects/share/${projectId}`);
     return response.data;
   }
 
