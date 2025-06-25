@@ -1,12 +1,7 @@
 const express = require('express');
 const router = express.Router({ mergeParams: true }); // 合并父路由参数
 
-const { 
-  createFile, 
-  updateFile, 
-  deleteFile, 
-  getFile 
-} = require('../controllers/fileController');
+const { createFile, updateFile, deleteFile, getFile } = require('../controllers/fileController');
 
 const { authenticateToken } = require('../middleware/auth');
 const { validateFile } = require('../middleware/validation');
@@ -25,4 +20,3 @@ router.delete('/:fileId', cookieAuth, authenticateToken, deleteFile);
 router.get('/:fileId', getFile);
 
 module.exports = router;
-

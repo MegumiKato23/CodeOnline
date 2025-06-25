@@ -23,7 +23,7 @@ const authenticateRefreshToken = (req, res, next) => {
     return res.status(401).json({ error: 'Refresh token required' });
   }
 
-  try { 
+  try {
     const decoded = verifyRefreshToken(token);
     req.user = decoded;
     next();
@@ -31,10 +31,9 @@ const authenticateRefreshToken = (req, res, next) => {
     console.error('Refresh token error:', error);
     return res.status(403).json({ error: 'Invalid or expired token' });
   }
-}
+};
 
 module.exports = {
   authenticateToken,
-  authenticateRefreshToken
+  authenticateRefreshToken,
 };
-

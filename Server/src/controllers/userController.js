@@ -22,8 +22,8 @@ const register = async (req, res) => {
     // 检查用账户是否已存在
     const existingUser = await prisma.user.findFirst({
       where: {
-          account: account 
-      }
+        account: account,
+      },
     });
 
     if (existingUser) {
@@ -39,17 +39,11 @@ const register = async (req, res) => {
         name: username,
         account: account,
         password: hashedPassword,
-        status: 'left'
-      }
+        status: 'left',
+      },
     });
 
-    res.status(200).json({
-      id: user.id,
-      username: user.name,
-      account: user.account,
-      createdAt: user.createdAt.toISOString()
-    });
-
+    res.json({ success: true });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ error: 'Registration failed' });
@@ -69,8 +63,8 @@ const login = async (req, res) => {
     // 查找用户
     const user = await prisma.user.findFirst({
       where: {
-        account: account
-      }
+        account: account,
+      },
     });
 
     if (!user) {
@@ -84,39 +78,39 @@ const login = async (req, res) => {
     }
 
     // 生成JWT令牌
-    const accessToken = generateAccessToken({ 
-      id: user.id, 
+    const accessToken = generateAccessToken({
+      id: user.id,
       username: user.name,
-      account: user.account 
+      account: user.account,
     });
 
     const refreshToken = generateRefreshToken({
       id: user.id,
       username: user.name,
-      account: user.account
+      account: user.account,
     });
 
     //设置HttpOnly Cookie
-  res.cookie('access_token', accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 24 * 60 * 60 * 1000, // 24小时
-    path: '/'
-  });
-  
-  res.cookie('refresh_token', refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7天
-    path: '/auth/refresh' 
-  });
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000, // 24小时
+      path: '/',
+    });
+
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7天
+      path: '/auth/refresh',
+    });
 
     // 更新最后登录时间
     await prisma.user.update({
       where: { id: user.id },
-      data: { lastLogin: new Date() }
+      data: { lastLogin: new Date() },
     });
 
     // 在会话中存储用户id
@@ -128,10 +122,9 @@ const login = async (req, res) => {
         username: user.name,
         account: user.account,
         avatar: user.avatar || null,
-        status: user.status
-      }
+        status: user.status,
+      },
     });
-
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Login failed' });
@@ -172,8 +165,8 @@ const updateProfile = async (req, res) => {
         name: userData.username,
         account: userData.account,
         avatar: userData.avatar,
-        
-      }
+        status: userData.status,
+      },
     });
 
     res.status(200).json({
@@ -181,10 +174,10 @@ const updateProfile = async (req, res) => {
         id: updatedUser.id,
         username: updatedUser.name,
         account: updatedUser.account,
-        avatar: updatedUser.avatar
-      }
+        avatar: updatedUser.avatar,
+        status: updatedUser.status,
+      },
     });
-
   } catch (error) {
     console.error('Update profile error:', error);
     res.status(500).json({ error: 'Update failed' });
@@ -204,8 +197,10 @@ const getProfile = async (req, res) => {
         name: true,
         account: true,
         avatar: true,
-        status: true
-      }
+        status: true,
+        createdAt: true,
+        lastLogin: true,
+      },
     });
 
     if (!user) {
@@ -218,10 +213,11 @@ const getProfile = async (req, res) => {
         username: user.name,
         account: user.account,
         avatar: user.avatar,
-        status: user.status
-      }
+        status: user.status,
+        createdAt: user.createdAt,
+        lastLogin: user.lastLogin,
+      },
     });
-
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({ error: 'Failed to get profile' });
@@ -241,10 +237,10 @@ const getUserProjects = async (req, res) => {
             id: true,
             name: true,
             createdAt: true,
-            updatedAt: true
-          }
-        }
-      }
+            updatedAt: true,
+          },
+        },
+      },
     });
 
     if (!userWithProjects) {
@@ -253,14 +249,13 @@ const getUserProjects = async (req, res) => {
 
     res.status(200).json({
       id: userWithProjects.id,
-      projects: userWithProjects.projects.map(project => ({
+      projects: userWithProjects.projects.map((project) => ({
         id: project.id,
         name: project.name,
         createdAt: project.createdAt.toISOString(),
-        updatedAt: project.updatedAt.toISOString()
-      }))
+        updatedAt: project.updatedAt.toISOString(),
+      })),
     });
-
   } catch (error) {
     console.error('Get user projects error:', error);
     res.status(500).json({ error: 'Failed to get user projects' });
@@ -271,7 +266,7 @@ const getUserProjects = async (req, res) => {
 const refreshToken = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { id: req.session.userId }
+      where: { id: req.session.userId },
     });
 
     if (!user) {
@@ -282,7 +277,7 @@ const refreshToken = async (req, res) => {
     const newAccessToken = generateAccessToken({
       id: user.id,
       username: user.name,
-      account: user.account
+      account: user.account,
     });
 
     // 设置HttpOnly Cookie
@@ -291,11 +286,11 @@ const refreshToken = async (req, res) => {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 24 * 60 * 60 * 1000, // 24小时
-      path: '/'
+      path: '/',
     });
 
-    res.json({ success: true })
-  } catch(error) {
+    res.json({ success: true });
+  } catch (error) {
     console.error('Refresh token error:', error);
     res.status(500).json({ error: 'Failed to refresh token' });
   }
@@ -308,6 +303,5 @@ module.exports = {
   updateProfile,
   getProfile,
   getUserProjects,
-  refreshToken
+  refreshToken,
 };
-

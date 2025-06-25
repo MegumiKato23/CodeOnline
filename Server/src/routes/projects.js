@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 
-const { 
-  createProject, 
-  getProject, 
-  updateProject, 
-  deleteProject, 
+const {
+  createProject,
+  getProject,
+  updateProject,
+  deleteProject,
   getShareLink,
-  getShareProject 
+  getShareProject,
 } = require('../controllers/projectController');
 
 const { authenticateToken } = require('../middleware/auth');
@@ -33,4 +33,3 @@ router.get('/share/:projectId', authenticateToken, getShareLink);
 router.get('/share/to/:shareId', getShareProject);
 
 module.exports = router;
-

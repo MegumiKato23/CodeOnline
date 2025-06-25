@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
-const { 
-  register, 
-  login, 
+const {
+  register,
+  login,
   logout,
-  updateProfile, 
-  getProfile, 
-  getUserProjects, 
-  refreshToken
+  updateProfile,
+  getProfile,
+  getUserProjects,
+  refreshToken,
 } = require('../controllers/userController');
 
 const { authenticateToken, authenticateRefreshToken } = require('../middleware/auth');
@@ -37,4 +37,3 @@ router.get('/project', cookieAuth, getUserProjects);
 router.post('/auth/refresh', cookieAuth, authenticateRefreshToken, refreshToken);
 
 module.exports = router;
-

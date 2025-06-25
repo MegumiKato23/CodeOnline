@@ -1,9 +1,9 @@
 <template>
     <div id='box' >
-        <img src='' class='img'>
+       <img :src="userStore.avatar || '../../public/avatar/doro.png'" class="img" alt="用户头像" />
         <ul class='droplist'>
-            <li><a1 @click='login' style='color:white'>退出登录</a1></li>
-            <li><a2 style='color:white'>更换头像</a2></li>
+            <li><a1 style='color:white'>更换头像</a1></li>
+            <li><a2 @click='logout' style='color:white'>退出登录</a2></li>
         </ul>
     </div>
 </template>
@@ -17,10 +17,20 @@ import CodePenLogo from './icons/CodePenLogo.vue';
 import CloudIcon from './icons/CloudIcon.vue';
 import SettingsIcon from './icons/SettingsIcon.vue';
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
+import { api } from '@/api';
 
+const userStore = useUserStore();
+const codeStore = useCodeStore();
 const emit = defineEmits(['login']);
-const login = () => {
-  emit('login');
+const logout = async () => {
+  try {
+    const { success } = await api.logout();
+    if (success) {
+      userStore.logout();
+    }
+  } catch (error) {
+    console.error('退出登录失败:', error);
+  }
 };
 
 </script>
