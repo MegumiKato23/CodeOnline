@@ -1,11 +1,11 @@
 <template>
-  <div id="box">
-    <img :src="userStore.avatar || '../../public/avatar/doro.png'" class="img" alt="用户头像" />
-    <ul class="droplist">
-      <li><a1 style="color: white">更换头像</a1></li>
-      <li><a2 @click="logout" style="color: white">退出登录</a2></li>
-    </ul>
-  </div>
+    <div id='box' >
+       <img :src="userStore.avatar || '../../public/avatar/doro.png'" class="img" alt="用户头像" />
+        <ul class='droplist'>
+            <li><a1 style='color:white'>更换头像</a1></li>
+            <li><a2 @click='logout' style='color:white'>退出登录</a2></li>
+        </ul>
+    </div>
 </template>
 
 <script setup lang="ts">
