@@ -148,7 +148,7 @@ const setActiveTab = (tab: 'html' | 'css' | 'js') => {
 
 onMounted(() => {
   initializeEditor();
-  异步加载远程代码（如果用户已登录）
+  // 异步加载远程代码（如果用户已登录）
   if (userStore.isLoggedIn) {
     codeStore
       .loadCode(userStore.account)
