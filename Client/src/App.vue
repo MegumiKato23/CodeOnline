@@ -3,14 +3,19 @@
     <Navbar @login="showLoginDialog = true" />
     <div class="main-content">
       <div class="editor-panel" ref="editorPanel">
-        <CodeEditor :activeTab="activeTab" />
+        <CodeEditor :activeTab="activeTab" :isReadOnly="userStore.isReadOnlyMode" />
       </div>
       <div class="resize-handle" @mousedown="startResize" @dblclick="resetSize"></div>
       <div class="preview-panel">
-        <iframe ref="previewFrame" class="preview-frame" :class="{ 'no-pointer-events': isResizing }"></iframe>
+        <iframe
+          sandbox="allow-scripts  allow-same-origin"
+          ref="previewFrame"
+          class="preview-frame"
+          :class="{ 'no-pointer-events': isResizing }"
+        ></iframe>
       </div>
     </div>
-    <Footer />
+    <Footer :isReadOnly="userStore.isReadOnlyMode" />
     <SettingsDialog v-if="showSettings" @close="showSettings = false" />
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
@@ -24,6 +29,7 @@ import { storeToRefs } from 'pinia';
 import { debounce } from 'lodash-es'; // 导入防抖函数
 import { useCodeStore } from '@/stores/codeStore';
 import { useUserStore } from '@/stores/userStore';
+import type { ProjectPermissions } from '@/stores/userStore';
 import Navbar from '@/components/Navbar.vue';
 import CodeEditor from '@/components/CodeEditor.vue';
 import Footer from '@/components/Footer.vue';
@@ -31,9 +37,15 @@ import SettingsDialog from '@/components/icons/SettingsIcon.vue';
 import LoginDialog from '@/components/login/LoginDialog.vue';
 import RegisterDialog from '@/components/login/RegisterDialog.vue';
 import head_portrait from './components/head_portrait.vue';
+import api from '@/api/index';
+import { Users } from 'lucide-vue-next';
 
 const codeStore = useCodeStore();
 const userStore = useUserStore();
+
+//用户访问权限
+const permissions = ref<ProjectPermissions | null>(null);
+
 const { htmlCode, cssCode, jsCode, activeTab } = storeToRefs(codeStore);
 const previewFrame = ref<HTMLIFrameElement | null>(null);
 const showSettings = ref(false);
@@ -51,6 +63,9 @@ const debouncedUpdatePreview = debounce(() => {
 
   const doc = previewFrame.value.contentDocument;
   if (!doc) return;
+
+  // 设置sandbox属性
+  previewFrame.value.setAttribute('sandbox', 'allow-scripts  allow-same-origin');
 
   doc.open();
   doc.write(`
@@ -153,7 +168,48 @@ onMounted(() => {
       document.body.style.cursor = 'col-resize';
     }
   });
+  checkShareAccess();
+  debouncedUpdatePreview();
 });
+
+// 检查是否为分享链接访问
+const checkShareAccess = async () => {
+  const url = window.location.pathname;
+  const shareMatch = url.match(/\/share\/(.+)/);
+
+  if (shareMatch) {
+    const shareId = shareMatch[1];
+    try {
+      const projectData = await api.getSharedProject(shareId);
+
+      if (projectData.project.ownerId === userStore.userId) {
+        permissions.value = {
+          isOwner: true,
+          accessType: 'owner',
+        };
+      } else {
+        permissions.value = {
+          isOwner: false,
+          accessType: 'readonly',
+        };
+      }
+      // 设置权限
+      userStore.setPermissions(permissions.value);
+
+      // 加载项目数据到编辑器
+      // codeStore.loadProjectFromShare(projectData);
+
+      // 如果是只读模式，显示提示
+      if (permissions.value.accessType === 'readonly') {
+        console.log('您正在以只读模式访问此项目');
+      }
+    } catch (error) {
+      console.error('Failed to load shared project:', error);
+      // 处理错误（如链接过期、不存在等）
+    }
+  }
+};
+
 // 组件卸载时取消防抖
 onBeforeUnmount(() => {
   debouncedUpdatePreview.cancel();

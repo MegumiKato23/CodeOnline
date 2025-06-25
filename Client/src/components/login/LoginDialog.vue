@@ -28,6 +28,7 @@
 import { ref, reactive } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import { api } from '@/api';
+import { Users } from 'lucide-vue-next';
 
 const props = defineProps<{
   visible: boolean;
@@ -65,7 +66,7 @@ const handleLogin = async () => {
   try {
     const { user } = await api.login({
       account: loginForm.account,
-      password: loginForm.password
+      password: loginForm.password,
     });
 
     // 更新用户信息
@@ -74,6 +75,15 @@ const handleLogin = async () => {
     userStore.setAvatar(user.avatar);
     userStore.setStatus(user.status);
     userStore.login();
+
+    api.getUserProjects().then(async (res) => {
+      if (res['projects'].length == 0) {
+        const projectData = await api.createProject({ name: 'New Project' });
+        userStore.currentProjectId = projectData['project']['id'];
+      } else {
+        userStore.currentProjectId = res['projects'][0]['id'];
+      }
+    });
 
     // 关闭登录框
     close();

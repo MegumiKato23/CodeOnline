@@ -8,7 +8,9 @@
         <UnifiedButton type="primary" size="small" @click="closeConsole">Assets</UnifiedButton>
       </div>
       <div class="tabs_right">
-        <UnifiedButton type="primary" size="small" @click.stop="openShareBox">share</UnifiedButton>
+        <UnifiedButton type="primary" size="small" :disabled="props.isReadOnly" @click.stop="openShareBox">
+          share
+        </UnifiedButton>
         <div v-if="isShareExpanded" class="share" ref="shareRef">
           <h2>Share</h2>
           <span class="share_link">{{ shareLink }}</span>
@@ -21,7 +23,10 @@
     <div v-if="showCopyToast" class="copy-toast">
       <div class="toast-content">
         <span class="toast-icon">✓</span>
-        <span class="toast-text">Copied Url to Clipboard!</span>
+        <span class="toast-text"
+          >Copied Url to Clipboard!
+          <span v-if="shareTime">The link is valid until {{ shareTime }}</span>
+        </span>
       </div>
     </div>
 
@@ -50,16 +55,24 @@
 
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onUnmounted } from 'vue';
+import { useUserStore } from '@/stores/userStore';
+import api from '@/api/index';
 
+const userStore = useUserStore();
+const props = defineProps<{
+  isReadOnly?: boolean;
+}>();
 const isConsoleExpanded = ref(false);
 const isShareExpanded = ref(false);
 const shareRef = ref(null);
-const shareLink = ref('http');
+const shareLink = ref(window.location.origin);
+const shareTime = ref(null);
 const consoleLogs = ref<string[]>([]);
 const command = ref('');
 const consoleOutput = ref<HTMLElement | null>(null);
 // 添加复制提示状态
 const showCopyToast = ref(false);
+
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
 const toggleConsole = () => {
@@ -90,7 +103,37 @@ const scrollToBottom = () => {
   });
 };
 
-const openShareBox = () => {
+// 获取分享链接
+const getProjectShareLink = async () => {
+  try {
+    // if (!userStore.isLoggedIn) {
+    //   console.warn('用户未登录，无法获取分享链接');
+    //   shareLink.value = baseUrl.value;
+    //   return;
+    // }
+
+    const response = await api.getShareLink(userStore.currentProjectId);
+    // 生成完整的分享链接
+    console.log(window.location.origin);
+    shareLink.value = `${window.location.origin}/share/${response.shareId}`;
+
+    shareTime.value = new Date(response.expiresAt).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
+    console.log('获取分享链接成功:', shareLink.value);
+    // console.log(time);
+  } catch (error) {
+    console.error('获取分享链接失败:', error);
+    // 失败时使用默认链接
+    shareLink.value = window.location.origin;
+  }
+};
+
+const openShareBox = async () => {
+  await getProjectShareLink();
   isShareExpanded.value = true;
 };
 
@@ -183,10 +226,15 @@ onUnmounted(() => {
   /* bottom: 35px; */
   right: 0;
   width: 200px;
-  height: 128px;
+  height: 150px;
   padding: 10px 15px;
   background-color: rgb(30, 31, 38);
   animation: shareBox 0.3s ease forwards;
+}
+
+.share_link {
+  width: 180px;
+  font-size: 10px;
 }
 
 .copy_link {

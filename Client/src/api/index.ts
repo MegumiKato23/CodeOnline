@@ -27,7 +27,7 @@ export enum FileType {
   TS = 'TS',
   VUE = 'VUE',
   SCSS = 'SCSS',
-  LESS = 'LESS'
+  LESS = 'LESS',
 }
 
 export interface File {
@@ -59,7 +59,7 @@ export interface UpdateUserRequest {
     username: string;
     account: string;
     avatar?: string;
-    status?: string;  
+    status?: string;
   };
 }
 
@@ -119,16 +119,16 @@ class ApiClient {
         // 处理错误响应
         if (error.response) {
           console.error('API错误:', error.response.data);
-          
+
           if (error.response.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
             try {
-                await this.refreshToken();
+              await this.refreshToken();
             } catch (refreshError) {
-                // 刷新token失败，清除本地存储的用户信息
-                // 重定向到登录页面等
-                window.location.href = '/login';
-                return Promise.reject(refreshError);
+              // 刷新token失败，清除本地存储的用户信息
+              // 重定向到登录页面等
+              window.location.href = '/login';
+              return Promise.reject(refreshError);
             }
           }
         } else if (error.request) {
@@ -206,8 +206,8 @@ class ApiClient {
     return response.data;
   }
 
-  async getShareLink(projectId: string): Promise<{ shareId: string }> {
-    const response = await this.client.get<{ shareId: string }>(`/projects/share/${projectId}`);
+  async getShareLink(projectId: string): Promise<{ shareId: string; expiresAt: Date }> {
+    const response = await this.client.get<{ shareId: string; expiresAt: Date }>(`/projects/share/${projectId}`);
     return response.data;
   }
 

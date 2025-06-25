@@ -39,20 +39,21 @@ import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
 const props = defineProps<{
   activeTab: 'html' | 'css' | 'js';
+  isReadOnly?: boolean;
 }>();
 
-const { activeTab } = toRefs(props);
+const { activeTab, isReadOnly } = toRefs(props);
 const userStore = useUserStore();
 const codeStore = useCodeStore();
 const editorElement = ref<HTMLElement | null>(null);
 const editorView = ref<EditorView | null>(null);
 
 // 添加对 activeTab 的 watch
- watch(activeTab, (newTab, oldTab) => {
-   if (newTab !== oldTab) {
-     recreateEditor();
-   }
- });
+watch(activeTab, (newTab, oldTab) => {
+  if (newTab !== oldTab) {
+    recreateEditor();
+  }
+});
 
 // 创建防抖的代码更新函数 (300ms)
 const debouncedUpdateCode = debounce((code: string) => {
@@ -114,15 +115,21 @@ const initializeEditor = () => {
   const currentCode =
     activeTab.value === 'html' ? codeStore.htmlCode : activeTab.value === 'css' ? codeStore.cssCode : codeStore.jsCode;
 
+  // 根据只读状态配置扩展
+  const extensions = [...baseExtensions, getLanguageExtension()];
+  if (isReadOnly?.value) {
+    extensions.push(EditorState.readOnly.of(true));
+  }
+
   const state = EditorState.create({
     doc: currentCode,
-    extensions: [...baseExtensions, getLanguageExtension()],
+    extensions,
   });
 
-    // 在创建新编辑器前销毁旧的
-   if (editorView.value) {
-     editorView.value.destroy();
-   }
+  // 在创建新编辑器前销毁旧的
+  if (editorView.value) {
+    editorView.value.destroy();
+  }
 
   editorView.value = new EditorView({
     state,
@@ -150,8 +157,9 @@ onMounted(() => {
   initializeEditor();
 });
 
-watch(activeTab, () => {
-  recreateEditor();
+// 添加对 activeTab 和 isReadOnly 的 watch
+watch([activeTab, isReadOnly], () => {
+  initializeEditor();
 });
 
 onBeforeUnmount(() => {
