@@ -232,6 +232,7 @@
   "id": "string, 项目ID",
   "name": "string, 项目名",
   "files": "File[], 文件数组",
+  "ownerId": "string, 所属者ID",
   "createdAt": "Date, 创建时间", 
   "updatedAt": "Date, 更新时间"
 }
