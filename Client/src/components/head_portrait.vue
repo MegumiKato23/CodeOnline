@@ -18,7 +18,7 @@ import CloudIcon from './icons/CloudIcon.vue';
 import SettingsIcon from './icons/SettingsIcon.vue';
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
-  const emit = defineEmits(['login']);
+const emit = defineEmits(['login']);
 const login = () => {
   emit('login');
 };
