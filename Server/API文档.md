@@ -175,8 +175,7 @@
 - **请求体**:
 ```json
 {
-  "name": "string, 项目名称",
-  "files": "File[], 文件数组"
+  "name": "string, 项目名称"
 }
 ```
 - **响应**:
@@ -184,7 +183,6 @@
 {
   "id": "string, 项目ID",
   "name": "string, 项目名",
-  "files": "File[], 文件数组",
   "createdAt": "Date, 创建时间", 
   "updatedAt": "Date, 更新时间"
 }
