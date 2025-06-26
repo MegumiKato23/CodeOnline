@@ -31,6 +31,7 @@ import { defaultKeymap, undo, redo, history } from '@codemirror/commands';
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
 import { useCodeStore } from '@/stores/codeStore';
+import { useUserStore } from '@/stores/userStore';
 import HtmlIcon from './icons/HtmlIcon.vue';
 import CssIcon from './icons/CssIcon.vue';
 import JsIcon from './icons/JsIcon.vue';
@@ -41,9 +42,18 @@ const props = defineProps<{
 }>();
 
 const { activeTab } = toRefs(props);
+const userStore = useUserStore();
 const codeStore = useCodeStore();
 const editorElement = ref<HTMLElement | null>(null);
 const editorView = ref<EditorView | null>(null);
+
+// 添加对 activeTab 的 watch
+watch(activeTab, (newTab, oldTab) => {
+  if (newTab !== oldTab) {
+    recreateEditor();
+  }
+});
+
 // 创建防抖的代码更新函数 (300ms)
 const debouncedUpdateCode = debounce((code: string) => {
   codeStore.updateCode(activeTab.value, code);
@@ -109,6 +119,11 @@ const initializeEditor = () => {
     extensions: [...baseExtensions, getLanguageExtension()],
   });
 
+  // 在创建新编辑器前销毁旧的
+  if (editorView.value) {
+    editorView.value.destroy();
+  }
+
   editorView.value = new EditorView({
     state,
     parent: editorElement.value,
@@ -133,6 +148,18 @@ const setActiveTab = (tab: 'html' | 'css' | 'js') => {
 
 onMounted(() => {
   initializeEditor();
+  // 异步加载远程代码（如果用户已登录）
+  if (userStore.isLoggedIn) {
+    codeStore
+      .loadCode(userStore.account)
+      .then(() => {
+        // 代码加载成功后重新初始化编辑器
+        recreateEditor();
+      })
+      .catch(() => {
+        console.log('使用本地默认代码');
+      });
+  }
 });
 
 watch(activeTab, () => {

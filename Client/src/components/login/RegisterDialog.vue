@@ -39,6 +39,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
+import { api } from '@/api';
 
 const props = defineProps<{
   visible: boolean;
@@ -65,7 +66,7 @@ const close = () => {
   errorMessage.value = '';
 };
 
-const handleRegister = () => {
+const handleRegister = async () => {
   // 验证表单
   if (!registerForm.username.trim()) {
     errorMessage.value = '请输入用户名';
@@ -84,11 +85,21 @@ const handleRegister = () => {
     return;
   }
 
-  // TODO: 调用注册接口
-  console.log('注册信息:', registerForm);
+  try {
+    const { success } = await api.register({
+      username: registerForm.username,
+      account: registerForm.account,
+      password: registerForm.password,
+      confirmPassword: registerForm.confirmPassword,
+    });
 
-  // 注册成功后切换到登录界面
-  switchToLogin();
+    // 注册成功后切换到登录界面
+    if (success) {
+      switchToLogin();
+    }
+  } catch (error) {
+    errorMessage.value = error.response?.data?.message || '注册失败';
+  }
 };
 
 const switchToLogin = () => {

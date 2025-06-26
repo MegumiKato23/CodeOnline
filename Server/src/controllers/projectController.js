@@ -1,6 +1,5 @@
 const { validationResult } = require('express-validator');
 const prisma = require('../utils/prisma');
-const crypto = require('crypto');
 
 // 创建项目
 const createProject = async (req, res) => {
@@ -11,13 +10,13 @@ const createProject = async (req, res) => {
     }
 
     const { name } = req.body;
-    const userId = req.user.id;
+    const userId = req.session.userId;
 
     const project = await prisma.project.create({
       data: {
         name: name,
-        ownerId: userId
-      }
+        ownerId: userId,
+      },
     });
 
     res.status(200).json({
@@ -25,9 +24,8 @@ const createProject = async (req, res) => {
       name: project.name,
       ownerId: project.ownerId,
       createdAt: project.createdAt.toISOString(),
-      updatedAt: project.updatedAt.toISOString()
+      updatedAt: project.updatedAt.toISOString(),
     });
-
   } catch (error) {
     console.error('Create project error:', error);
     res.status(500).json({ error: 'Failed to create project' });
@@ -42,15 +40,8 @@ const getProject = async (req, res) => {
     const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
-        owner: {
-          select: {
-            id: true,
-            name: true,
-            account: true
-          }
-        },
-        files: true
-      }
+        files: true,
+      },
     });
 
     if (!project) {
@@ -60,24 +51,10 @@ const getProject = async (req, res) => {
     res.status(200).json({
       id: project.id,
       name: project.name,
-      owner: {
-        id: project.owner.id,
-        username: project.owner.name,
-        account: project.owner.account
-      },
-      files: project.files.map(file => ({
-        id: file.id,
-        name: file.name,
-        path: file.path,
-        type: file.type,
-        content: file.content,
-        createdAt: file.createdAt.toISOString(),
-        updatedAt: file.updatedAt.toISOString()
-      })),
+      files: project.files,
       createdAt: project.createdAt.toISOString(),
-      updatedAt: project.updatedAt.toISOString()
+      updatedAt: project.updatedAt.toISOString(),
     });
-
   } catch (error) {
     console.error('Get project error:', error);
     res.status(500).json({ error: 'Failed to get project' });
@@ -88,34 +65,32 @@ const getProject = async (req, res) => {
 const updateProject = async (req, res) => {
   try {
     const projectId = req.params.projectId;
-    const { name } = req.body;
+    const { name, files } = req.body;
 
     // 检查项目是否存在并且用户有权限
     const existingProject = await prisma.project.findUnique({
-      where: { id: projectId }
+      where: { id: projectId },
     });
 
     if (!existingProject) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (existingProject.ownerId !== req.user.id) {
+    if (existingProject.ownerId !== req.session.userId) {
       return res.status(403).json({ error: 'Permission denied' });
     }
 
     const updatedProject = await prisma.project.update({
       where: { id: projectId },
-      data: { name: name }
+      data: { name: name, files: files },
     });
 
     res.status(200).json({
       id: updatedProject.id,
       name: updatedProject.name,
-      ownerId: updatedProject.ownerId,
       createdAt: updatedProject.createdAt.toISOString(),
-      updatedAt: updatedProject.updatedAt.toISOString()
+      updatedAt: updatedProject.updatedAt.toISOString(),
     });
-
   } catch (error) {
     console.error('Update project error:', error);
     res.status(500).json({ error: 'Failed to update project' });
@@ -129,24 +104,23 @@ const deleteProject = async (req, res) => {
 
     // 检查项目是否存在并且用户有权限
     const existingProject = await prisma.project.findUnique({
-      where: { id: projectId }
+      where: { id: projectId },
     });
 
     if (!existingProject) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (existingProject.ownerId !== req.user.id) {
+    if (existingProject.ownerId !== req.session.userId) {
       return res.status(403).json({ error: 'Permission denied' });
     }
 
     // 删除项目
     await prisma.project.delete({
-      where: { id: projectId }
+      where: { id: projectId },
     });
 
     res.status(200).json({ message: 'Project deleted successfully' });
-
   } catch (error) {
     console.error('Delete project error:', error);
     res.status(500).json({ error: 'Failed to delete project' });
@@ -160,7 +134,7 @@ const getShareLink = async (req, res) => {
 
     // 检查项目是否存在
     const project = await prisma.project.findUnique({
-      where: { id: projectId }
+      where: { id: projectId },
     });
 
     if (!project) {
@@ -174,21 +148,55 @@ const getShareLink = async (req, res) => {
     const share = await prisma.share.create({
       data: {
         projectId: projectId,
-        keeptime: keeptime
-      }
+        keeptime: keeptime,
+      },
     });
-
-    const shareUrl = `${req.protocol}://${req.get('host')}/share/${share.id}`;
 
     res.status(200).json({
-      shareUrl: shareUrl,
       shareId: share.id,
-      expiresAt: keeptime.toISOString()
+      expiresAt: keeptime.toISOString(),
     });
-
   } catch (error) {
     console.error('Get share link error:', error);
     res.status(500).json({ error: 'Failed to generate share link' });
+  }
+};
+
+// 获取分享项目
+const getShareProject = async (req, res) => {
+  try {
+    const shareId = req.params.shareId;
+
+    const share = await prisma.share.findUnique({
+      where: { id: shareId },
+    });
+
+    if (!share) {
+      return res.status(404).json({ error: 'Share not found' });
+    }
+
+    const project = await prisma.project.findUnique({
+      where: { id: share.projectId },
+      include: {
+        files: true,
+      },
+    });
+
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    res.status(200).json({
+      id: project.id,
+      name: project.name,
+      files: project.files,
+      ownerId: project.ownerId,
+      createdAt: project.createdAt.toISOString(),
+      updatedAt: project.updatedAt.toISOString(),
+    });
+  } catch (error) {
+    console.error('Get share project error:', error);
+    res.status(500).json({ error: 'Failed to get share project' });
   }
 };
 
@@ -197,6 +205,6 @@ module.exports = {
   getProject,
   updateProject,
   deleteProject,
-  getShareLink
+  getShareLink,
+  getShareProject,
 };
-

@@ -4,8 +4,8 @@
     <div class="left">
       <CodePenLogo class="logo" />
       <div class="title-area">
-        <h1 class="title">{{ title }}</h1>
-        <div class="teamname">by {{ teamname }}</div>
+        <h1 class="title">CodeOnline</h1>
+        <div class="teamname">从容应队</div>
       </div>
     </div>
 
@@ -17,17 +17,19 @@
       </UnifiedButton>
 
       <UnifiedButton type="primary" size="large" :class="{ saved }" :icon="CloudIcon" @click="saveCode">
-        <!-- <CloudIcon class="icon" /> -->
         <span>{{ saved ? 'Saved' : 'Save' }}</span>
       </UnifiedButton>
 
       <UnifiedButton type="primary" size="large" :icon="SettingsIcon" @click="openSettings">
-        <!-- <SettingsIcon class="icon" /> -->
         <span>Settings</span>
       </UnifiedButton>
 
-      <UnifiedButton type="primary" size="large" @click="login">
+      <!-- 根据登录状态显示登录按钮或头像 -->
+      <UnifiedButton v-if="!isLoggedIn" type="primary" size="large" @click="login">
         <span>Log In</span>
+      </UnifiedButton>
+      <UnifiedButton v-else>
+        <HeadPortrait />
       </UnifiedButton>
     </div>
   </nav>
@@ -36,37 +38,43 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
-import { useUserStore } from '@/stores/userStore'; // 使用userStore
-import { useCodeStore } from '@/stores/codeStore'; // 使用codeStore
+import { useUserStore } from '@/stores/userStore';
+import { useCodeStore } from '@/stores/codeStore';
 import CodePenLogo from './icons/CodePenLogo.vue';
 import CloudIcon from './icons/CloudIcon.vue';
 import SettingsIcon from './icons/SettingsIcon.vue';
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 import ViewIcon from './icons/ViewIcon.vue';
+import HeadPortrait from './head_portrait.vue';
 
 const emit = defineEmits(['login']);
 
 const userStore = useUserStore();
 const codeStore = useCodeStore();
-const { username, title, isLoggedIn, teamname, status } = storeToRefs(userStore);
+const { username, isLoggedIn, status } = storeToRefs(userStore);
 const { saved } = storeToRefs(codeStore);
 
 const toggleView = () => {
   userStore.toggleView();
 };
 const saveCode = () => {
-  codeStore.saveCode();
-  console.log('Code saved');
+  if (!userStore.isLoggedIn) {
+    console.log('请先登录再保存');
+    return;
+  }
+  codeStore
+    .saveCode(userStore.account)
+    .then(() => {
+      console.log('代码保存成功');
+    })
+    .catch(() => {
+      console.log('代码保存失败');
+    });
 };
 
 const openSettings = () => {
   console.log('Open settings');
 };
-
-// const download = () => {
-//   codeStore.saveCode();
-//   console.log('Download code');
-// };
 
 const login = () => {
   emit('login');
