@@ -46,15 +46,20 @@ import SettingsIcon from './icons/SettingsIcon.vue';
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 import ViewIcon from './icons/ViewIcon.vue';
 import HeadPortrait from './head_portrait.vue';
+import updateUserProfile, { UpdateUserRequest } from '@/api/index';
 
 const emit = defineEmits(['login']);
 
 const userStore = useUserStore();
 const codeStore = useCodeStore();
-const { username, isLoggedIn, status } = storeToRefs(userStore);
+const { username, userid, account, avatar, isLoggedIn, status } = storeToRefs(userStore);
 const { saved } = storeToRefs(codeStore);
 
 const toggleView = () => {
+  if (!userStore.isLoggedIn) {
+    console.log('请先登录再切换视图');
+    return;
+  }
   userStore.toggleView();
 };
 const saveCode = () => {
