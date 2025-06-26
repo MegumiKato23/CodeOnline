@@ -120,7 +120,6 @@ const handleLogin = async () => {
     if (shareResult.success) {
       ShareService.applyShareAccess(shareResult);
     }
-
     // 关闭登录框
     close();
   } catch (error) {
