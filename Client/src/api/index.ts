@@ -192,12 +192,17 @@ class ApiClient {
 
   // 项目相关API
 <<<<<<< HEAD
+<<<<<<< HEAD
   async createProject(data: CreateProjectRequest): Promise<{ code: number; message: string; data: any }> {
     const response = await this.client.post<{ code: number; message: string; data: any }>('/projects', data);
 =======
   async createProject(data: CreateProjectRequest): Promise<Project> {
     const response = await this.client.post<Project>('/projects', data);
 >>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
+=======
+  async createProject(data: CreateProjectRequest): Promise<{ project: Project }> {
+    const response = await this.client.post<{ project: Project }>('/projects', data);
+>>>>>>> d44a4d8 (删除userId的存储，补充登录后渲染代码功能)
     return response.data;
   }
 
@@ -240,6 +245,7 @@ class ApiClient {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   async getSharedProject(shareId: string): Promise<{ code: number; message: string; data: any }> {
     const response = await this.client.get<{ code: number; message: string; data: any }>(
       `/projects/share/to/${shareId}`
@@ -256,6 +262,12 @@ class ApiClient {
     const response = await this.client.get<Project>(`/projects/share/to/${shareId}`);
     // console.log(response.data);
 >>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
+=======
+  async getSharedProject(shareId: string): Promise<{ project: Project }> {
+    // console.log(shareId);
+    const response = await this.client.get<{ project: Project }>(`/projects/share/to/${shareId}`);
+    console.log(response.data);
+>>>>>>> d44a4d8 (删除userId的存储，补充登录后渲染代码功能)
     return response.data;
   }
 

@@ -31,6 +31,7 @@ export const useCodeStore = defineStore('code', () => {
     }
   };
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
   // 新增的loadCode方法
@@ -45,6 +46,9 @@ export const useCodeStore = defineStore('code', () => {
     }
   };
 >>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
+=======
+
+>>>>>>> d44a4d8 (删除userId的存储，补充登录后渲染代码功能)
   const setActiveTab = (tab: 'html' | 'css' | 'js') => {
     activeTab.value = tab;
   };
@@ -145,9 +149,12 @@ export const useCodeStore = defineStore('code', () => {
     setActiveTab,
     initProjectFiles,
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     loadCode,
 >>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
+=======
+>>>>>>> d44a4d8 (删除userId的存储，补充登录后渲染代码功能)
     loadProjectFromShare,
   };
 });

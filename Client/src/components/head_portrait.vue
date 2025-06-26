@@ -30,10 +30,14 @@ const logout = async () => {
       userStore.logout();
       // 退出登录后,检查权限
 <<<<<<< HEAD
+<<<<<<< HEAD
       const shareResult = await ShareService.checkShareAccess();
 =======
       const shareResult = await ShareService.checkShareAccess({ userId: userStore.userId });
 >>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
+=======
+      const shareResult = await ShareService.checkShareAccess();
+>>>>>>> d44a4d8 (删除userId的存储，补充登录后渲染代码功能)
       if (shareResult.success) {
         ShareService.applyShareAccess(shareResult);
       }

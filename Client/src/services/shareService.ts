@@ -16,6 +16,7 @@ export class ShareService {
    * @param shareId 分享ID，如果不提供则从当前URL解析
    * @param userId 用户ID，如果不提供则从userStore获取
    */
+<<<<<<< HEAD
 
   static async checkShareAccess(options?: { shareId?: string }): Promise<ShareAccessResult> {
     try {
@@ -24,6 +25,15 @@ export class ShareService {
       console.log('用户ID:', userId); // Log the user ID for diagnostic purpose
       let { shareId } = options || {};
 
+=======
+  static async checkShareAccess(options?: { shareId?: string }): Promise<ShareAccessResult> {
+    try {
+      const {
+        user: { id: userId },
+      } = await api.getUserProfile();
+      console.log('用户ID:', userId); // Log the user ID for diagnostic purpose
+      let { shareId } = options || {};
+>>>>>>> d44a4d8 (删除userId的存储，补充登录后渲染代码功能)
       // 如果没有提供shareId，从URL解析
       if (!shareId) {
         const url = window.location.pathname;
@@ -37,8 +47,12 @@ export class ShareService {
       console.log('分享ID:', shareId);
       console.log('正在加载分享项目...');
 
+<<<<<<< HEAD
       const { data: sharedProjectData } = await api.getSharedProject(shareId);
       const projectData = sharedProjectData.project;
+=======
+      const { project: projectData } = await api.getSharedProject(shareId);
+>>>>>>> d44a4d8 (删除userId的存储，补充登录后渲染代码功能)
       console.log(await api.getSharedProject(shareId));
       console.log('分享项目数据:', projectData.ownerId); // Log the project data for diagnostic purpose
 
