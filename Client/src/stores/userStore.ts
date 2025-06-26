@@ -1,6 +1,11 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
+export interface ProjectPermissions {
+  isOwner: boolean;
+  accessType: 'owner' | 'readonly';
+}
+
 export const useUserStore = defineStore('user', () => {
   // 用户信息
   const username = ref('');
@@ -8,8 +13,15 @@ export const useUserStore = defineStore('user', () => {
   const avatar = ref('');
   const status = ref('');
   const createAt = ref('');
+  const userId = ref('');
 
   const isLoggedIn = ref(false);
+
+  const currentProjectId = ref(null);
+
+  // 权限相关状态
+  const currentPermissions = ref<ProjectPermissions | null>(null);
+  const isReadOnlyMode = ref(false);
 
   const setUsername = (newUsername: string) => {
     username.value = newUsername;
@@ -31,12 +43,29 @@ export const useUserStore = defineStore('user', () => {
     createAt.value = newCreateAt;
   };
 
+  const setUserId = (newUserId: string) => {
+    userId.value = newUserId;
+  };
+
   const login = () => {
     isLoggedIn.value = true;
   };
 
   const logout = () => {
     isLoggedIn.value = false;
+    // 登出时清除权限
+    clearPermissions();
+  };
+
+  // 权限管理方法
+  const setPermissions = (permissions: ProjectPermissions) => {
+    currentPermissions.value = permissions;
+    isReadOnlyMode.value = permissions.accessType === 'readonly';
+  };
+
+  const clearPermissions = () => {
+    currentPermissions.value = null;
+    isReadOnlyMode.value = false;
   };
 
   return {
@@ -44,13 +73,20 @@ export const useUserStore = defineStore('user', () => {
     account,
     avatar,
     status,
+    userId,
     isLoggedIn,
+    currentProjectId,
+    currentPermissions,
+    isReadOnlyMode,
     setUsername,
     setAccount,
     setAvatar,
     setStatus,
     setCreateAt,
+    setUserId,
     login,
     logout,
+    setPermissions,
+    clearPermissions,
   };
 });

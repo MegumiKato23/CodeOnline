@@ -1,11 +1,11 @@
 <template>
-    <div id='box' >
-       <img :src="userStore.avatar || '../../public/avatar/doro.png'" class="img" alt="用户头像" />
-        <ul class='droplist'>
-            <li><a1 style='color:white'>更换头像</a1></li>
-            <li><a2 @click='logout' style='color:white'>退出登录</a2></li>
-        </ul>
-    </div>
+  <div id="box">
+    <img :src="userStore.avatar || '../../public/avatar/doro.png'" class="img" alt="用户头像" />
+    <ul class="droplist">
+      <li><a1 style="color: white">更换头像</a1></li>
+      <li><a2 @click="logout" style="color: white">退出登录</a2></li>
+    </ul>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -39,9 +39,10 @@ const logout = async () => {
   /* background-color:red; */
   width: 40px;
   height: 40px;
-  position: absolute;
-  top: 80px;
-  margin: 0;
+  position: relative;
+  /* top: 80px;
+  margin: 0; */
+  left: 2px;
   right: 20px;
 }
 .img {
@@ -61,6 +62,7 @@ const logout = async () => {
   position: absolute;
   top: 40px;
   left: 0px;
+  z-index: 999;
 }
 #box:hover .droplist {
   display: block;
