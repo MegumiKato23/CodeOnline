@@ -30,9 +30,7 @@
       <UnifiedButton v-if="!isLoggedIn" type="primary" size="large" @click="login">
         <span>Log In</span>
       </UnifiedButton>
-      <UnifiedButton v-else>
-        <HeadPortrait />
-      </UnifiedButton>
+      <HeadPortrait v-else />
     </div>
   </nav>
 </template>

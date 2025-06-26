@@ -39,9 +39,10 @@ const logout = async () => {
   /* background-color:red; */
   width: 40px;
   height: 40px;
-  position: absolute;
-  top: 80px;
-  margin: 0;
+  position: relative;
+  /* top: 80px;
+  margin: 0; */
+  left: 2px;
   right: 20px;
 }
 .img {
@@ -61,6 +62,7 @@ const logout = async () => {
   position: absolute;
   top: 40px;
   left: 0px;
+  z-index: 999;
 }
 #box:hover .droplist {
   display: block;
