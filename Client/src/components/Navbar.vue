@@ -16,7 +16,14 @@
         <span>{{ status ? 'View1' : 'View2' }}</span>
       </UnifiedButton>
 
-      <UnifiedButton type="primary" size="large" :class="{ saved }" :icon="CloudIcon" @click="saveCode">
+      <UnifiedButton
+        type="primary"
+        size="large"
+        :class="{ saved }"
+        :icon="CloudIcon"
+        :disabled="userStore.isReadOnlyMode"
+        @click="saveCode"
+      >
         <span>{{ saved ? 'Saved' : 'Save' }}</span>
       </UnifiedButton>
 
@@ -28,9 +35,7 @@
       <UnifiedButton v-if="!isLoggedIn" type="primary" size="large" @click="login">
         <span>Log In</span>
       </UnifiedButton>
-      <UnifiedButton v-else>
-        <HeadPortrait />
-      </UnifiedButton>
+      <HeadPortrait v-else />
     </div>
   </nav>
 </template>

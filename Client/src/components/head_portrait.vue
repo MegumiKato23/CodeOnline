@@ -18,6 +18,7 @@ import CloudIcon from './icons/CloudIcon.vue';
 import SettingsIcon from './icons/SettingsIcon.vue';
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 import { api } from '@/api';
+import { ShareService } from '@/services/shareService';
 
 const userStore = useUserStore();
 const codeStore = useCodeStore();
@@ -27,6 +28,11 @@ const logout = async () => {
     const { success } = await api.logout();
     if (success) {
       userStore.logout();
+      // 退出登录后,检查权限
+      const shareResult = await ShareService.checkShareAccess({ userId: userStore.userId });
+      if (shareResult.success) {
+        ShareService.applyShareAccess(shareResult);
+      }
     }
   } catch (error) {
     console.error('退出登录失败:', error);
@@ -39,9 +45,10 @@ const logout = async () => {
   /* background-color:red; */
   width: 40px;
   height: 40px;
-  position: absolute;
-  top: 80px;
-  margin: 0;
+  position: relative;
+  /* top: 80px;
+  margin: 0; */
+  left: 2px;
   right: 20px;
 }
 .img {
@@ -61,6 +68,7 @@ const logout = async () => {
   position: absolute;
   top: 40px;
   left: 0px;
+  z-index: 999;
 }
 #box:hover .droplist {
   display: block;
