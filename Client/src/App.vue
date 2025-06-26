@@ -27,8 +27,12 @@
 =======
       </div>
     </div>
+<<<<<<< HEAD
     <Footer :isReadOnly="userStore.isReadOnlyMode" />
 >>>>>>> f8bf5fe (权限控制功能实现)
+=======
+    <Footer :isReadOnly="userStore.isReadOnlyMode" @login="showLoginDialog = true" />
+>>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
     <SettingsDialog v-if="showSettings" @close="showSettings = false" />
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
@@ -71,10 +75,13 @@ import head_portrait from './components/head_portrait.vue';
 import { api } from '@/api/index';
 import { Users } from 'lucide-vue-next';
 import { ShareService } from '@/services/shareService';
+<<<<<<< HEAD
 =======
 import api from '@/api/index';
 import { Users } from 'lucide-vue-next';
 >>>>>>> f8bf5fe (权限控制功能实现)
+=======
+>>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
 
 const codeStore = useCodeStore();
 const userStore = useUserStore();
@@ -255,6 +262,7 @@ onMounted(() => {
 // 检查是否为分享链接访问
 const checkShareAccess = async () => {
 <<<<<<< HEAD
+<<<<<<< HEAD
   const result = await ShareService.checkShareAccess();
 
   if (result.success) {
@@ -300,6 +308,14 @@ const checkShareAccess = async () => {
       console.log('分享项目加载失败，请检查链接是否有效');
     }
 >>>>>>> f8bf5fe (权限控制功能实现)
+=======
+  const result = await ShareService.checkShareAccess();
+
+  if (result.success) {
+    ShareService.applyShareAccess(result);
+  } else {
+    console.log(result.error);
+>>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
   }
 };
 

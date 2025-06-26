@@ -113,6 +113,7 @@ const consoleOutput = ref<HTMLElement | null>(null);
 const showCopyToast = ref(false);
 
 const emit = defineEmits(['login']);
+<<<<<<< HEAD
 =======
 >>>>>>> bfca8a1 (解决冲突)
 =======
@@ -131,6 +132,9 @@ const showCopyToast = ref(false);
 =======
 
 >>>>>>> f8bf5fe (权限控制功能实现)
+=======
+
+>>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
 const toggleConsole = () => {
@@ -208,12 +212,16 @@ const getProjectShareLink = async () => {
 
 const openShareBox = async () => {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
   if (!userStore.isLoggedIn) {
     emit('login');
   } else {
     await getProjectShareLink();
     isShareExpanded.value = true;
   }
+<<<<<<< HEAD
 =======
 const openShareBox = () => {
 =======
@@ -221,6 +229,8 @@ const openShareBox = () => {
 >>>>>>> f8bf5fe (权限控制功能实现)
   isShareExpanded.value = true;
 >>>>>>> 997fea6 (复制链接功能实现)
+=======
+>>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
 };
 
 const copyLink = async () => {

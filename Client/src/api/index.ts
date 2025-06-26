@@ -191,8 +191,13 @@ class ApiClient {
   }
 
   // 项目相关API
+<<<<<<< HEAD
   async createProject(data: CreateProjectRequest): Promise<{ code: number; message: string; data: any }> {
     const response = await this.client.post<{ code: number; message: string; data: any }>('/projects', data);
+=======
+  async createProject(data: CreateProjectRequest): Promise<Project> {
+    const response = await this.client.post<Project>('/projects', data);
+>>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
     return response.data;
   }
 
@@ -234,6 +239,7 @@ class ApiClient {
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   async getSharedProject(shareId: string): Promise<{ code: number; message: string; data: any }> {
     const response = await this.client.get<{ code: number; message: string; data: any }>(
       `/projects/share/to/${shareId}`
@@ -244,6 +250,12 @@ class ApiClient {
     const response = await this.client.get<{ project: Project }>(`/projects/share/to/${shareId}`);
     console.log(response.data);
 >>>>>>> f1dc8bf9c5481737b6f49abe5c9943a378ad18f2
+=======
+  async getSharedProject(shareId: string): Promise<Project> {
+    // console.log(shareId);
+    const response = await this.client.get<Project>(`/projects/share/to/${shareId}`);
+    // console.log(response.data);
+>>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
     return response.data;
   }
 

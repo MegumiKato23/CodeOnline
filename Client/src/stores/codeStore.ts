@@ -30,7 +30,21 @@ export const useCodeStore = defineStore('code', () => {
       console.error('保存失败:', error);
     }
   };
+<<<<<<< HEAD
 
+=======
+  // 新增的loadCode方法
+  const loadCode = async (userId: string) => {
+    try {
+      const response = await codeApi.getCode(userId);
+      htmlCode.value = response.data.html || htmlCode.value;
+      cssCode.value = response.data.css || cssCode.value;
+      jsCode.value = response.data.js || jsCode.value;
+    } catch (error) {
+      console.error('加载失败:', error);
+    }
+  };
+>>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
   const setActiveTab = (tab: 'html' | 'css' | 'js') => {
     activeTab.value = tab;
   };
@@ -130,6 +144,10 @@ export const useCodeStore = defineStore('code', () => {
     saveCode,
     setActiveTab,
     initProjectFiles,
+<<<<<<< HEAD
+=======
+    loadCode,
+>>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
     loadProjectFromShare,
   };
 });

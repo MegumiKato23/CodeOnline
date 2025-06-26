@@ -29,7 +29,11 @@ const logout = async () => {
     if (response.code === 200) {
       userStore.logout();
       // 退出登录后,检查权限
+<<<<<<< HEAD
       const shareResult = await ShareService.checkShareAccess();
+=======
+      const shareResult = await ShareService.checkShareAccess({ userId: userStore.userId });
+>>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
       if (shareResult.success) {
         ShareService.applyShareAccess(shareResult);
       }

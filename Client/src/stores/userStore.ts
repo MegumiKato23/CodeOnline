@@ -62,11 +62,19 @@ export const useUserStore = defineStore('user', () => {
     avatar.value = '';
     status.value = '';
     createAt.value = '';
+<<<<<<< HEAD
+=======
+    userId.value = '';
+>>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
 
     // 清除项目相关状态
     currentProjectId.value = null;
 
+<<<<<<< HEAD
     // 登出时清除权限
+=======
+    // 清除权限
+>>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
     clearPermissions();
   };
 
