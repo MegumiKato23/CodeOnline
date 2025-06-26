@@ -1,3 +1,4 @@
+import { set } from 'lodash-es';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
@@ -52,7 +53,20 @@ export const useUserStore = defineStore('user', () => {
   };
 
   const logout = () => {
+    // 清除登录状态
     isLoggedIn.value = false;
+
+    // 清除用户信息
+    username.value = '';
+    account.value = '';
+    avatar.value = '';
+    status.value = '';
+    createAt.value = '';
+    userId.value = '';
+
+    // 清除项目相关状态
+    currentProjectId.value = null;
+
     // 登出时清除权限
     clearPermissions();
   };

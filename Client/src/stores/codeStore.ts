@@ -1,13 +1,11 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import api from '@/api';
+import { api, CreateFileRequest, FileType } from '@/api';
+import codeApi from '@/api';
+
 export const useCodeStore = defineStore('code', () => {
-  const htmlCode = ref(
-    '<div class="root">\n  <div>\n    <svg viewBox="0 0 100 100" fill="white" width="60px" height="60px">\n      <circle cx="50" cy="50" r="40" />\n    </svg>\n    <h1>CodePen Clone</h1>\n    <p>CodePen is a clone of a famous web IDE developed by Diwanshu Midha</p>\n  </div>\n</div>'
-  );
-  const cssCode = ref(
-    '.root {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  height: 80vh;\n  background: #1a1a1a;\n  color: white;\n  text-align: center;\n}'
-  );
+  const htmlCode = ref('<h1>Hello World</h1>');
+  const cssCode = ref('body { font-family: Arial, sans-serif; color: #333; }');
   const jsCode = ref('console.log("Hello from CodePen Clone")');
   const activeTab = ref<'html' | 'css' | 'js'>('html');
   const saved = ref(true);
@@ -21,7 +19,7 @@ export const useCodeStore = defineStore('code', () => {
 
   const saveCode = async (userId: string) => {
     try {
-      await api.saveCode({
+      await codeApi.saveCode({
         userId,
         html: htmlCode.value,
         css: cssCode.value,
@@ -35,7 +33,7 @@ export const useCodeStore = defineStore('code', () => {
   // 新增的loadCode方法
   const loadCode = async (userId: string) => {
     try {
-      const response = await api.getCode(userId);
+      const response = await codeApi.getCode(userId);
       htmlCode.value = response.data.html || htmlCode.value;
       cssCode.value = response.data.css || cssCode.value;
       jsCode.value = response.data.js || jsCode.value;
@@ -45,6 +43,38 @@ export const useCodeStore = defineStore('code', () => {
   };
   const setActiveTab = (tab: 'html' | 'css' | 'js') => {
     activeTab.value = tab;
+  };
+
+  //初始化项目文件
+  const initProjectFiles = async (projectId: string): Promise<void> => {
+    try {
+      const files: CreateFileRequest[] = [
+        {
+          name: 'index.html',
+          path: '/index.html',
+          content: htmlCode.value,
+          type: FileType.HTML,
+        },
+        {
+          name: 'styles.css',
+          path: '/styles.css',
+          content: cssCode.value,
+          type: FileType.CSS,
+        },
+        {
+          name: 'script.js',
+          path: '/script.js',
+          content: jsCode.value,
+          type: FileType.JS,
+        },
+      ];
+      const createPromises = files.map((file) => api.createFile(projectId, file));
+      await Promise.all(createPromises);
+      console.log('项目文件初始化成功');
+    } catch (error) {
+      console.error('初始化项目文件失败:', error);
+      throw error;
+    }
   };
 
   // 加载分享项目数据
@@ -62,7 +92,8 @@ export const useCodeStore = defineStore('code', () => {
 
       // 根据文件类型加载内容，优化性能
       const fileMap = new Map();
-      projectData.project.files.forEach((file: any) => {
+      console.log(projectData.files);
+      projectData.files.forEach((file: any) => {
         if (file && file.type && file.content !== undefined) {
           fileMap.set(file.type.toUpperCase(), file.content);
         }
@@ -108,6 +139,7 @@ export const useCodeStore = defineStore('code', () => {
     updateCode,
     saveCode,
     setActiveTab,
+    initProjectFiles,
     loadCode,
     loadProjectFromShare,
   };

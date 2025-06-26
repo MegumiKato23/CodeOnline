@@ -29,6 +29,9 @@ import { ref, reactive } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import { api } from '@/api';
 import { Users } from 'lucide-vue-next';
+import { useCodeStore } from '@/stores/codeStore';
+import { ShareService } from '@/services/shareService';
+
 
 const props = defineProps<{
   visible: boolean;
@@ -37,6 +40,8 @@ const props = defineProps<{
 const emit = defineEmits(['close', 'register']);
 
 const userStore = useUserStore();
+const codeStore = useCodeStore();
+
 const errorMessage = ref('');
 
 const loginForm = reactive({
@@ -74,17 +79,26 @@ const handleLogin = async () => {
     userStore.setAccount(user.account);
     userStore.setAvatar(user.avatar);
     userStore.setStatus(user.status);
+    userStore.setUserId(user.id);
     userStore.login();
 
     api.getUserProjects().then(async (res) => {
       if (res['projects'].length == 0) {
         const projectData = await api.createProject({ name: 'New Project' });
-        userStore.currentProjectId = projectData['project']['id'];
+
+        console.log(projectData);
+        await codeStore.initProjectFiles(projectData.id);
+        userStore.currentProjectId = projectData.id;
       } else {
         userStore.currentProjectId = res['projects'][0]['id'];
       }
     });
 
+    // 登录成功后，重新检查分享权限
+    const shareResult = await ShareService.checkShareAccess({ userId: userStore.userId });
+    if (shareResult.success) {
+      ShareService.applyShareAccess(shareResult);
+    }
     // 关闭登录框
     close();
   } catch (error) {
