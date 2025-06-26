@@ -73,8 +73,8 @@ const consoleOutput = ref<HTMLElement | null>(null);
 // 添加复制提示状态
 const showCopyToast = ref(false);
 
-const emit = defineEmits(['login']);
 
+const emit = defineEmits(['login']);
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
 const toggleConsole = () => {

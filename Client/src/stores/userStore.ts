@@ -67,7 +67,7 @@ export const useUserStore = defineStore('user', () => {
     // 清除项目相关状态
     currentProjectId.value = null;
 
-    // 清除权限
+    // 登出时清除权限
     clearPermissions();
   };
 

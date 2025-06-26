@@ -32,6 +32,7 @@ import { Users } from 'lucide-vue-next';
 import { useCodeStore } from '@/stores/codeStore';
 import { ShareService } from '@/services/shareService';
 
+
 const props = defineProps<{
   visible: boolean;
 }>();
@@ -84,6 +85,7 @@ const handleLogin = async () => {
     api.getUserProjects().then(async (res) => {
       if (res['projects'].length == 0) {
         const projectData = await api.createProject({ name: 'New Project' });
+
         console.log(projectData);
         await codeStore.initProjectFiles(projectData.id);
         userStore.currentProjectId = projectData.id;
@@ -97,7 +99,6 @@ const handleLogin = async () => {
     if (shareResult.success) {
       ShareService.applyShareAccess(shareResult);
     }
-
     // 关闭登录框
     close();
   } catch (error) {
