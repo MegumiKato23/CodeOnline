@@ -1,7 +1,7 @@
 <template>
   <div class="app">
     <Navbar @login="showLoginDialog = true" />
-    <div v-if="status" class="main-content">
+    <div v-if="status==='true'" class="main-content">
       <div class="editor-panel" ref="editorPanel">
         <CodeEditor :activeTab="activeTab" />
       </div>
