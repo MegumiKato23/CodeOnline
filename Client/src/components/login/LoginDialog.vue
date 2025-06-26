@@ -78,22 +78,45 @@ const handleLogin = async () => {
     userStore.setAccount(user.account);
     userStore.setAvatar(user.avatar);
     userStore.setStatus(user.status);
-    userStore.setUserId(user.id);
     userStore.login();
 
     api.getUserProjects().then(async (res) => {
       if (res['projects'].length == 0) {
-        const projectData = await api.createProject({ name: 'New Project' });
+        const { project: projectData } = await api.createProject({ name: 'New Project' });
         console.log(projectData);
         await codeStore.initProjectFiles(projectData.id);
         userStore.currentProjectId = projectData.id;
       } else {
         userStore.currentProjectId = res['projects'][0]['id'];
+        try {
+          const projectRes = await api.getProject(userStore.currentProjectId);
+          // console.log(projectRes);
+          const files = projectRes['files'];
+
+          // 创建文件类型映射
+          const typeMapping = {
+            HTML: 'html',
+            CSS: 'css',
+            JS: 'js',
+          };
+
+          // 处理每个文件
+          files.forEach((file) => {
+            const mappedType = typeMapping[file.type];
+            if (mappedType) {
+              codeStore.updateCode(mappedType, file.content);
+            }
+          });
+
+          console.log('项目文件加载完成');
+        } catch (error) {
+          console.error('加载项目文件失败:', error);
+        }
       }
     });
 
     // 登录成功后，重新检查分享权限
-    const shareResult = await ShareService.checkShareAccess({ userId: userStore.userId });
+    const shareResult = await ShareService.checkShareAccess();
     if (shareResult.success) {
       ShareService.applyShareAccess(shareResult);
     }

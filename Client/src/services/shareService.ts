@@ -16,9 +16,13 @@ export class ShareService {
    * @param shareId 分享ID，如果不提供则从当前URL解析
    * @param userId 用户ID，如果不提供则从userStore获取
    */
-  static async checkShareAccess(options?: { shareId?: string; userId?: string }): Promise<ShareAccessResult> {
+  static async checkShareAccess(options?: { shareId?: string }): Promise<ShareAccessResult> {
     try {
-      let { shareId, userId } = options || {};
+      const {
+        user: { id: userId },
+      } = await api.getUserProfile();
+      console.log('用户ID:', userId); // Log the user ID for diagnostic purpose
+      let { shareId } = options || {};
       // 如果没有提供shareId，从URL解析
       if (!shareId) {
         const url = window.location.pathname;
@@ -32,14 +36,9 @@ export class ShareService {
       console.log('分享ID:', shareId);
       console.log('正在加载分享项目...');
 
-      const projectData = await api.getSharedProject(shareId);
+      const { project: projectData } = await api.getSharedProject(shareId);
+      console.log(await api.getSharedProject(shareId));
       console.log('分享项目数据:', projectData.ownerId); // Log the project data for diagnostic purpose
-
-      // 如果没有提供userId，从store获取
-      if (!userId) {
-        const userStore = useUserStore();
-        userId = userStore.userId;
-      }
 
       console.log('用户ID:', userId);
       // 确定权限

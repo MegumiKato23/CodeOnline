@@ -185,8 +185,8 @@ class ApiClient {
   }
 
   // 项目相关API
-  async createProject(data: CreateProjectRequest): Promise<Project> {
-    const response = await this.client.post<Project>('/projects', data);
+  async createProject(data: CreateProjectRequest): Promise<{ project: Project }> {
+    const response = await this.client.post<{ project: Project }>('/projects', data);
     return response.data;
   }
 
@@ -210,10 +210,10 @@ class ApiClient {
     return response.data;
   }
 
-  async getSharedProject(shareId: string): Promise<Project> {
+  async getSharedProject(shareId: string): Promise<{ project: Project }> {
     // console.log(shareId);
-    const response = await this.client.get<Project>(`/projects/share/to/${shareId}`);
-    // console.log(response.data);
+    const response = await this.client.get<{ project: Project }>(`/projects/share/to/${shareId}`);
+    console.log(response.data);
     return response.data;
   }
 
