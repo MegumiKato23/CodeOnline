@@ -2,13 +2,8 @@
   <div id="box">
     <img src="" class="img" />
     <ul class="droplist">
-<<<<<<< Updated upstream
-      <li><a1 @click="login" style="color: white">退出登录</a1></li>
-      <li><a2 style="color: white">更换头像</a2></li>
-=======
       <li><a1 style="color: black">更换头像</a1></li>
-      <li><a2 @click="logout" style="color: black">退出登录</a2></li>
->>>>>>> Stashed changes
+      <li><a2 @click="confirmLogout" style="color: black">退出登录</a2></li>
     </ul>
   </div>
 </template>
@@ -24,8 +19,28 @@ import SettingsIcon from './icons/SettingsIcon.vue';
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
 const emit = defineEmits(['login']);
-const login = () => {
-  emit('login');
+
+const confirmLogout = () => {
+  const confirmed = window.confirm('确定要退出登录吗？');
+  if (confirmed) {
+    logout();
+  }
+};
+
+const logout = async () => {
+  try {
+    const { success } = await api.logout();
+    if (success) {
+      userStore.logout();
+      // 退出登录后,检查权限
+      const shareResult = await ShareService.checkShareAccess({ userId: userStore.userId });
+      if (shareResult.success) {
+        ShareService.applyShareAccess(shareResult);
+      }
+    }
+  } catch (error) {
+    console.error('退出登录失败:', error);
+  }
 };
 </script>
 
@@ -33,18 +48,13 @@ const login = () => {
 #box {
   width: 40px;
   height: 40px;
-  position: absolute;
-<<<<<<< Updated upstream
-  top: 80px;
-  margin: 0;
-  right: 20px;
-=======
-  /* top: 80px;
+  position: relative;
+  /*top: 80px;
   margin: 0; */
-  left: 1210px;
-  top: 9px;
+  top: -733px;
+  left: 1050px;
+
   /* right: 20px; */
->>>>>>> Stashed changes
 }
 .img {
   width: 50px;
@@ -61,10 +71,6 @@ const login = () => {
   background-color: black;
   display: none;
   position: absolute;
-<<<<<<< Updated upstream
-  top: 40px;
-  left: 0px;
-=======
   top: 50px;
   left: 6px;
   z-index: 999;
