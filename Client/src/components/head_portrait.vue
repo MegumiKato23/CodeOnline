@@ -2,8 +2,13 @@
   <div id="box">
     <img src="" class="img" />
     <ul class="droplist">
+<<<<<<< Updated upstream
       <li><a1 @click="login" style="color: white">退出登录</a1></li>
       <li><a2 style="color: white">更换头像</a2></li>
+=======
+      <li><a1 style="color: black">更换头像</a1></li>
+      <li><a2 @click="logout" style="color: black">退出登录</a2></li>
+>>>>>>> Stashed changes
     </ul>
   </div>
 </template>
@@ -26,17 +31,24 @@ const login = () => {
 
 <style scoped>
 #box {
-  /* background-color:red; */
   width: 40px;
   height: 40px;
   position: absolute;
+<<<<<<< Updated upstream
   top: 80px;
   margin: 0;
   right: 20px;
+=======
+  /* top: 80px;
+  margin: 0; */
+  left: 1210px;
+  top: 9px;
+  /* right: 20px; */
+>>>>>>> Stashed changes
 }
 .img {
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   position: absolute;
   border-radius: 100%;
   top: 0;
@@ -49,8 +61,14 @@ const login = () => {
   background-color: black;
   display: none;
   position: absolute;
+<<<<<<< Updated upstream
   top: 40px;
   left: 0px;
+=======
+  top: 50px;
+  left: 6px;
+  z-index: 999;
+>>>>>>> Stashed changes
 }
 #box:hover .droplist {
   display: block;
