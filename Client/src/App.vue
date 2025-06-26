@@ -10,11 +10,7 @@
         <iframe ref="previewFrame" class="preview-frame" :class="{ 'no-pointer-events': isResizing }"></iframe>
       </div>
     </div>
-<<<<<<< Updated upstream
-    <Footer />
-=======
     <Footer :isReadOnly="userStore.isReadOnlyMode" @login="showLoginDialog = true" />
->>>>>>> Stashed changes
     <SettingsDialog v-if="showSettings" @close="showSettings = false" />
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
@@ -35,12 +31,9 @@ import SettingsDialog from '@/components/icons/SettingsIcon.vue';
 import LoginDialog from '@/components/login/LoginDialog.vue';
 import RegisterDialog from '@/components/login/RegisterDialog.vue';
 import head_portrait from './components/head_portrait.vue';
-<<<<<<< Updated upstream
-=======
 import { api } from '@/api/index';
 import { Users } from 'lucide-vue-next';
 import { ShareService } from '@/services/shareService';
->>>>>>> Stashed changes
 
 const codeStore = useCodeStore();
 const userStore = useUserStore();
@@ -153,8 +146,6 @@ onMounted(() => {
     }
   });
 });
-<<<<<<< Updated upstream
-=======
 
 // 检查是否为分享链接访问
 const checkShareAccess = async () => {
@@ -198,7 +189,6 @@ const checkShareAccess = async () => {
   }
 };
 
->>>>>>> Stashed changes
 // 组件卸载时取消防抖
 onBeforeUnmount(() => {
   debouncedUpdatePreview.cancel();
