@@ -33,9 +33,13 @@
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
 <<<<<<< HEAD
+<<<<<<< HEAD
     <!-- <head_portrait @login="showLoginDialog = true" /> -->
 =======
 >>>>>>> bfca8a1 (解决冲突)
+=======
+    <!-- <head_portrait @login="showLoginDialog = true" /> -->
+>>>>>>> 27977ac (调整登录后头像框样式)
   </div>
 </template>
 
@@ -264,6 +268,7 @@ const checkShareAccess = async () => {
   if (shareMatch) {
     const shareId = shareMatch[1];
     try {
+      console.log('正在加载分享项目...');
       const projectData = await api.getSharedProject(shareId);
 
       if (projectData.project.ownerId === userStore.userId) {
@@ -281,15 +286,18 @@ const checkShareAccess = async () => {
       userStore.setPermissions(permissions.value);
 
       // 加载项目数据到编辑器
-      // codeStore.loadProjectFromShare(projectData);
+      codeStore.loadProjectFromShare(projectData);
 
       // 如果是只读模式，显示提示
       if (permissions.value.accessType === 'readonly') {
-        console.log('您正在以只读模式访问此项目');
+        console.log(`您正在以只读模式访问项目: ${projectData.project.name || '未命名项目'}`);
       }
+
+      console.log('分享项目加载完成');
     } catch (error) {
       console.error('Failed to load shared project:', error);
       // 处理错误（如链接过期、不存在等）
+      console.log('分享项目加载失败，请检查链接是否有效');
     }
 >>>>>>> f8bf5fe (权限控制功能实现)
   }
