@@ -76,7 +76,7 @@ const debouncedUpdatePreview = debounce(() => {
   doc.close();
 }, 500); // 500ms防抖延迟
 
-watch(status,()=> {
+watch(status, () => {
   debouncedUpdatePreview();
 });
 
