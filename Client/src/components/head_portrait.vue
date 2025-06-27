@@ -2,8 +2,8 @@
   <div id="box">
     <img :src="userStore.avatar || '../../public/avatar/doro.png'" class="img" alt="用户头像" />
     <ul class="droplist">
-      <li><a1 style="color: white">更换头像</a1></li>
-      <li><a2 @click="logout" style="color: white">退出登录</a2></li>
+      <li><a1 style="color: black">更换头像</a1></li>
+      <li><a2 @click="confirmLogout" style="color: black">退出登录</a2></li>
     </ul>
   </div>
 </template>
@@ -23,6 +23,14 @@ import { ShareService } from '@/services/shareService';
 const userStore = useUserStore();
 const codeStore = useCodeStore();
 const emit = defineEmits(['login']);
+
+const confirmLogout = () => {
+  const confirmed = window.confirm('确定要退出登录吗？');
+  if (confirmed) {
+    logout();
+  }
+};
+
 const logout = async () => {
   try {
     const { success } = await api.logout();
@@ -48,12 +56,13 @@ const logout = async () => {
   position: relative;
   /* top: 80px;
   margin: 0; */
-  left: 2px;
-  right: 20px;
+  left: 1040px;
+  top:-733px;
+  /* right: 20px; */
 }
 .img {
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   position: absolute;
   border-radius: 100%;
   top: 0;
@@ -66,8 +75,8 @@ const logout = async () => {
   background-color: black;
   display: none;
   position: absolute;
-  top: 40px;
-  left: 0px;
+  top: 50px;
+  left: 6px;
   z-index: 999;
 }
 #box:hover .droplist {
