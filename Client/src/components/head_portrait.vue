@@ -57,7 +57,7 @@ const logout = async () => {
   /* top: 80px;
   margin: 0; */
   left: 1040px;
-  top:-733px;
+  top: -733px;
   /* right: 20px; */
 }
 .img {
