@@ -155,11 +155,42 @@ const setActiveTab = (tab: 'html' | 'css' | 'js') => {
 
 onMounted(() => {
   initializeEditor();
+  // 异步加载远程代码（如果用户已登录）
+  if (userStore.isLoggedIn) {
+    recreateEditor();
+  }
 });
 
 watch(activeTab, () => {
   recreateEditor();
 });
+
+// 分别监听各种代码类型的变化
+watch(
+  [() => codeStore.htmlCode, () => codeStore.cssCode, () => codeStore.jsCode],
+  () => {
+    // 当代码内容变化且当前标签页对应的代码发生变化时，更新编辑器
+    if (editorView.value) {
+      const currentCode =
+        activeTab.value === 'html'
+          ? codeStore.htmlCode
+          : activeTab.value === 'css'
+            ? codeStore.cssCode
+            : codeStore.jsCode;
+
+      if (currentCode !== editorView.value.state.doc.toString()) {
+        editorView.value.dispatch({
+          changes: {
+            from: 0,
+            to: editorView.value.state.doc.length,
+            insert: currentCode,
+          },
+        });
+      }
+    }
+  },
+  { deep: true }
+);
 
 onBeforeUnmount(() => {
   destroyEditor();

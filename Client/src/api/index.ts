@@ -223,10 +223,17 @@ class ApiClient {
     return response.data;
   }
 
+<<<<<<< HEAD
   async getSharedProject(shareId: string): Promise<{ code: number; message: string; data: any }> {
     const response = await this.client.get<{ code: number; message: string; data: any }>(
       `/projects/share/to/${shareId}`
     );
+=======
+  async getSharedProject(shareId: string): Promise<{ project: Project }> {
+    // console.log(shareId);
+    const response = await this.client.get<{ project: Project }>(`/projects/share/to/${shareId}`);
+    console.log(response.data);
+>>>>>>> f1dc8bf9c5481737b6f49abe5c9943a378ad18f2
     return response.data;
   }
 

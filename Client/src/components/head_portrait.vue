@@ -29,7 +29,7 @@ const logout = async () => {
     if (response.code === 200) {
       userStore.logout();
       // 退出登录后,检查权限
-      const shareResult = await ShareService.checkShareAccess({ userId: userStore.userId });
+      const shareResult = await ShareService.checkShareAccess();
       if (shareResult.success) {
         ShareService.applyShareAccess(shareResult);
       }
