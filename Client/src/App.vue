@@ -185,14 +185,14 @@ const handleBeforeUnload = async (e) => {
 
     // 4. 创建文件名到ID的映射
     const fileIdMap = new Map();
-    existingFiles.forEach(file => {
+    existingFiles.forEach((file) => {
       fileIdMap.set(file.name, file.id);
     });
     console.log('文件ID映射表:', Object.fromEntries(fileIdMap));
 
     // 5. 执行文件更新（带错误收集）
     const updateResults = await Promise.all(
-      filesToUpdate.map(async file => {
+      filesToUpdate.map(async (file) => {
         try {
           const fileId = fileIdMap.get(file.name);
           if (!fileId) {
@@ -201,16 +201,12 @@ const handleBeforeUnload = async (e) => {
           }
 
           console.log(`正在更新 ${file.name} (ID: ${fileId})`);
-          const updateResponse = await api.updateFile(
-            currentProjectId,
-            fileId,
-            {
-              name: file.name,
-              path: file.path,
-              content: file.content,
-              type: file.type
-            }
-          );
+          const updateResponse = await api.updateFile(currentProjectId, fileId, {
+            name: file.name,
+            path: file.path,
+            content: file.content,
+            type: file.type,
+          });
 
           // 验证更新结果
           if (updateResponse.code !== 200) {
@@ -220,32 +216,32 @@ const handleBeforeUnload = async (e) => {
           return { name: file.name, status: 'success' };
         } catch (error) {
           console.error(`文件 ${file.name} 更新失败:`, error);
-          return { 
-            name: file.name, 
+          return {
+            name: file.name,
             status: 'failed',
-            error: error.message
+            error: error.message,
           };
         }
       })
     );
 
     // 6. 检查更新结果
-    const failedUpdates = updateResults.filter(r => r.status === 'failed');
+    const failedUpdates = updateResults.filter((r) => r.status === 'failed');
     if (failedUpdates.length > 0) {
       console.error('以下文件更新失败:', failedUpdates);
       throw new Error(`${failedUpdates.length}个文件更新失败`);
     }
 
     console.log('文件更新完成:', {
-      success: updateResults.filter(r => r.status === 'success').length,
-      skipped: updateResults.filter(r => r.status === 'skipped').length
+      success: updateResults.filter((r) => r.status === 'success').length,
+      skipped: updateResults.filter((r) => r.status === 'skipped').length,
     });
     delete e.returnValue;
   } catch (error) {
     console.error('自动保存失败:', {
       error: error.message,
       stack: error.stack,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
     return msg;
   }

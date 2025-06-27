@@ -1,7 +1,6 @@
 const Redis = require('ioredis');
 const config = require('../../config'); // 修正路径
 
-
 const redis = new Redis(config.redis);
 
 // 连接事件监听

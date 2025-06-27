@@ -32,7 +32,6 @@ import { Users } from 'lucide-vue-next';
 import { useCodeStore } from '@/stores/codeStore';
 import { ShareService } from '@/services/shareService';
 
-
 const props = defineProps<{
   visible: boolean;
 }>();
@@ -74,7 +73,7 @@ const handleLogin = async () => {
       password: loginForm.password,
     });
 
-    const { user } = response.data
+    const { user } = response.data;
 
     // 更新用户信息
     userStore.setUsername(user.username);
@@ -118,8 +117,7 @@ const switchToRegister = () => {
 const resetForm = () => {
   loginForm.password = '';
   errorMessage.value = '';
-}
-
+};
 </script>
 
 <style scoped>

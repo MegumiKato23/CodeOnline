@@ -18,6 +18,4 @@ router.put('/update/:userId/:fileName', (req, res, next) => {
   controller.updateFile(req, res).catch(next);
 });
 
-
-
 module.exports = router;

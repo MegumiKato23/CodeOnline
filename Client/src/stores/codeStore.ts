@@ -18,54 +18,54 @@ export const useCodeStore = defineStore('code', () => {
   };
 
   const saveCode = async (userId: string) => {
-  try {
-    await api.saveCode({
-      userId,
-      files: [
-        {
-          name: "index.html",
-          path: "New project/",
-          content: htmlCode.value, // 确保使用最新值
-          type: FileType.HTML
-        },
-        {
-          name: "styles.css",
-          path: "New project/",
-          content: cssCode.value, // 确保使用最新值
-          type: FileType.CSS
-        },
-        {
-          name: "script.js",
-          path: "New project/",
-          content: jsCode.value, // 确保使用最新值
-          type: FileType.JS
-        }
-      ]
-    });
-    saved.value = true;
-  } catch (error) {
-    console.error('保存失败:', error);
-  }
-};
-
-const loadCode = async (userId: string) => {
-  try {
-    const response = await api.getCode(userId);
-    if (response.data && response.data.files) {
-      response.data.files.forEach((file: any) => {
-        if (file.name === 'index.html') {
-          htmlCode.value = file.content;
-        } else if (file.name === 'style.css') {
-          cssCode.value = file.content;
-        } else if (file.name === 'script.js') {
-          jsCode.value = file.content;
-        }
+    try {
+      await api.saveCode({
+        userId,
+        files: [
+          {
+            name: 'index.html',
+            path: 'New project/',
+            content: htmlCode.value, // 确保使用最新值
+            type: FileType.HTML,
+          },
+          {
+            name: 'styles.css',
+            path: 'New project/',
+            content: cssCode.value, // 确保使用最新值
+            type: FileType.CSS,
+          },
+          {
+            name: 'script.js',
+            path: 'New project/',
+            content: jsCode.value, // 确保使用最新值
+            type: FileType.JS,
+          },
+        ],
       });
+      saved.value = true;
+    } catch (error) {
+      console.error('保存失败:', error);
     }
-  } catch (error) {
-    console.error('加载失败:', error);
-  }
-};
+  };
+
+  const loadCode = async (userId: string) => {
+    try {
+      const response = await api.getCode(userId);
+      if (response.data && response.data.files) {
+        response.data.files.forEach((file: any) => {
+          if (file.name === 'index.html') {
+            htmlCode.value = file.content;
+          } else if (file.name === 'style.css') {
+            cssCode.value = file.content;
+          } else if (file.name === 'script.js') {
+            jsCode.value = file.content;
+          }
+        });
+      }
+    } catch (error) {
+      console.error('加载失败:', error);
+    }
+  };
   const setActiveTab = (tab: 'html' | 'css' | 'js') => {
     activeTab.value = tab;
   };
