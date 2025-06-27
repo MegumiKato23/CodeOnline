@@ -7,7 +7,7 @@
       </div>
       <div class="register-body">
         <div class="form-group">
-          <label for="username">  用户名</label>
+          <label for="username"> 用户名</label>
           <input type="text" id="username" v-model="registerForm.username" placeholder="请输入用户名" />
           <div class="input-tip">用户名长度3-20个字符</div>
         </div>
@@ -23,7 +23,12 @@
         </div>
         <div class="form-group">
           <label for="confirmPassword">确认密码</label>
-          <input type="password" id="confirmPassword" v-model="registerForm.confirmPassword" placeholder="请再次输入密码" />
+          <input
+            type="password"
+            id="confirmPassword"
+            v-model="registerForm.confirmPassword"
+            placeholder="请再次输入密码"
+          />
           <div class="input-tip">请再次输入相同的密码</div>
         </div>
         <div class="error-message" v-if="errorMessage">{{ errorMessage }}</div>
@@ -127,7 +132,7 @@ const resetForm = () => {
   registerForm.password = '';
   registerForm.confirmPassword = '';
   errorMessage.value = '';
-}
+};
 </script>
 
 <style scoped>
