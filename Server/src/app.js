@@ -10,12 +10,16 @@ const codeRoutes = require('./routes/code');
 const userRoutes = require('./routes/users');
 const projectRoutes = require('./routes/projects');
 const fileRoutes = require('./routes/files');
+const { startCleanupJob } = require('./utils/cleanup');
 
 const app = express();
 app.use(cookieParser());
 
 // 会话存储配置
 const sessionStore = new session.MemoryStore();
+
+// 清理过期分享链接任务
+startCleanupJob();
 
 app.use(
   session({
@@ -53,7 +57,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // 健康检查
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.status(200).json({ code: 200, message: 'OK', timestamp: new Date().toISOString() });
 });
 
 // API路由
@@ -61,6 +65,7 @@ app.use('/users', userRoutes);
 app.use('/projects', projectRoutes);
 app.use('/projects/:projectId/files', fileRoutes);
 app.use('/api/code', codeRoutes);
+
 // 错误处理中间件
 app.use((err, req, res, next) => {
   console.error('Error:', err);
