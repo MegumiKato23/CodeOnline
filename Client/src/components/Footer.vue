@@ -115,18 +115,18 @@ const getProjectShareLink = async () => {
     // }
 
     const response = await api.getShareLink(userStore.currentProjectId);
+    const { data } = response
     // 生成完整的分享链接
     console.log(window.location.origin);
-    shareLink.value = `${window.location.origin}/share/${response.shareId}`;
+    shareLink.value = `${window.location.origin}/share/${data.shareId}`;
 
-    shareTime.value = new Date(response.expiresAt).toLocaleDateString('en-US', {
+    shareTime.value = new Date(data.expiresAt).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     });
 
     console.log('获取分享链接成功:', shareLink.value);
-    // console.log(time);
   } catch (error) {
     console.error('获取分享链接失败:', error);
     // 失败时使用默认链接

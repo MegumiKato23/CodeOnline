@@ -7,25 +7,24 @@
       </div>
       <div class="register-body">
         <div class="form-group">
-          <label for="username">用户名</label>
+          <label for="username">  用户名</label>
           <input type="text" id="username" v-model="registerForm.username" placeholder="请输入用户名" />
+          <div class="input-tip">用户名长度3-20个字符</div>
         </div>
         <div class="form-group">
           <label for="account">手机号</label>
           <input type="text" id="account" v-model="registerForm.account" placeholder="请输入手机号" />
+          <div class="input-tip">请输入11位手机号码</div>
         </div>
         <div class="form-group">
           <label for="password">密码</label>
           <input type="password" id="password" v-model="registerForm.password" placeholder="请输入密码" />
+          <div class="input-tip">密码长度6-30个字符，必须包含大小写字母和数字</div>
         </div>
         <div class="form-group">
           <label for="confirmPassword">确认密码</label>
-          <input
-            type="password"
-            id="confirmPassword"
-            v-model="registerForm.confirmPassword"
-            placeholder="请再次输入密码"
-          />
+          <input type="password" id="confirmPassword" v-model="registerForm.confirmPassword" placeholder="请再次输入密码" />
+          <div class="input-tip">请再次输入相同的密码</div>
         </div>
         <div class="error-message" v-if="errorMessage">{{ errorMessage }}</div>
       </div>
@@ -72,12 +71,24 @@ const handleRegister = async () => {
     errorMessage.value = '请输入用户名';
     return;
   }
+  if (!/^[a-zA-Z0-9_\u4e00-\u9fa5]{3,20}$/.test(registerForm.username.trim())) {
+    errorMessage.value = '用户名格式不正确，长度3-20个字符，只能包含字母、数字、下划线和中文';
+    return;
+  }
   if (!registerForm.account.trim()) {
     errorMessage.value = '请输入手机号';
     return;
   }
+  if (!/^1\d{10}$/.test(registerForm.account.trim())) {
+    errorMessage.value = '请输入正确的手机号码';
+    return;
+  }
   if (!registerForm.password.trim()) {
     errorMessage.value = '请输入密码';
+    return;
+  }
+  if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,30}$/.test(registerForm.password)) {
+    errorMessage.value = '密码格式不正确，长度6-30个字符，必须包含大小写字母和数字';
     return;
   }
   if (registerForm.password !== registerForm.confirmPassword) {
@@ -86,7 +97,7 @@ const handleRegister = async () => {
   }
 
   try {
-    const { success } = await api.register({
+    const response = await api.register({
       username: registerForm.username,
       account: registerForm.account,
       password: registerForm.password,
@@ -94,8 +105,12 @@ const handleRegister = async () => {
     });
 
     // 注册成功后切换到登录界面
-    if (success) {
+    if (response.code === 200) {
+      resetForm();
       switchToLogin();
+    } else if (response.code === 1001) {
+      resetForm();
+      errorMessage.value = '账号已存在';
     }
   } catch (error) {
     errorMessage.value = error.response?.data?.message || '注册失败';
@@ -105,6 +120,14 @@ const handleRegister = async () => {
 const switchToLogin = () => {
   emit('login');
 };
+
+const resetForm = () => {
+  registerForm.username = '';
+  registerForm.account = '';
+  registerForm.password = '';
+  registerForm.confirmPassword = '';
+  errorMessage.value = '';
+}
 </script>
 
 <style scoped>
@@ -200,6 +223,12 @@ input:focus {
   font-size: 14px;
   cursor: pointer;
   border: none;
+}
+
+.input-tip {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
 }
 
 .login-btn {
