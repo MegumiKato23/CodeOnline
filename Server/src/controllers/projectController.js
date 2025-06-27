@@ -11,7 +11,7 @@ const createProject = async (req, res) => {
       return res.status(400).json({
         code: 400,
         message: 'Validation failed',
-        errors: errors.array()
+        errors: errors.array(),
       });
     }
 
@@ -35,9 +35,9 @@ const createProject = async (req, res) => {
           ownerId: project.ownerId,
           createdAt: project.createdAt.toISOString(),
           updatedAt: project.updatedAt.toISOString(),
-        }
-      }
-    })
+        },
+      },
+    });
   } catch (error) {
     console.error('Create project error:', error);
     res.status(500).json({
@@ -77,8 +77,8 @@ const getProject = async (req, res) => {
           files: project.files,
           createdAt: project.createdAt.toISOString(),
           updatedAt: project.updatedAt.toISOString(),
-        }
-      }
+        },
+      },
     });
   } catch (error) {
     console.error('Get project error:', error);
@@ -129,8 +129,8 @@ const updateProject = async (req, res) => {
           name: updatedProject.name,
           createdAt: updatedProject.createdAt.toISOString(),
           updatedAt: updatedProject.updatedAt.toISOString(),
-        }
-      }
+        },
+      },
     });
   } catch (error) {
     console.error('Update project error:', error);
@@ -204,11 +204,8 @@ const getShareLink = async (req, res) => {
     // 通过项目id和用户id生成token
     const token = generateShareId({ projectId: projectId, userId: req.session.userId });
 
-    const digest = crypto.createHash('sha256')
-    .update(token)
-    .digest('hex')
-    .substring(0, 16);
-    
+    const digest = crypto.createHash('sha256').update(token).digest('hex').substring(0, 16);
+
     // 生成分享记录
     const keeptime = new Date();
     keeptime.setDate(keeptime.getDate() + 7); // 默认7天有效期
@@ -227,7 +224,7 @@ const getShareLink = async (req, res) => {
       data: {
         shareId: share.id,
         expiresAt: keeptime.toISOString(),
-      }
+      },
     });
   } catch (error) {
     console.error('Get share link error:', error);
@@ -280,8 +277,8 @@ const getShareProject = async (req, res) => {
           ownerId: project.ownerId,
           createdAt: project.createdAt.toISOString(),
           updatedAt: project.updatedAt.toISOString(),
-        }
-      }
+        },
+      },
     });
   } catch (error) {
     console.error('Get share project error:', error);

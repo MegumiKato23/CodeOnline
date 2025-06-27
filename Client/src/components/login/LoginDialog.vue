@@ -32,7 +32,6 @@ import { Users } from 'lucide-vue-next';
 import { useCodeStore } from '@/stores/codeStore';
 import { ShareService } from '@/services/shareService';
 
-
 const props = defineProps<{
   visible: boolean;
 }>();
@@ -74,31 +73,54 @@ const handleLogin = async () => {
       password: loginForm.password,
     });
 
-    const { user } = response.data
+    const { user } = response.data;
 
     // 更新用户信息
     userStore.setUsername(user.username);
     userStore.setAccount(user.account);
     userStore.setAvatar(user.avatar);
     userStore.setStatus(user.status);
-    userStore.setUserId(user.id);
     userStore.login();
 
     api.getUserProjects().then(async (res) => {
-      const { projects } = res.data;
-      if (projects.length == 0) {
-        const response = await api.createProject({ name: 'New Project' });
-
-        const { project } = response.data;
-        await codeStore.initProjectFiles(project.id);
-        userStore.currentProjectId = project.id;
+      if (res['projects'].length == 0) {
+        const { data } = await api.createProject({ name: 'New Project' });
+        const projectData = data.project; // Assuming the first project is the new one created by the registratio
+        console.log(projectData);
+        await codeStore.initProjectFiles(projectData.id);
+        userStore.currentProjectId = projectData.id;
       } else {
-        userStore.currentProjectId = projects[0]['id'];
+        userStore.currentProjectId = res['projects'][0]['id'];
+        try {
+          const projectRes = await api.getProject(userStore.currentProjectId);
+          // console.log(projectRes);
+          const files = projectRes['files'];
+
+          // 创建文件类型映射
+          const typeMapping = {
+            HTML: 'html',
+            CSS: 'css',
+            JS: 'js',
+          };
+
+          // 处理每个文件
+          files.forEach((file) => {
+            const mappedType = typeMapping[file.type];
+            if (mappedType) {
+              codeStore.updateCode(mappedType, file.content);
+            }
+          });
+
+          console.log('项目文件加载完成');
+        } catch (error) {
+          console.error('加载项目文件失败:', error);
+        }
       }
     });
 
     // 登录成功后，重新检查分享权限
-    const shareResult = await ShareService.checkShareAccess({ userId: userStore.userId });
+    const shareResult = await ShareService.checkShareAccess();
+
     if (shareResult.success) {
       ShareService.applyShareAccess(shareResult);
     }
@@ -118,8 +140,7 @@ const switchToRegister = () => {
 const resetForm = () => {
   loginForm.password = '';
   errorMessage.value = '';
-}
-
+};
 </script>
 
 <style scoped>
