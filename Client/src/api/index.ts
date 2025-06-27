@@ -231,11 +231,32 @@ class ApiClient {
     const response = await this.client.put<{ code: number, message: string, data: any }>(`/projects/${projectId}/files/${fileId}`, data);
     return response.data;
   }
-
+  
   async deleteFile(projectId: string, fileId: string): Promise<{ code: number, message: string }> {
     const response = await this.client.delete<{ code: number, message: string }>(`/projects/${projectId}/files/${fileId}`);
     return response.data;
   }
+  // 修改 saveCode 方法
+  async saveCode(data: { userId: string; files: Array<{
+    name: string;
+    path: string;
+    content: string;
+    type: FileType;
+  }> }): Promise<any> {
+    return this.client.post('http://localhost:3001/api/code/save', data);
+  }
+
+  // 修改 getCode 方法
+  async getCode(userId: string): Promise<{ 
+    data: { files: Array<{
+    name: string;
+    path: string;
+    content: string;
+    type: FileType;
+  }> } }> {
+    return this.client.get(`http://localhost:3001/api/code/${userId}`);
+  }
+ 
 }
 
 export const api = new ApiClient();
@@ -264,9 +285,3 @@ interface CodeData {
   css: string;
   js: string;
 }
-export default {
-  saveCode: (data: { userId: string; html: string; css: string; js: string }) =>
-    axios.post('http://localhost:3001/api/code/save', data),
-
-  getCode: (userId: string) => axios.get<CodeData>(`http://localhost:3001/api/code/${userId}`),
-};

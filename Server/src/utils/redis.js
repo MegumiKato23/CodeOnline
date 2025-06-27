@@ -1,6 +1,7 @@
 const Redis = require('ioredis');
 const config = require('../../config'); // 修正路径
 
+
 const redis = new Redis(config.redis);
 
 // 连接事件监听
@@ -14,11 +15,7 @@ redis.on('error', (err) => {
 
 module.exports = {
   hset: async (key, fieldValues) => {
-    const serialized = {};
-    for (const [field, value] of Object.entries(fieldValues)) {
-      serialized[field] = typeof value === 'string' ? value : JSON.stringify(value);
-    }
-    return redis.hset(key, serialized);
+    return redis.hset(key, fieldValues);
   },
 
   hgetall: async (key) => {

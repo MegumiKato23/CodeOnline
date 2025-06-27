@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { api, CreateFileRequest, FileType } from '@/api';
-import codeApi from '@/api';
+// import codeApi from '@/api';
 
 export const useCodeStore = defineStore('code', () => {
   const htmlCode = ref('<h1>Hello World</h1>');
@@ -18,29 +18,54 @@ export const useCodeStore = defineStore('code', () => {
   };
 
   const saveCode = async (userId: string) => {
-    try {
-      await codeApi.saveCode({
-        userId,
-        html: htmlCode.value,
-        css: cssCode.value,
-        js: jsCode.value,
+  try {
+    await api.saveCode({
+      userId,
+      files: [
+        {
+          name: "index.html",
+          path: "New project/",
+          content: htmlCode.value, // 确保使用最新值
+          type: FileType.HTML
+        },
+        {
+          name: "styles.css",
+          path: "New project/",
+          content: cssCode.value, // 确保使用最新值
+          type: FileType.CSS
+        },
+        {
+          name: "script.js",
+          path: "New project/",
+          content: jsCode.value, // 确保使用最新值
+          type: FileType.JS
+        }
+      ]
+    });
+    saved.value = true;
+  } catch (error) {
+    console.error('保存失败:', error);
+  }
+};
+
+const loadCode = async (userId: string) => {
+  try {
+    const response = await api.getCode(userId);
+    if (response.data && response.data.files) {
+      response.data.files.forEach((file: any) => {
+        if (file.name === 'index.html') {
+          htmlCode.value = file.content;
+        } else if (file.name === 'style.css') {
+          cssCode.value = file.content;
+        } else if (file.name === 'script.js') {
+          jsCode.value = file.content;
+        }
       });
-      console.log('代码已保存到Redis');
-    } catch (error) {
-      console.error('保存失败:', error);
     }
-  };
-  // 新增的loadCode方法
-  const loadCode = async (userId: string) => {
-    try {
-      const response = await codeApi.getCode(userId);
-      htmlCode.value = response.data.html || htmlCode.value;
-      cssCode.value = response.data.css || cssCode.value;
-      jsCode.value = response.data.js || jsCode.value;
-    } catch (error) {
-      console.error('加载失败:', error);
-    }
-  };
+  } catch (error) {
+    console.error('加载失败:', error);
+  }
+};
   const setActiveTab = (tab: 'html' | 'css' | 'js') => {
     activeTab.value = tab;
   };

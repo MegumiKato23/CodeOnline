@@ -159,9 +159,100 @@ const resetSize = () => {
 
 // 使用防抖的watch监听
 watch([htmlCode, cssCode, jsCode], debouncedUpdatePreview, { deep: true });
+const handleBeforeUnload = async (e) => {
+  if (!userStore.isLoggedIn) return;
+
+  e.preventDefault();
+  const msg = '正在保存代码，请稍候...';
+  e.returnValue = msg;
+
+  try {
+    // 1. 获取当前项目ID
+    const currentProjectId = userStore.currentProjectId;
+    if (!currentProjectId) throw new Error('未设置当前项目');
+
+    // 2. 从Redis获取文件内容（保持原有逻辑）
+    const codeResponse = await api.getCode(userStore.account);
+    const filesToUpdate = codeResponse.data?.files || [];
+    console.log('待更新文件:', filesToUpdate);
+    if (filesToUpdate.length === 0) return;
+
+    // 3. 获取项目文件列表（采用标准API调用方式）
+    const projectResponse = await api.getProject(currentProjectId);
+    const projectData = projectResponse.data?.project || projectResponse.data;
+    const existingFiles = projectData?.files || [];
+    console.log('现有文件列表:', existingFiles);
+
+    // 4. 创建文件名到ID的映射
+    const fileIdMap = new Map();
+    existingFiles.forEach(file => {
+      fileIdMap.set(file.name, file.id);
+    });
+    console.log('文件ID映射表:', Object.fromEntries(fileIdMap));
+
+    // 5. 执行文件更新（带错误收集）
+    const updateResults = await Promise.all(
+      filesToUpdate.map(async file => {
+        try {
+          const fileId = fileIdMap.get(file.name);
+          if (!fileId) {
+            console.warn(`未找到文件 ${file.name} 的ID，跳过更新`);
+            return { name: file.name, status: 'skipped' };
+          }
+
+          console.log(`正在更新 ${file.name} (ID: ${fileId})`);
+          const updateResponse = await api.updateFile(
+            currentProjectId,
+            fileId,
+            {
+              name: file.name,
+              path: file.path,
+              content: file.content,
+              type: file.type
+            }
+          );
+
+          // 验证更新结果
+          if (updateResponse.code !== 200) {
+            throw new Error(updateResponse.message || '更新失败');
+          }
+
+          return { name: file.name, status: 'success' };
+        } catch (error) {
+          console.error(`文件 ${file.name} 更新失败:`, error);
+          return { 
+            name: file.name, 
+            status: 'failed',
+            error: error.message
+          };
+        }
+      })
+    );
+
+    // 6. 检查更新结果
+    const failedUpdates = updateResults.filter(r => r.status === 'failed');
+    if (failedUpdates.length > 0) {
+      console.error('以下文件更新失败:', failedUpdates);
+      throw new Error(`${failedUpdates.length}个文件更新失败`);
+    }
+
+    console.log('文件更新完成:', {
+      success: updateResults.filter(r => r.status === 'success').length,
+      skipped: updateResults.filter(r => r.status === 'skipped').length
+    });
+    delete e.returnValue;
+  } catch (error) {
+    console.error('自动保存失败:', {
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+    return msg;
+  }
+};
 onMounted(() => {
   debouncedUpdatePreview(); // 初始加载时调用防抖版本
-
+  window.addEventListener('beforeunload', handleBeforeUnload);
   // 仅在调整大小时禁用 iframe 事件
   const iframe = document.querySelector('.preview-frame') as HTMLIFrameElement;
   iframe?.addEventListener('mouseover', () => {
@@ -187,6 +278,7 @@ const checkShareAccess = async () => {
 // 组件卸载时取消防抖
 onBeforeUnmount(() => {
   debouncedUpdatePreview.cancel();
+  window.removeEventListener('beforeunload', handleBeforeUnload);
 });
 </script>
 
