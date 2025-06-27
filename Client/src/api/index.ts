@@ -7,6 +7,8 @@ export interface User {
   account: string;
   avatar?: string;
   status?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface Project {
@@ -14,8 +16,8 @@ export interface Project {
   name: string;
   ownerId?: string;
   files?: File[];
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export enum FileType {
@@ -36,8 +38,8 @@ export interface File {
   content: string;
   type: FileType;
   projectId: string;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface LoginRequest {
@@ -125,8 +127,7 @@ class ApiClient {
               await this.refreshToken();
             } catch (refreshError) {
               // 刷新token失败，清除本地存储的用户信息
-              // 重定向到登录页面等
-              window.location.href = '/login';
+
               return Promise.reject(refreshError);
             }
           }
@@ -143,112 +144,96 @@ class ApiClient {
   }
 
   // 健康检查
-  async healthCheck(): Promise<{ status: string; timestamp: string }> {
-    const response = await this.client.get<{ status: string; timestamp: string }>('/health');
+  async healthCheck(): Promise<{ code: number, message: string, timestamp: string }> {
+    const response = await this.client.get<{ code: number, message: string, timestamp: string }>('/health');
     return response.data;
   }
 
   // 用户相关API
-  async register(data: RegisterRequest): Promise<{ success: boolean }> {
-    const response = await this.client.post<{ success: boolean }>('/users/register', data);
+  async register(data: RegisterRequest): Promise<{ code: number, message: string }> {
+    const response = await this.client.post<{ code: number, message: string }>('/users/register', data);
     return response.data;
   }
 
-  async login(data: LoginRequest): Promise<{ user: User }> {
-    const response = await this.client.post<{ user: User }>('/users/login', data);
+  async login(data: LoginRequest): Promise<{ code: number, message: string, data: any }> {
+    const response = await this.client.post<{ code: number, message: string, data: any }>('/users/login', data);
     return response.data;
   }
 
-  async logout(): Promise<{ success: boolean }> {
-    const response = await this.client.post<{ success: boolean }>('/users/logout');
+  async logout(): Promise<{ code: number, message: string }> {
+    const response = await this.client.post<{ code: number, message: string }>('/users/logout');
     return response.data;
   }
 
-  async updateUserProfile(data: UpdateUserRequest): Promise<{ user: User }> {
-    const response = await this.client.put<{ user: User }>('/users/profile', data);
+  async updateUserProfile(data: UpdateUserRequest): Promise<{ code: number, message: string, data: any }> {
+    const response = await this.client.put<{ code: number, message: string, data: any }>('/users/profile', data);
     return response.data;
   }
 
-  async getUserProfile(): Promise<{ user: User }> {
-    const response = await this.client.get<{ user: User }>('/users/profile');
+  async getUserProfile(): Promise<{ code: number, message: string, data: any }> {
+    const response = await this.client.get<{ code: number, message: string, data: any }>('/users/profile');
     return response.data;
   }
 
-  async getUserProjects(): Promise<{ projects: Project[] }> {
-    const response = await this.client.get<{ projects: Project[] }>('/users/project');
+  async getUserProjects(): Promise<{ code: number, message: string, data: any }> {
+    const response = await this.client.get<{ code: number, message: string, data: any }>('/users/project');
     return response.data;
   }
 
-  async refreshToken(): Promise<{ success: boolean }> {
-    const response = await this.client.post<{ success: boolean }>('/users/auth/refresh');
+  async refreshToken(): Promise<{ code: number, message: string }> {
+    const response = await this.client.post<{ code: number, message: string }>('/users/auth/refresh');
     return response.data;
   }
 
   // 项目相关API
-  async createProject(data: CreateProjectRequest): Promise<Project> {
-    const response = await this.client.post<Project>('/projects', data);
+  async createProject(data: CreateProjectRequest): Promise<{ code: number, message: string, data: any }> {
+    const response = await this.client.post<{ code: number, message: string, data: any }>('/projects', data);
     return response.data;
   }
 
-  async getProject(projectId: string): Promise<{ project: Project }> {
-    const response = await this.client.get<{ project: Project }>(`/projects/${projectId}`);
+  async getProject(projectId: string): Promise<{ code: number, message: string, data: any }> {
+    const response = await this.client.get<{ code: number, message: string, data: any }>(`/projects/${projectId}`);
     return response.data;
   }
 
-  async updateProject(projectId: string, data: UpdateProjectRequest): Promise<{ project: Project }> {
-    const response = await this.client.put<{ project: Project }>(`/projects/${projectId}`, data);
+  async updateProject(projectId: string, data: UpdateProjectRequest): Promise<{ code: number, message: string, data: any }> {
+    const response = await this.client.put<{ code: number, message: string, data: any }>(`/projects/${projectId}`, data);
     return response.data;
   }
 
-  async deleteProject(projectId: string): Promise<{ success: boolean }> {
-    const response = await this.client.delete<{ success: boolean }>(`/projects/${projectId}`);
+  async deleteProject(projectId: string): Promise<{ code: number, message: string }> {
+    const response = await this.client.delete<{ code: number, message: string }>(`/projects/${projectId}`);
     return response.data;
   }
 
-  async getShareLink(projectId: string): Promise<{ shareId: string; expiresAt: Date }> {
-    const response = await this.client.get<{ shareId: string; expiresAt: Date }>(`/projects/share/${projectId}`);
+  async getShareLink(projectId: string): Promise<{ code: number, message: string, data: { shareId: string; expiresAt: Date } }> {
+    const response = await this.client.get<{ code: number, message: string, data: { shareId: string; expiresAt: Date } }>(`/projects/share/${projectId}`);
     return response.data;
   }
 
-  async getSharedProject(shareId: string): Promise<Project> {
-    // console.log(shareId);
-    const response = await this.client.get<Project>(`/projects/share/to/${shareId}`);
-    // console.log(response.data);
+  async getSharedProject(shareId: string): Promise<{ code: number, message: string, data: any }> {
+    const response = await this.client.get<{ code: number, message: string, data: any }>(`/projects/share/to/${shareId}`);
     return response.data;
   }
 
   // 文件相关API
-  async createFile(projectId: string, data: CreateFileRequest): Promise<{ file: File }> {
-    const response = await this.client.post<{ file: File }>(`/projects/${projectId}/files`, data);
+  async createFile(projectId: string, data: CreateFileRequest): Promise<{ code: number, message: string, data: any }> { 
+    const response = await this.client.post<{ code: number, message: string, data: any }>(`/projects/${projectId}/files`, data);
     return response.data;
   }
 
-  async getFile(projectId: string, fileId: string): Promise<{ file: File }> {
-    const response = await this.client.get<{ file: File }>(`/projects/${projectId}/files/${fileId}`);
-    return response.data;
-  }
-  //模拟文件内容
-  async getFile_1(projectId: string, fileId: string): Promise<{ file: File }> {
-    const mockFile: File = {
-      id: fileId,
-      name: 'ExampleComponent.vue',
-      path: '/src/components',
-      content: '<template>\n  <div>Hello</div>\n</template>',
-      type: FileType.HTML,
-      projectId: projectId,
-      createdAt: '2023-10-01T10:00:00Z',
-      updatedAt: '2023-10-01T10:00:00Z',
-    };
-
-    return { file: mockFile };
-  }
-  async updateFile(projectId: string, fileId: string, data: UpdateFileRequest): Promise<{ file: File }> {
-    const response = await this.client.put<{ file: File }>(`/projects/${projectId}/files/${fileId}`, data);
+  async getFile(projectId: string, fileId: string): Promise<{ code: number, message: string, data: any }> {
+    const response = await this.client.get<{ code: number, message: string, data: any }>(`/projects/${projectId}/files/${fileId}`);
     return response.data;
   }
 
-  async deleteFile(projectId: string, fileId: string): Promise<{ success: boolean }> {
-    const response = await this.client.delete<{ success: boolean }>(`/projects/${projectId}/files/${fileId}`);
+  async updateFile(projectId: string, fileId: string, data: UpdateFileRequest): Promise<{ code: number, message: string, data: any }> {
+    const response = await this.client.put<{ code: number, message: string, data: any }>(`/projects/${projectId}/files/${fileId}`, data);
+    return response.data;
+  }
+
+  async deleteFile(projectId: string, fileId: string): Promise<{ code: number, message: string }> {
+    const response = await this.client.delete<{ code: number, message: string }>(`/projects/${projectId}/files/${fileId}`);
     return response.data;
   }
 }

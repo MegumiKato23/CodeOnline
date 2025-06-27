@@ -32,8 +32,9 @@ export class ShareService {
       console.log('分享ID:', shareId);
       console.log('正在加载分享项目...');
 
-      const projectData = await api.getSharedProject(shareId);
-      console.log('分享项目数据:', projectData.ownerId); // Log the project data for diagnostic purpose
+      const response = await api.getSharedProject(shareId);
+      const { project } = response.data;
+      console.log('分享项目数据:', project); // Log the project data for diagnostic purpose
 
       // 如果没有提供userId，从store获取
       if (!userId) {
@@ -44,8 +45,8 @@ export class ShareService {
       console.log('用户ID:', userId);
       // 确定权限
       const permissions: ProjectPermissions = {
-        isOwner: projectData.ownerId === userId,
-        accessType: projectData.ownerId === userId ? 'owner' : 'readonly',
+        isOwner: project.ownerId === userId,
+        accessType: project.ownerId === userId ? 'owner' : 'readonly',
       };
 
       console.log('权限检查结果:', permissions);
@@ -53,7 +54,7 @@ export class ShareService {
       return {
         success: true,
         permissions,
-        projectData,
+        projectData: project,
       };
     } catch (error) {
       console.error('Failed to load shared project:', error);

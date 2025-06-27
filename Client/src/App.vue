@@ -15,7 +15,6 @@
         ></iframe>
       </div>
     </div>
-<<<<<<< HEAD
     <div v-else class="main-content">
       <div class="preview-panel">
         <iframe ref="previewFrame" class="preview-frame" :class="{ 'no-pointer-events': isResizing }"></iframe>
@@ -26,13 +25,7 @@
       </div>
     </div>
     <Footer />
-=======
-<<<<<<< feature-share
     <Footer :isReadOnly="userStore.isReadOnlyMode" @login="showLoginDialog = true" />
-=======
-    <Footer :isReadOnly="userStore.isReadOnlyMode" />
->>>>>>> main
->>>>>>> c6380117eab95518a8e0c6840a44b89f919d8f52
     <SettingsDialog v-if="showSettings" @close="showSettings = false" />
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
@@ -56,10 +49,7 @@ import RegisterDialog from '@/components/login/RegisterDialog.vue';
 import head_portrait from './components/head_portrait.vue';
 import { api } from '@/api/index';
 import { Users } from 'lucide-vue-next';
-<<<<<<< feature-share
 import { ShareService } from '@/services/shareService';
-=======
->>>>>>> main
 
 const codeStore = useCodeStore();
 const userStore = useUserStore();
@@ -202,52 +192,12 @@ onMounted(() => {
 
 // 检查是否为分享链接访问
 const checkShareAccess = async () => {
-<<<<<<< feature-share
   const result = await ShareService.checkShareAccess();
 
   if (result.success) {
     ShareService.applyShareAccess(result);
   } else {
     console.log(result.error);
-=======
-  const url = window.location.pathname;
-  const shareMatch = url.match(/\/share\/(.+)/);
-
-  if (shareMatch) {
-    const shareId = shareMatch[1];
-    try {
-      console.log('正在加载分享项目...');
-      const projectData = await api.getSharedProject(shareId);
-
-      if (projectData.project.ownerId === userStore.userId) {
-        permissions.value = {
-          isOwner: true,
-          accessType: 'owner',
-        };
-      } else {
-        permissions.value = {
-          isOwner: false,
-          accessType: 'readonly',
-        };
-      }
-      // 设置权限
-      userStore.setPermissions(permissions.value);
-
-      // 加载项目数据到编辑器
-      codeStore.loadProjectFromShare(projectData);
-
-      // 如果是只读模式，显示提示
-      if (permissions.value.accessType === 'readonly') {
-        console.log(`您正在以只读模式访问项目: ${projectData.project.name || '未命名项目'}`);
-      }
-
-      console.log('分享项目加载完成');
-    } catch (error) {
-      console.error('Failed to load shared project:', error);
-      // 处理错误（如链接过期、不存在等）
-      console.log('分享项目加载失败，请检查链接是否有效');
-    }
->>>>>>> main
   }
 };
 
