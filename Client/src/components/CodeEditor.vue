@@ -19,13 +19,8 @@
 </template>
 
 <script setup lang="ts">
-<<<<<<< HEAD
-<<<<<<< HEAD
 import { ref, onMounted, watch, toRefs, onBeforeUnmount } from 'vue';
 import { debounce } from 'lodash-es'; // 导入防抖函数
-=======
-import { ref, onMounted, watch, toRefs, onBeforeUnmount } from 'vue';
->>>>>>> bfca8a1 (解决冲突)
 import { EditorState } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
@@ -35,47 +30,16 @@ import { javascript } from '@codemirror/lang-javascript';
 import { defaultKeymap, undo, redo, history } from '@codemirror/commands';
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
-<<<<<<< HEAD
 import { useCodeStore } from '@/stores/codeStore';
 import { useUserStore } from '@/stores/userStore';
 import HtmlIcon from './icons/HtmlIcon.vue';
 import CssIcon from './icons/CssIcon.vue';
 import JsIcon from './icons/JsIcon.vue';
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
-=======
-import { ref, onMounted, watch, toRefs, onBeforeUnmount } from "vue";
-import { EditorState } from "@codemirror/state";
-import { EditorView, keymap } from "@codemirror/view";
-import { oneDark } from "@codemirror/theme-one-dark";
-import { html } from "@codemirror/lang-html";
-import { css } from "@codemirror/lang-css";
-import { javascript } from "@codemirror/lang-javascript";
-import { defaultKeymap, undo, redo, history } from "@codemirror/commands";
-import { syntaxHighlighting, HighlightStyle } from "@codemirror/language";
-import { tags } from "@lezer/highlight";
-import { useEditorStore } from "@/stores/editor";
-import HtmlIcon from "./icons/HtmlIcon.vue";
-import CssIcon from "./icons/CssIcon.vue";
-import JsIcon from "./icons/JsIcon.vue";
->>>>>>> f5ef146 (合并冲突)
 
 const props = defineProps<{
   activeTab: 'html' | 'css' | 'js';
   isReadOnly?: boolean;
-=======
-import { useEditorStore } from '@/stores/editor';
-import HtmlIcon from './icons/HtmlIcon.vue';
-import CssIcon from './icons/CssIcon.vue';
-import JsIcon from './icons/JsIcon.vue';
-import UnifiedButton from '@/components/ui/UnifiedButton.vue';
-
-const props = defineProps<{
-  activeTab: 'html' | 'css' | 'js';
-<<<<<<< HEAD
->>>>>>> bfca8a1 (解决冲突)
-=======
-  isReadOnly?: boolean;
->>>>>>> f8bf5fe (权限控制功能实现)
 }>();
 
 const { activeTab, isReadOnly } = toRefs(props);
@@ -113,21 +77,9 @@ const baseExtensions = [
   oneDark,
   keymap.of([
     ...defaultKeymap,
-<<<<<<< HEAD
-<<<<<<< HEAD
     { key: 'Mod-z', run: undo, preventDefault: true },
     { key: 'Mod-y', run: redo, preventDefault: true },
     { key: 'Mod-Shift-z', run: redo, preventDefault: true },
-=======
-    { key: "Mod-z", run: undo, preventDefault: true },
-    { key: "Mod-y", run: redo, preventDefault: true },
-    { key: "Mod-Shift-z", run: redo, preventDefault: true },
->>>>>>> f5ef146 (合并冲突)
-=======
-    { key: 'Mod-z', run: undo, preventDefault: true },
-    { key: 'Mod-y', run: redo, preventDefault: true },
-    { key: 'Mod-Shift-z', run: redo, preventDefault: true },
->>>>>>> bfca8a1 (解决冲突)
   ]),
   syntaxHighlighting(myHighlightStyle),
   EditorView.theme({
@@ -161,7 +113,6 @@ const initializeEditor = () => {
   if (!editorElement.value) return;
 
   const currentCode =
-<<<<<<< HEAD
     activeTab.value === 'html' ? codeStore.htmlCode : activeTab.value === 'css' ? codeStore.cssCode : codeStore.jsCode;
 
   // 根据只读状态配置扩展
@@ -169,23 +120,9 @@ const initializeEditor = () => {
   if (isReadOnly?.value) {
     extensions.push(EditorState.readOnly.of(true));
   }
-<<<<<<< HEAD
-=======
-    activeTab.value === 'html'
-      ? editorStore.htmlCode
-      : activeTab.value === 'css'
-        ? editorStore.cssCode
-        : editorStore.jsCode;
->>>>>>> bfca8a1 (解决冲突)
 
   const state = EditorState.create({
     doc: currentCode,
-<<<<<<< HEAD
-=======
-
-  const state = EditorState.create({
-    doc: currentCode,
->>>>>>> f8bf5fe (权限控制功能实现)
     extensions,
   });
 
@@ -193,13 +130,6 @@ const initializeEditor = () => {
   if (editorView.value) {
     editorView.value.destroy();
   }
-<<<<<<< HEAD
-=======
-    extensions: [...baseExtensions, getLanguageExtension()],
-  });
->>>>>>> f5ef146 (合并冲突)
-=======
->>>>>>> f8bf5fe (权限控制功能实现)
 
   editorView.value = new EditorView({
     state,
@@ -220,11 +150,7 @@ const recreateEditor = () => {
 };
 
 const setActiveTab = (tab: 'html' | 'css' | 'js') => {
-<<<<<<< HEAD
   codeStore.setActiveTab(tab);
-=======
-  editorStore.setActiveTab(tab);
->>>>>>> bfca8a1 (解决冲突)
 };
 
 onMounted(() => {
@@ -235,9 +161,8 @@ onMounted(() => {
   }
 });
 
-// 添加对 activeTab 和 isReadOnly 的 watch
-watch([activeTab, isReadOnly], () => {
-  initializeEditor();
+watch(activeTab, () => {
+  recreateEditor();
 });
 
 // 分别监听各种代码类型的变化

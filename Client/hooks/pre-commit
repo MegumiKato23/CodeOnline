@@ -2,10 +2,7 @@
 # 打印开始信息
 echo "🚀 运行 pre-commit 检查..."
 npx prettier --write Client/src/
-<<<<<<< HEAD
 npx prettier --write Server/src/
-=======
->>>>>>> 94d64e7 (解决冲突)
 
 # 检查是否运行成功
 PRETTIER_EXIT_CODE=$?

@@ -26,23 +26,11 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
-<<<<<<< HEAD
 import { useUserStore } from '@/stores/userStore';
 import { api } from '@/api';
 import { Users } from 'lucide-vue-next';
-<<<<<<< HEAD
-<<<<<<< HEAD
 import { useCodeStore } from '@/stores/codeStore';
 import { ShareService } from '@/services/shareService';
-=======
-import { useEditorStore } from '@/stores/editor';
->>>>>>> bfca8a1 (解决冲突)
-=======
->>>>>>> f8bf5fe (权限控制功能实现)
-=======
-import { useCodeStore } from '@/stores/codeStore';
-import { ShareService } from '@/services/shareService';
->>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
 
 const props = defineProps<{
   visible: boolean;
@@ -50,16 +38,9 @@ const props = defineProps<{
 
 const emit = defineEmits(['close', 'register']);
 
-<<<<<<< HEAD
 const userStore = useUserStore();
 const codeStore = useCodeStore();
 
-<<<<<<< HEAD
-=======
-const editorStore = useEditorStore();
->>>>>>> bfca8a1 (解决冲突)
-=======
->>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
 const errorMessage = ref('');
 
 const loginForm = reactive({
@@ -86,7 +67,6 @@ const handleLogin = async () => {
     return;
   }
 
-<<<<<<< HEAD
   try {
     const response = await api.login({
       account: loginForm.account,
@@ -104,8 +84,6 @@ const handleLogin = async () => {
 
     api.getUserProjects().then(async (res) => {
       if (res['projects'].length == 0) {
-<<<<<<< HEAD
-<<<<<<< HEAD
         const { data } = await api.createProject({ name: 'New Project' });
         const projectData = data.project; // Assuming the first project is the new one created by the registratio
         console.log(projectData);
@@ -146,53 +124,6 @@ const handleLogin = async () => {
     if (shareResult.success) {
       ShareService.applyShareAccess(shareResult);
     }
-=======
-        const projectData = await api.createProject({ name: 'New Project' });
-=======
-        const { project: projectData } = await api.createProject({ name: 'New Project' });
->>>>>>> d44a4d8 (删除userId的存储，补充登录后渲染代码功能)
-        console.log(projectData);
-        await codeStore.initProjectFiles(projectData.id);
-        userStore.currentProjectId = projectData.id;
-      } else {
-        userStore.currentProjectId = res['projects'][0]['id'];
-        try {
-          const projectRes = await api.getProject(userStore.currentProjectId);
-          // console.log(projectRes);
-          const files = projectRes['files'];
-
-          // 创建文件类型映射
-          const typeMapping = {
-            HTML: 'html',
-            CSS: 'css',
-            JS: 'js',
-          };
-
-          // 处理每个文件
-          files.forEach((file) => {
-            const mappedType = typeMapping[file.type];
-            if (mappedType) {
-              codeStore.updateCode(mappedType, file.content);
-            }
-          });
-
-          console.log('项目文件加载完成');
-        } catch (error) {
-          console.error('加载项目文件失败:', error);
-        }
-      }
-    });
-
-<<<<<<< HEAD
->>>>>>> f8bf5fe (权限控制功能实现)
-=======
-    // 登录成功后，重新检查分享权限
-    const shareResult = await ShareService.checkShareAccess();
-    if (shareResult.success) {
-      ShareService.applyShareAccess(shareResult);
-    }
-
->>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
     // 关闭登录框
     resetForm();
     close();
@@ -200,29 +131,16 @@ const handleLogin = async () => {
     resetForm();
     errorMessage.value = error.response?.data?.message || '登录失败';
   }
-=======
-  // TODO: 调用登录接口
-  console.log('登录信息:', loginForm);
-
-  // 更新账号
-  editorStore.setAccount(loginForm.account);
-
-  // 关闭登录框
-  close();
->>>>>>> bfca8a1 (解决冲突)
 };
 
 const switchToRegister = () => {
   emit('register');
 };
-<<<<<<< HEAD
 
 const resetForm = () => {
   loginForm.password = '';
   errorMessage.value = '';
 };
-=======
->>>>>>> bfca8a1 (解决冲突)
 </script>
 
 <style scoped>

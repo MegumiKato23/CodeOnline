@@ -7,24 +7,10 @@
 </template>
 
 <script lang="ts">
-<<<<<<< HEAD
-<<<<<<< HEAD
 import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'CodePenLogo',
-=======
-import { defineComponent } from "vue";
-
-export default defineComponent({
-  name: "CodePenLogo",
->>>>>>> c15aef1 (封装按钮组件，删除不必要按钮)
-=======
-import { defineComponent } from 'vue';
-
-export default defineComponent({
-  name: 'CodePenLogo',
->>>>>>> bfca8a1 (解决冲突)
   inheritAttrs: false,
 });
 </script>

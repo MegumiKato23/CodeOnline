@@ -29,15 +29,7 @@ const logout = async () => {
     if (response.code === 200) {
       userStore.logout();
       // 退出登录后,检查权限
-<<<<<<< HEAD
-<<<<<<< HEAD
       const shareResult = await ShareService.checkShareAccess();
-=======
-      const shareResult = await ShareService.checkShareAccess({ userId: userStore.userId });
->>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
-=======
-      const shareResult = await ShareService.checkShareAccess();
->>>>>>> d44a4d8 (删除userId的存储，补充登录后渲染代码功能)
       if (shareResult.success) {
         ShareService.applyShareAccess(shareResult);
       }
@@ -53,22 +45,10 @@ const logout = async () => {
   /* background-color:red; */
   width: 40px;
   height: 40px;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 27977ac (调整登录后头像框样式)
   position: relative;
   /* top: 80px;
   margin: 0; */
   left: 2px;
-<<<<<<< HEAD
-=======
-  position: absolute;
-  top: 80px;
-  margin: 0;
->>>>>>> e4835d5 (完善权限控制功能)
-=======
->>>>>>> 27977ac (调整登录后头像框样式)
   right: 20px;
 }
 .img {
@@ -88,14 +68,7 @@ const logout = async () => {
   position: absolute;
   top: 40px;
   left: 0px;
-<<<<<<< HEAD
-<<<<<<< HEAD
   z-index: 999;
-=======
->>>>>>> e4835d5 (完善权限控制功能)
-=======
-  z-index: 999;
->>>>>>> 27977ac (调整登录后头像框样式)
 }
 #box:hover .droplist {
   display: block;

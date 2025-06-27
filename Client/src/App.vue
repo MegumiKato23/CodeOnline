@@ -7,81 +7,39 @@
       </div>
       <div class="resize-handle" @mousedown="startResize" @dblclick="resetSize"></div>
       <div class="preview-panel">
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> f8bf5fe (权限控制功能实现)
         <iframe
           sandbox="allow-scripts  allow-same-origin"
           ref="previewFrame"
           class="preview-frame"
           :class="{ 'no-pointer-events': isResizing }"
         ></iframe>
-<<<<<<< HEAD
-=======
-        <iframe ref="previewFrame" class="preview-frame" :class="{ 'no-pointer-events': isResizing }"></iframe>
->>>>>>> bfca8a1 (解决冲突)
       </div>
     </div>
     <Footer :isReadOnly="userStore.isReadOnlyMode" @login="showLoginDialog = true" />
-=======
-      </div>
-    </div>
-<<<<<<< HEAD
-    <Footer :isReadOnly="userStore.isReadOnlyMode" />
->>>>>>> f8bf5fe (权限控制功能实现)
-=======
-    <Footer :isReadOnly="userStore.isReadOnlyMode" @login="showLoginDialog = true" />
->>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
     <SettingsDialog v-if="showSettings" @close="showSettings = false" />
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
-<<<<<<< HEAD
-<<<<<<< HEAD
     <!-- <head_portrait @login="showLoginDialog = true" /> -->
-=======
->>>>>>> bfca8a1 (解决冲突)
-=======
-    <!-- <head_portrait @login="showLoginDialog = true" /> -->
->>>>>>> 27977ac (调整登录后头像框样式)
   </div>
 </template>
 
 <script setup lang="ts">
-<<<<<<< HEAD
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { storeToRefs } from 'pinia';
 import { debounce } from 'lodash-es'; // 导入防抖函数
 import { useCodeStore } from '@/stores/codeStore';
 import { useUserStore } from '@/stores/userStore';
 import type { ProjectPermissions } from '@/stores/userStore';
-<<<<<<< HEAD
-=======
-import { ref, watch, onMounted } from 'vue';
-import { storeToRefs } from 'pinia';
-import { useEditorStore } from '@/stores/editor';
->>>>>>> bfca8a1 (解决冲突)
-=======
->>>>>>> f8bf5fe (权限控制功能实现)
 import Navbar from '@/components/Navbar.vue';
 import CodeEditor from '@/components/CodeEditor.vue';
 import Footer from '@/components/Footer.vue';
 import SettingsDialog from '@/components/icons/SettingsIcon.vue';
 import LoginDialog from '@/components/login/LoginDialog.vue';
 import RegisterDialog from '@/components/login/RegisterDialog.vue';
-<<<<<<< HEAD
 import head_portrait from './components/head_portrait.vue';
-<<<<<<< HEAD
 import { api } from '@/api/index';
 import { Users } from 'lucide-vue-next';
 import { ShareService } from '@/services/shareService';
-<<<<<<< HEAD
-=======
-import api from '@/api/index';
-import { Users } from 'lucide-vue-next';
->>>>>>> f8bf5fe (权限控制功能实现)
-=======
->>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
 
 const codeStore = useCodeStore();
 const userStore = useUserStore();
@@ -90,11 +48,6 @@ const userStore = useUserStore();
 const permissions = ref<ProjectPermissions | null>(null);
 
 const { htmlCode, cssCode, jsCode, activeTab } = storeToRefs(codeStore);
-=======
-
-const editorStore = useEditorStore();
-const { htmlCode, cssCode, jsCode, activeTab } = storeToRefs(editorStore);
->>>>>>> bfca8a1 (解决冲突)
 const previewFrame = ref<HTMLIFrameElement | null>(null);
 const showSettings = ref(false);
 const showLoginDialog = ref(false);
@@ -105,7 +58,6 @@ const startX = ref(0);
 // 存储编辑器面板的初始宽度
 const startWidth = ref(0);
 const editorPanel = ref<HTMLElement | null>(null);
-<<<<<<< HEAD
 // 创建防抖的预览更新函数 (500ms)
 const debouncedUpdatePreview = debounce(() => {
   if (!previewFrame.value) return;
@@ -116,30 +68,6 @@ const debouncedUpdatePreview = debounce(() => {
   // 设置sandbox属性
   previewFrame.value.setAttribute('sandbox', 'allow-scripts  allow-same-origin');
 
-<<<<<<< HEAD
-=======
-
-// 切换到注册界面
-const switchToRegister = () => {
-  showLoginDialog.value = false;
-  showRegisterDialog.value = true;
-};
-
-// 切换到登录界面
-const switchToLogin = () => {
-  showRegisterDialog.value = false;
-  showLoginDialog.value = true;
-};
-
-const updatePreview = () => {
-  if (!previewFrame.value) return;
-  // <iframe>内部的文档对象
-  const doc = previewFrame.value.contentDocument;
-  if (!doc) return;
-
->>>>>>> bfca8a1 (解决冲突)
-=======
->>>>>>> f8bf5fe (权限控制功能实现)
   doc.open();
   doc.write(`
     <!DOCTYPE html>
@@ -165,7 +93,6 @@ const updatePreview = () => {
     </html>
   `);
   doc.close();
-<<<<<<< HEAD
 }, 500); // 500ms防抖延迟
 // 切换到注册界面
 const switchToRegister = () => {
@@ -179,9 +106,6 @@ const switchToLogin = () => {
   showLoginDialog.value = true;
 };
 
-=======
-};
->>>>>>> bfca8a1 (解决冲突)
 // 在鼠标按下时触发
 const startResize = (e: MouseEvent) => {
   // 阻止默认事件，避免选中文本
@@ -233,16 +157,10 @@ const resetSize = () => {
   }
 };
 
-<<<<<<< HEAD
 // 使用防抖的watch监听
 watch([htmlCode, cssCode, jsCode], debouncedUpdatePreview, { deep: true });
 onMounted(() => {
   debouncedUpdatePreview(); // 初始加载时调用防抖版本
-=======
-watch([htmlCode, cssCode, jsCode], updatePreview, { deep: true });
-onMounted(() => {
-  updatePreview();
->>>>>>> bfca8a1 (解决冲突)
 
   // 仅在调整大小时禁用 iframe 事件
   const iframe = document.querySelector('.preview-frame') as HTMLIFrameElement;
@@ -251,79 +169,24 @@ onMounted(() => {
       document.body.style.cursor = 'col-resize';
     }
   });
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> f8bf5fe (权限控制功能实现)
   checkShareAccess();
   debouncedUpdatePreview();
 });
 
 // 检查是否为分享链接访问
 const checkShareAccess = async () => {
-<<<<<<< HEAD
-<<<<<<< HEAD
   const result = await ShareService.checkShareAccess();
 
   if (result.success) {
     ShareService.applyShareAccess(result);
   } else {
     console.log(result.error);
-=======
-  const url = window.location.pathname;
-  const shareMatch = url.match(/\/share\/(.+)/);
-
-  if (shareMatch) {
-    const shareId = shareMatch[1];
-    try {
-      console.log('正在加载分享项目...');
-      const projectData = await api.getSharedProject(shareId);
-
-      if (projectData.project.ownerId === userStore.userId) {
-        permissions.value = {
-          isOwner: true,
-          accessType: 'owner',
-        };
-      } else {
-        permissions.value = {
-          isOwner: false,
-          accessType: 'readonly',
-        };
-      }
-      // 设置权限
-      userStore.setPermissions(permissions.value);
-
-      // 加载项目数据到编辑器
-      codeStore.loadProjectFromShare(projectData);
-
-      // 如果是只读模式，显示提示
-      if (permissions.value.accessType === 'readonly') {
-        console.log(`您正在以只读模式访问项目: ${projectData.project.name || '未命名项目'}`);
-      }
-
-      console.log('分享项目加载完成');
-    } catch (error) {
-      console.error('Failed to load shared project:', error);
-      // 处理错误（如链接过期、不存在等）
-      console.log('分享项目加载失败，请检查链接是否有效');
-    }
->>>>>>> f8bf5fe (权限控制功能实现)
-=======
-  const result = await ShareService.checkShareAccess();
-
-  if (result.success) {
-    ShareService.applyShareAccess(result);
-  } else {
-    console.log(result.error);
->>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
   }
 };
 
 // 组件卸载时取消防抖
 onBeforeUnmount(() => {
   debouncedUpdatePreview.cancel();
-=======
->>>>>>> bfca8a1 (解决冲突)
 });
 </script>
 

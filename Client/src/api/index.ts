@@ -127,12 +127,7 @@ class ApiClient {
               await this.refreshToken();
             } catch (refreshError) {
               // 刷新token失败，清除本地存储的用户信息
-<<<<<<< HEAD
 
-=======
-              // 重定向到登录页面等
-              window.location.href = '/login';
->>>>>>> f8bf5fe (权限控制功能实现)
               return Promise.reject(refreshError);
             }
           }
@@ -191,18 +186,8 @@ class ApiClient {
   }
 
   // 项目相关API
-<<<<<<< HEAD
-<<<<<<< HEAD
   async createProject(data: CreateProjectRequest): Promise<{ code: number; message: string; data: any }> {
     const response = await this.client.post<{ code: number; message: string; data: any }>('/projects', data);
-=======
-  async createProject(data: CreateProjectRequest): Promise<Project> {
-    const response = await this.client.post<Project>('/projects', data);
->>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
-=======
-  async createProject(data: CreateProjectRequest): Promise<{ project: Project }> {
-    const response = await this.client.post<{ project: Project }>('/projects', data);
->>>>>>> d44a4d8 (删除userId的存储，补充登录后渲染代码功能)
     return response.data;
   }
 
@@ -227,7 +212,6 @@ class ApiClient {
     return response.data;
   }
 
-<<<<<<< HEAD
   async getShareLink(
     projectId: string
   ): Promise<{ code: number; message: string; data: { shareId: string; expiresAt: Date } }> {
@@ -236,38 +220,13 @@ class ApiClient {
       message: string;
       data: { shareId: string; expiresAt: Date };
     }>(`/projects/share/${projectId}`);
-=======
-  async getShareLink(projectId: string): Promise<{ shareId: string; expiresAt: Date }> {
-    const response = await this.client.get<{ shareId: string; expiresAt: Date }>(`/projects/share/${projectId}`);
->>>>>>> f8bf5fe (权限控制功能实现)
     return response.data;
   }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
   async getSharedProject(shareId: string): Promise<{ code: number; message: string; data: any }> {
     const response = await this.client.get<{ code: number; message: string; data: any }>(
       `/projects/share/to/${shareId}`
     );
-=======
-  async getSharedProject(shareId: string): Promise<{ project: Project }> {
-    // console.log(shareId);
-    const response = await this.client.get<{ project: Project }>(`/projects/share/to/${shareId}`);
-    console.log(response.data);
->>>>>>> f1dc8bf9c5481737b6f49abe5c9943a378ad18f2
-=======
-  async getSharedProject(shareId: string): Promise<Project> {
-    // console.log(shareId);
-    const response = await this.client.get<Project>(`/projects/share/to/${shareId}`);
-    // console.log(response.data);
->>>>>>> cfd1879 (分享功能bug修复:无法正常访问)
-=======
-  async getSharedProject(shareId: string): Promise<{ project: Project }> {
-    // console.log(shareId);
-    const response = await this.client.get<{ project: Project }>(`/projects/share/to/${shareId}`);
-    console.log(response.data);
->>>>>>> d44a4d8 (删除userId的存储，补充登录后渲染代码功能)
     return response.data;
   }
 
@@ -309,10 +268,6 @@ class ApiClient {
 
 export const api = new ApiClient();
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> e68ac7c (合并冲突)
 // export default api;
 export interface FileContent {
   id: string;
@@ -343,9 +298,3 @@ export default {
 
   getCode: (userId: string) => axios.get<CodeData>(`http://localhost:3001/api/code/${userId}`),
 };
-<<<<<<< HEAD
-=======
-export default api;
->>>>>>> f8bf5fe (权限控制功能实现)
-=======
->>>>>>> e68ac7c (合并冲突)
