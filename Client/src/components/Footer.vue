@@ -73,7 +73,6 @@ const consoleOutput = ref<HTMLElement | null>(null);
 // 添加复制提示状态
 const showCopyToast = ref(false);
 
-
 const emit = defineEmits(['login']);
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
@@ -115,7 +114,7 @@ const getProjectShareLink = async () => {
     // }
 
     const response = await api.getShareLink(userStore.currentProjectId);
-    const { data } = response
+    const { data } = response;
     // 生成完整的分享链接
     console.log(window.location.origin);
     shareLink.value = `${window.location.origin}/share/${data.shareId}`;
