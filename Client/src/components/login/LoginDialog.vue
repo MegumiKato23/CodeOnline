@@ -69,10 +69,12 @@ const handleLogin = async () => {
   }
 
   try {
-    const { user } = await api.login({
+    const response = await api.login({
       account: loginForm.account,
       password: loginForm.password,
     });
+
+    const { user } = response.data
 
     // 更新用户信息
     userStore.setUsername(user.username);
@@ -83,14 +85,15 @@ const handleLogin = async () => {
     userStore.login();
 
     api.getUserProjects().then(async (res) => {
-      if (res['projects'].length == 0) {
-        const projectData = await api.createProject({ name: 'New Project' });
+      const { projects } = res.data;
+      if (projects.length == 0) {
+        const response = await api.createProject({ name: 'New Project' });
 
-        console.log(projectData);
-        await codeStore.initProjectFiles(projectData.id);
-        userStore.currentProjectId = projectData.id;
+        const { project } = response.data;
+        await codeStore.initProjectFiles(project.id);
+        userStore.currentProjectId = project.id;
       } else {
-        userStore.currentProjectId = res['projects'][0]['id'];
+        userStore.currentProjectId = projects[0]['id'];
       }
     });
 
@@ -100,8 +103,10 @@ const handleLogin = async () => {
       ShareService.applyShareAccess(shareResult);
     }
     // 关闭登录框
+    resetForm();
     close();
   } catch (error) {
+    resetForm();
     errorMessage.value = error.response?.data?.message || '登录失败';
   }
 };
@@ -109,6 +114,12 @@ const handleLogin = async () => {
 const switchToRegister = () => {
   emit('register');
 };
+
+const resetForm = () => {
+  loginForm.password = '';
+  errorMessage.value = '';
+}
+
 </script>
 
 <style scoped>

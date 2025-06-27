@@ -27,7 +27,17 @@
 - **响应**:
 ```json
 {
-  "success": "boolean, 是否成功"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "user": {
+      "id": "string, 用户ID",
+      "username": "string, 用户名",
+      "account": "string, 账户",
+      "avatar": "string, 头像URL",
+      "status": "string, 状态栏"
+    }
+  }
 }
 ```
 
@@ -44,12 +54,16 @@
 - **响应**:
 ```json
 {
-  "user": {
-    "id": "string, 用户ID",
-    "username": "string, 用户名",
-    "account": "string, 账户",
-    "avatar": "string, 头像URL",
-    "status": "string, 状态栏"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "user": {
+      "id": "string, 用户ID",
+      "username": "string, 用户名",
+      "account": "string, 账户",
+      "avatar": "string, 头像URL",
+      "status": "string, 状态栏"
+    }
   }
 }
 ```
@@ -73,26 +87,19 @@
 - **响应**: 返回用户信息
 ```json
 {
-  "user": {
-    "id": "string, 用户ID",
-    "username": "string, 用户名",
-    "account": "string, 账户",
-    "avatar": "string, 头像URL",
-    "status": "string, 状态栏"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "user": {
+      "id": "string, 用户ID",
+      "username": "string, 用户名",
+      "account": "string, 账户",
+      "avatar": "string, 头像URL",
+      "status": "string, 状态栏"
+    }
   }
 }
 ```
-- **响应**: 返回用户信息
-```json
-{
-  "user": {
-    "id": "string, 用户ID",
-    "username": "string, 用户名",
-    "account": "string, 账户",
-    "avatar": "string, 头像URL",
-    "status": "string, 状态栏"
-  }
-}
 
 #### 1.4 获取用户资料
 - **方法**: GET
@@ -101,14 +108,18 @@
 - **响应**: 返回用户信息
 ```json
 {
-  "user": {
-    "id": "string, 用户ID",
-    "username": "string, 用户名",
-    "account": "string, 账户",
-    "avatar": "string, 头像URL",
-    "status": "string, 状态栏",
-    "createdAt": "Date, 创建时间",
-    "lastLogin": "Date, 上次登录时间"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "user": {
+      "id": "string, 用户ID",
+      "username": "string, 用户名",
+      "account": "string, 账户",
+      "avatar": "string, 头像URL",
+      "status": "string, 状态栏",
+      "createdAt": "Date, 创建时间",
+      "lastLogin": "Date, 上次登录时间"
+    }
   }
 }
 ```
@@ -120,14 +131,18 @@
 - **响应**: 返回用户项目集
 ```json
 {
-  "projects": [
-    {
-      "id": "string, 项目ID",
-      "name": "string, 项目名",
-      "createdAt": "Date, 创建时间",
-      "updatedAt": "Date, 更新时间"
-    }
-  ]
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "projects": [
+      {
+        "id": "string, 项目ID",
+        "name": "string, 项目名",
+        "createdAt": "Date, 创建时间",
+        "updatedAt": "Date, 更新时间"
+      }
+    ]
+  }
 }
 ```
 
@@ -137,7 +152,8 @@
 - **响应**:
 ```json
 {
-  "success": true
+  "code": "number, 状态码",
+  "message": "string, 状态描述"
 }
 ```
 
@@ -156,11 +172,17 @@
 - **响应**:
 ```json
 {
-  "id": "string, 项目ID",
-  "ownerId": "string, 所属者ID",
-  "name": "string, 项目名",
-  "createdAt": "Date, 创建时间", 
-  "updatedAt": "Date, 更新时间"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "project": {
+      "id": "string, 项目ID",
+      "ownerId": "string, 所属者ID",
+      "name": "string, 项目名",
+      "createdAt": "Date, 创建时间", 
+      "updatedAt": "Date, 更新时间"
+    }
+  }
 }
 ``` 
 
@@ -171,11 +193,17 @@
 - **响应**:
 ```json
 {
-  "id": "string, 项目ID",
-  "name": "string, 项目名",
-  "files": "File[], 文件数组",
-  "createdAt": "Date, 创建时间", 
-  "updatedAt": "Date, 更新时间"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "project": {
+      "id": "string, 项目ID",
+      "name": "string, 项目名",
+      "files": "File[], 文件数组",
+      "createdAt": "Date, 创建时间", 
+      "updatedAt": "Date, 更新时间"
+    }
+  }
 }
 ```
 
@@ -192,10 +220,16 @@
 - **响应**:
 ```json
 {
-  "id": "string, 项目ID",
-  "name": "string, 项目名",
-  "createdAt": "Date, 创建时间", 
-  "updatedAt": "Date, 更新时间"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "project": {
+      "id": "string, 项目ID",
+      "name": "string, 项目名",
+      "createdAt": "Date, 创建时间", 
+      "updatedAt": "Date, 更新时间"
+    }
+  }
 }
 ``` 
 
@@ -206,7 +240,8 @@
 - **响应**:
 ```json
 {
-  "success": true
+  "code": "number, 状态码",
+  "message": "string, 状态描述"
 }
 ```
 
@@ -217,8 +252,12 @@
 - **响应**:
 ```json
 {
-  "shareId": "string, 分享id",
-  "expiresAt": "Date, 到期时间"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "shareId": "string, 分享id",
+    "expiresAt": "Date, 到期时间"
+  }
 }
 ```
 
@@ -229,12 +268,18 @@
 - **响应**:
 ```json
 {
-  "id": "string, 项目ID",
-  "name": "string, 项目名",
-  "files": "File[], 文件数组",
-  "ownerId": "string, 所属者ID",
-  "createdAt": "Date, 创建时间", 
-  "updatedAt": "Date, 更新时间"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "project": {
+      "id": "string, 项目ID",
+      "name": "string, 项目名",
+      "files": "File[], 文件数组",
+      "ownerId": "string, 所属者ID",
+      "createdAt": "Date, 创建时间", 
+      "updatedAt": "Date, 更新时间"
+    }
+  }
 }
 ```
 
@@ -256,14 +301,20 @@
 - **响应**:
 ```json
 {
-  "id": "string, 文件id",
-  "name": "string, 文件名",
-  "path": "string, 文件路径",
-  "content": "string, 文件内容",
-  "type": "string, 文件类型(HTML|CSS|JS|JSX|TS|VUE|SCSS|LESS)",
-  "projectId": "string, 所属项目ID",
-  "createdAt": "Date, 创建时间", 
-  "updatedAt": "Date, 更新时间"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "file": {
+      "id": "string, 文件id",
+      "name": "string, 文件名",
+      "path": "string, 文件路径",
+      "content": "string, 文件内容",
+      "type": "string, 文件类型(HTML|CSS|JS|JSX|TS|VUE|SCSS|LESS)",
+      "projectId": "string, 所属项目ID",
+      "createdAt": "Date, 创建时间", 
+      "updatedAt": "Date, 更新时间"
+    }
+  }
 }
 ```
 
@@ -283,14 +334,20 @@
 - **响应**:
 ```json
 {
-  "id": "string, 文件id",
-  "name": "string, 文件名",
-  "path": "string, 文件路径",
-  "content": "string, 文件内容",
-  "type": "string, 文件类型(HTML|CSS|JS|JSX|TS|VUE|SCSS|LESS)",
-  "projectId": "string, 所属项目ID",
-  "createdAt": "Date, 创建时间", 
-  "updatedAt": "Date, 更新时间"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "file": {
+      "id": "string, 文件id",
+      "name": "string, 文件名",
+      "path": "string, 文件路径",
+      "content": "string, 文件内容",
+      "type": "string, 文件类型(HTML|CSS|JS|JSX|TS|VUE|SCSS|LESS)",
+      "projectId": "string, 所属项目ID",
+      "createdAt": "Date, 创建时间", 
+      "updatedAt": "Date, 更新时间"
+    }
+  }
 }
 ```
 
@@ -301,7 +358,8 @@
 - **响应**:
 ```json
 {
-  "success": true
+  "code": "number, 状态码",
+  "message": "string, 状态描述"
 }
 ```
 
@@ -312,14 +370,20 @@
 - **响应**:
 ```json
 {
-  "id": "string, 文件id",
-  "name": "string, 文件名",
-  "path": "string, 文件路径",
-  "content": "string, 文件内容",
-  "type": "string, 文件类型(HTML|CSS|JS|JSX|TS|VUE|SCSS|LESS)",
-  "projectId": "string, 所属项目ID",
-  "createdAt": "Date, 创建时间", 
-  "updatedAt": "Date, 更新时间"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "file": {
+      "id": "string, 文件id",
+      "name": "string, 文件名",
+      "path": "string, 文件路径",
+      "content": "string, 文件内容",
+      "type": "string, 文件类型(HTML|CSS|JS|JSX|TS|VUE|SCSS|LESS)",
+      "projectId": "string, 所属项目ID",
+      "createdAt": "Date, 创建时间", 
+      "updatedAt": "Date, 更新时间"
+    }
+  }
 }
 ```
 
