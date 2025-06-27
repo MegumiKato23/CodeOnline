@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { api, CreateFileRequest, FileType } from '@/api';
-import codeApi from '@/api';
+// import codeApi from '@/api';
 
 export const useCodeStore = defineStore('code', () => {
   const htmlCode = ref('<h1>Hello World</h1>');
@@ -19,13 +19,30 @@ export const useCodeStore = defineStore('code', () => {
 
   const saveCode = async (userId: string) => {
     try {
-      await codeApi.saveCode({
+      await api.saveCode({
         userId,
-        html: htmlCode.value,
-        css: cssCode.value,
-        js: jsCode.value,
+        files: [
+          {
+            name: 'index.html',
+            path: 'New project/',
+            content: htmlCode.value, // 确保使用最新值
+            type: FileType.HTML,
+          },
+          {
+            name: 'styles.css',
+            path: 'New project/',
+            content: cssCode.value, // 确保使用最新值
+            type: FileType.CSS,
+          },
+          {
+            name: 'script.js',
+            path: 'New project/',
+            content: jsCode.value, // 确保使用最新值
+            type: FileType.JS,
+          },
+        ],
       });
-      console.log('代码已保存到Redis');
+      saved.value = true;
     } catch (error) {
       console.error('保存失败:', error);
     }
