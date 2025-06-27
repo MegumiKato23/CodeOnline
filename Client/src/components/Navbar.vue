@@ -61,10 +61,6 @@ const { username, userid, account, avatar, isLoggedIn, status } = storeToRefs(us
 const { saved } = storeToRefs(codeStore);
 
 const toggleView = () => {
-  if (!userStore.isLoggedIn) {
-    console.log('请先登录再切换视图');
-    return;
-  }
   userStore.toggleView();
 };
 const saveCode = () => {

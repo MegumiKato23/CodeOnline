@@ -9,7 +9,7 @@ const createFile = async (req, res) => {
       return res.status(400).json({
         code: 400,
         message: 'Validation failed',
-        errors: errors.array()
+        errors: errors.array(),
       });
     }
 
@@ -68,8 +68,8 @@ const createFile = async (req, res) => {
           projectId: projectId,
           createdAt: file.createdAt.toISOString(),
           updatedAt: file.updatedAt.toISOString(),
-        }
-      }
+        },
+      },
     });
   } catch (error) {
     console.error('Create file error:', error);
@@ -89,7 +89,7 @@ const updateFile = async (req, res) => {
       return res.status(400).json({
         code: 400,
         message: 'Validation failed',
-        errors: errors.array()
+        errors: errors.array(),
       });
     }
 
@@ -154,8 +154,8 @@ const updateFile = async (req, res) => {
           projectId: projectId,
           createdAt: updatedFile.createdAt.toISOString(),
           updatedAt: updatedFile.updatedAt.toISOString(),
-        }
-      }
+        },
+      },
     });
   } catch (error) {
     console.error('Update file error:', error);
@@ -270,8 +270,8 @@ const getFile = async (req, res) => {
           projectId: projectId,
           createdAt: file.createdAt.toISOString(),
           updatedAt: file.updatedAt.toISOString(),
-        }
-      }
+        },
+      },
     });
   } catch (error) {
     console.error('Get file error:', error);

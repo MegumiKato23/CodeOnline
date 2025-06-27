@@ -12,7 +12,7 @@ const register = async (req, res) => {
       return res.status(400).json({
         code: 400,
         message: 'Validation failed',
-        errors: errors.array()
+        errors: errors.array(),
       });
     }
 
@@ -74,7 +74,7 @@ const login = async (req, res) => {
       return res.status(400).json({
         code: 400,
         message: 'Validation failed',
-        errors: errors.array()
+        errors: errors.array(),
       });
     }
 
@@ -152,9 +152,9 @@ const login = async (req, res) => {
           account: user.account,
           avatar: user.avatar || null,
           status: user.status,
-        }
-      }
-    })
+        },
+      },
+    });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({
@@ -178,7 +178,7 @@ const logout = async (req, res) => {
     res.json({
       code: 200,
       message: 'success',
-    })
+    });
   } catch (error) {
     console.error('Logout error:', error);
     res.status(500).json({
@@ -219,9 +219,9 @@ const updateProfile = async (req, res) => {
           account: updatedUser.account,
           avatar: updatedUser.avatar,
           status: updatedUser.status,
-        }
-      }
-    })
+        },
+      },
+    });
   } catch (error) {
     console.error('Update profile error:', error);
     res.status(500).json({
@@ -270,9 +270,9 @@ const getProfile = async (req, res) => {
           status: user.status,
           createdAt: user.createdAt,
           lastLogin: user.lastLogin,
-        }
-      }
-    })
+        },
+      },
+    });
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({
@@ -319,8 +319,8 @@ const getUserProjects = async (req, res) => {
           createdAt: project.createdAt.toISOString(),
           updatedAt: project.updatedAt.toISOString(),
         })),
-      }
-    })
+      },
+    });
   } catch (error) {
     console.error('Get user projects error:', error);
     res.status(500).json({
@@ -364,7 +364,7 @@ const refreshToken = async (req, res) => {
     res.status(200).json({
       code: 200,
       message: 'success',
-    })
+    });
   } catch (error) {
     console.error('Refresh token error:', error);
     res.status(500).json({
