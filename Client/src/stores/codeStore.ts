@@ -47,25 +47,6 @@ export const useCodeStore = defineStore('code', () => {
       console.error('保存失败:', error);
     }
   };
-
-  const loadCode = async (userId: string) => {
-    try {
-      const response = await api.getCode(userId);
-      if (response.data && response.data.files) {
-        response.data.files.forEach((file: any) => {
-          if (file.name === 'index.html') {
-            htmlCode.value = file.content;
-          } else if (file.name === 'style.css') {
-            cssCode.value = file.content;
-          } else if (file.name === 'script.js') {
-            jsCode.value = file.content;
-          }
-        });
-      }
-    } catch (error) {
-      console.error('加载失败:', error);
-    }
-  };
   const setActiveTab = (tab: 'html' | 'css' | 'js') => {
     activeTab.value = tab;
   };
@@ -165,7 +146,6 @@ export const useCodeStore = defineStore('code', () => {
     saveCode,
     setActiveTab,
     initProjectFiles,
-    loadCode,
     loadProjectFromShare,
   };
 });

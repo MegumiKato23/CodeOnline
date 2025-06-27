@@ -16,9 +16,14 @@ export class ShareService {
    * @param shareId 分享ID，如果不提供则从当前URL解析
    * @param userId 用户ID，如果不提供则从userStore获取
    */
-  static async checkShareAccess(options?: { shareId?: string; userId?: string }): Promise<ShareAccessResult> {
+
+  static async checkShareAccess(options?: { shareId?: string }): Promise<ShareAccessResult> {
     try {
-      let { shareId, userId } = options || {};
+      const { data: userProfileData } = await api.getUserProfile();
+      const { id: userId } = userProfileData.user;
+      console.log('用户ID:', userId); // Log the user ID for diagnostic purpose
+      let { shareId } = options || {};
+
       // 如果没有提供shareId，从URL解析
       if (!shareId) {
         const url = window.location.pathname;
@@ -32,21 +37,16 @@ export class ShareService {
       console.log('分享ID:', shareId);
       console.log('正在加载分享项目...');
 
-      const response = await api.getSharedProject(shareId);
-      const { project } = response.data;
-      console.log('分享项目数据:', project); // Log the project data for diagnostic purpose
-
-      // 如果没有提供userId，从store获取
-      if (!userId) {
-        const userStore = useUserStore();
-        userId = userStore.userId;
-      }
+      const { data: sharedProjectData } = await api.getSharedProject(shareId);
+      const projectData = sharedProjectData.project;
+      console.log(await api.getSharedProject(shareId));
+      console.log('分享项目数据:', projectData.ownerId); // Log the project data for diagnostic purpose
 
       console.log('用户ID:', userId);
       // 确定权限
       const permissions: ProjectPermissions = {
-        isOwner: project.ownerId === userId,
-        accessType: project.ownerId === userId ? 'owner' : 'readonly',
+        isOwner: projectData.ownerId === userId,
+        accessType: projectData.ownerId === userId ? 'owner' : 'readonly',
       };
 
       console.log('权限检查结果:', permissions);
@@ -54,7 +54,7 @@ export class ShareService {
       return {
         success: true,
         permissions,
-        projectData: project,
+        projectData,
       };
     } catch (error) {
       console.error('Failed to load shared project:', error);
