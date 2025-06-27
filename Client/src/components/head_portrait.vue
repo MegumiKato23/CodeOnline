@@ -25,8 +25,8 @@ const codeStore = useCodeStore();
 const emit = defineEmits(['login']);
 const logout = async () => {
   try {
-    const { success } = await api.logout();
-    if (success) {
+    const response = await api.logout();
+    if (response.code === 200) {
       userStore.logout();
       // 退出登录后,检查权限
       const shareResult = await ShareService.checkShareAccess();

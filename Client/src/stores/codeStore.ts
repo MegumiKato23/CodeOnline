@@ -67,6 +67,38 @@ export const useCodeStore = defineStore('code', () => {
     }
   };
 
+  //初始化项目文件
+  const initProjectFiles = async (projectId: string): Promise<void> => {
+    try {
+      const files: CreateFileRequest[] = [
+        {
+          name: 'index.html',
+          path: '/index.html',
+          content: htmlCode.value,
+          type: FileType.HTML,
+        },
+        {
+          name: 'styles.css',
+          path: '/styles.css',
+          content: cssCode.value,
+          type: FileType.CSS,
+        },
+        {
+          name: 'script.js',
+          path: '/script.js',
+          content: jsCode.value,
+          type: FileType.JS,
+        },
+      ];
+      const createPromises = files.map((file) => api.createFile(projectId, file));
+      await Promise.all(createPromises);
+      console.log('项目文件初始化成功');
+    } catch (error) {
+      console.error('初始化项目文件失败:', error);
+      throw error;
+    }
+  };
+
   // 加载分享项目数据
   const loadProjectFromShare = (projectData: any) => {
     try {

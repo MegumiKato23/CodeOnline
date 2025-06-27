@@ -9,14 +9,21 @@ const register = async (req, res) => {
     // 验证输入
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({
+        code: 400,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
     }
 
     const { username, account, password, confirmPassword } = req.body;
 
     // 验证密码一致性
     if (password !== confirmPassword) {
-      return res.status(400).json({ error: 'Passwords do not match' });
+      return res.status(400).json({
+        code: 400,
+        message: 'Passwords do not match',
+      });
     }
 
     // 检查用账户是否已存在
@@ -27,14 +34,17 @@ const register = async (req, res) => {
     });
 
     if (existingUser) {
-      return res.status(500).json({ error: 'Account already exists' });
+      return res.status(200).json({
+        code: 1001,
+        message: 'Account already exists',
+      });
     }
 
     // 加密密码
     const hashedPassword = await bcrypt.hash(password, 12);
 
     // 创建用户
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         name: username,
         account: account,
@@ -43,10 +53,16 @@ const register = async (req, res) => {
       },
     });
 
-    res.json({ success: true });
+    res.status(200).json({
+      code: 200,
+      message: 'success',
+    });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ error: 'Registration failed' });
+    res.status(500).json({
+      code: 500,
+      message: 'Registration failed',
+    });
   }
 };
 
@@ -55,7 +71,11 @@ const login = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({
+        code: 400,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
     }
 
     const { account, password } = req.body;
@@ -68,13 +88,19 @@ const login = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(500).json({ error: 'Invalid account or password' });
+      return res.status(400).json({
+        code: 400,
+        message: 'Invalid account or password',
+      });
     }
 
     // 验证密码
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
-      return res.status(500).json({ error: 'Invalid account or password' });
+      return res.status(400).json({
+        code: 400,
+        message: 'Invalid account or password',
+      });
     }
 
     // 生成JWT令牌
@@ -117,17 +143,25 @@ const login = async (req, res) => {
     req.session.userId = user.id;
 
     res.status(200).json({
-      user: {
-        id: user.id,
-        username: user.name,
-        account: user.account,
-        avatar: user.avatar || null,
-        status: user.status,
-      },
-    });
+      code: 200,
+      message: 'success',
+      data: {
+        user: {
+          id: user.id,
+          username: user.name,
+          account: user.account,
+          avatar: user.avatar || null,
+          status: user.status,
+        }
+      }
+    })
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Login failed' });
+    res.status(500).json({
+      code: 500,
+      message: 'Login failed',
+      data: null,
+    });
   }
 };
 
@@ -141,10 +175,16 @@ const logout = async (req, res) => {
     res.clearCookie('access_token');
     res.clearCookie('refresh_token');
 
-    res.status(200).json({ success: true });
+    res.json({
+      code: 200,
+      message: 'success',
+    })
   } catch (error) {
     console.error('Logout error:', error);
-    res.status(500).json({ error: 'Logout failed' });
+    res.status(500).json({
+      code: 500,
+      message: 'Logout failed',
+    });
   }
 };
 
@@ -170,17 +210,25 @@ const updateProfile = async (req, res) => {
     });
 
     res.status(200).json({
-      user: {
-        id: updatedUser.id,
-        username: updatedUser.name,
-        account: updatedUser.account,
-        avatar: updatedUser.avatar,
-        status: updatedUser.status,
-      },
-    });
+      code: 200,
+      message: 'success',
+      data: {
+        user: {
+          id: updatedUser.id,
+          username: updatedUser.name,
+          account: updatedUser.account,
+          avatar: updatedUser.avatar,
+          status: updatedUser.status,
+        }
+      }
+    })
   } catch (error) {
     console.error('Update profile error:', error);
-    res.status(500).json({ error: 'Update failed' });
+    res.status(500).json({
+      code: 500,
+      message: 'Update failed',
+      data: null,
+    });
   }
 };
 
@@ -204,23 +252,34 @@ const getProfile = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({
+        code: 404,
+        message: 'User not found',
+      });
     }
 
     res.status(200).json({
-      user: {
-        id: user.id,
-        username: user.name,
-        account: user.account,
-        avatar: user.avatar,
-        status: user.status,
-        createdAt: user.createdAt,
-        lastLogin: user.lastLogin,
-      },
-    });
+      code: 200,
+      message: 'success',
+      data: {
+        user: {
+          id: user.id,
+          username: user.name,
+          account: user.account,
+          avatar: user.avatar,
+          status: user.status,
+          createdAt: user.createdAt,
+          lastLogin: user.lastLogin,
+        }
+      }
+    })
   } catch (error) {
     console.error('Get profile error:', error);
-    res.status(500).json({ error: 'Failed to get profile' });
+    res.status(500).json({
+      code: 500,
+      message: 'Get profile failed',
+      data: null,
+    });
   }
 };
 
@@ -244,21 +303,31 @@ const getUserProjects = async (req, res) => {
     });
 
     if (!userWithProjects) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({
+        code: 404,
+        message: 'Projects not found',
+      });
     }
 
     res.status(200).json({
-      id: userWithProjects.id,
-      projects: userWithProjects.projects.map((project) => ({
-        id: project.id,
-        name: project.name,
-        createdAt: project.createdAt.toISOString(),
-        updatedAt: project.updatedAt.toISOString(),
-      })),
-    });
+      code: 200,
+      message: 'success',
+      data: {
+        projects: userWithProjects.projects.map((project) => ({
+          id: project.id,
+          name: project.name,
+          createdAt: project.createdAt.toISOString(),
+          updatedAt: project.updatedAt.toISOString(),
+        })),
+      }
+    })
   } catch (error) {
     console.error('Get user projects error:', error);
-    res.status(500).json({ error: 'Failed to get user projects' });
+    res.status(500).json({
+      code: 500,
+      message: 'Get user projects failed',
+      data: null,
+    });
   }
 };
 
@@ -270,7 +339,10 @@ const refreshToken = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({
+        code: 404,
+        message: 'User not found',
+      });
     }
 
     // 生成新的访问令牌
@@ -289,10 +361,16 @@ const refreshToken = async (req, res) => {
       path: '/',
     });
 
-    res.json({ success: true });
+    res.status(200).json({
+      code: 200,
+      message: 'success',
+    })
   } catch (error) {
     console.error('Refresh token error:', error);
-    res.status(500).json({ error: 'Failed to refresh token' });
+    res.status(500).json({
+      code: 500,
+      message: 'Refresh token failed',
+    });
   }
 };
 

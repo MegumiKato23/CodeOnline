@@ -16,6 +16,7 @@ export class ShareService {
    * @param shareId 分享ID，如果不提供则从当前URL解析
    * @param userId 用户ID，如果不提供则从userStore获取
    */
+
   static async checkShareAccess(options?: { shareId?: string }): Promise<ShareAccessResult> {
     try {
       const {
@@ -23,6 +24,7 @@ export class ShareService {
       } = await api.getUserProfile();
       console.log('用户ID:', userId); // Log the user ID for diagnostic purpose
       let { shareId } = options || {};
+      
       // 如果没有提供shareId，从URL解析
       if (!shareId) {
         const url = window.location.pathname;

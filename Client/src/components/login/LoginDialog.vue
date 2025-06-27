@@ -68,16 +68,19 @@ const handleLogin = async () => {
   }
 
   try {
-    const { user } = await api.login({
+    const response = await api.login({
       account: loginForm.account,
       password: loginForm.password,
     });
+
+    const { user } = response.data
 
     // 更新用户信息
     userStore.setUsername(user.username);
     userStore.setAccount(user.account);
     userStore.setAvatar(user.avatar);
     userStore.setStatus(user.status);
+    userStore.setUserId(user.id);
     userStore.login();
 
     api.getUserProjects().then(async (res) => {
@@ -117,12 +120,15 @@ const handleLogin = async () => {
 
     // 登录成功后，重新检查分享权限
     const shareResult = await ShareService.checkShareAccess();
+
     if (shareResult.success) {
       ShareService.applyShareAccess(shareResult);
     }
     // 关闭登录框
+    resetForm();
     close();
   } catch (error) {
+    resetForm();
     errorMessage.value = error.response?.data?.message || '登录失败';
   }
 };
@@ -130,6 +136,12 @@ const handleLogin = async () => {
 const switchToRegister = () => {
   emit('register');
 };
+
+const resetForm = () => {
+  loginForm.password = '';
+  errorMessage.value = '';
+}
+
 </script>
 
 <style scoped>
