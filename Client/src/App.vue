@@ -24,7 +24,6 @@
         <CodeEditor :activeTab="activeTab" />
       </div>
     </div>
-    <Footer />
     <Footer :isReadOnly="userStore.isReadOnlyMode" @login="showLoginDialog = true" />
     <SettingsDialog v-if="showSettings" @close="showSettings = false" />
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />

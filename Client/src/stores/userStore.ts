@@ -81,7 +81,7 @@ export const useUserStore = defineStore('user', () => {
   const toggleView = async () => {
     // 切换视图状态
     status.value = status.value === 'true' ? 'false' : 'true';
-    if(!isLoggedIn){
+    if (!isLoggedIn) {
       return;
     }
     try {

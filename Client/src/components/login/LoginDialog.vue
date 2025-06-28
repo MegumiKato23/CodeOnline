@@ -160,7 +160,7 @@ const handleLogin = async () => {
 
     api.getUserProjects().then(async (res) => {
       const projects = res.data?.projects || []; // 修改这里
-  
+
       if (projects.length === 0) {
         const { data } = await api.createProject({ name: 'New Project' });
         const projectData = data.project;
@@ -168,14 +168,14 @@ const handleLogin = async () => {
         userStore.currentProjectId = projectData.id;
       } else {
         userStore.currentProjectId = projects[0].id;
-         try {
-      const projectRes = await api.getProject(userStore.currentProjectId);
-      const files = projectRes.data?.files || []; // 安全访问
-      
-      // 剩余代码保持不变...
-    } catch (error) {
-      console.error('加载项目文件失败:', error);
-    }
+        try {
+          const projectRes = await api.getProject(userStore.currentProjectId);
+          const files = projectRes.data?.files || []; // 安全访问
+
+          // 剩余代码保持不变...
+        } catch (error) {
+          console.error('加载项目文件失败:', error);
+        }
       }
     });
 
