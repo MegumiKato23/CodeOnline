@@ -55,7 +55,83 @@ const close = () => {
   loginForm.password = '';
   errorMessage.value = '';
 };
+//冰凌的别删
+// const handleLogin = async () => {
+//   // 验证表单
+//   if (!loginForm.account.trim()) {
+//     errorMessage.value = '请输入账号';
+//     return;
+//   }
+//   if (!loginForm.password.trim()) {
+//     errorMessage.value = '请输入密码';
+//     return;
+//   }
 
+//   try {
+//     const response = await api.login({
+//       account: loginForm.account,
+//       password: loginForm.password,
+//     });
+
+//     const { user } = response.data;
+
+//     // 更新用户信息
+//     userStore.setUsername(user.username);
+//     userStore.setAccount(user.account);
+//     userStore.setAvatar(user.avatar);
+//     userStore.setStatus(user.status);
+//     userStore.login();
+
+//     api.getUserProjects().then(async (res) => {
+//       if (res['projects'].length == 0) {
+//         const { data } = await api.createProject({ name: 'New Project' });
+//         const projectData = data.project; // Assuming the first project is the new one created by the registratio
+//         console.log(projectData);
+//         await codeStore.initProjectFiles(projectData.id);
+//         userStore.currentProjectId = projectData.id;
+//       } else {
+//         userStore.currentProjectId = res['projects'][0]['id'];
+//         try {
+//           const projectRes = await api.getProject(userStore.currentProjectId);
+//           // console.log(projectRes);
+//           const files = projectRes['files'];
+
+//           // 创建文件类型映射
+//           const typeMapping = {
+//             HTML: 'html',
+//             CSS: 'css',
+//             JS: 'js',
+//           };
+
+//           // 处理每个文件
+//           files.forEach((file) => {
+//             const mappedType = typeMapping[file.type];
+//             if (mappedType) {
+//               codeStore.updateCode(mappedType, file.content);
+//             }
+//           });
+
+//           console.log('项目文件加载完成');
+//         } catch (error) {
+//           console.error('加载项目文件失败:', error);
+//         }
+//       }
+//     });
+
+//     // 登录成功后，重新检查分享权限
+//     const shareResult = await ShareService.checkShareAccess();
+
+//     if (shareResult.success) {
+//       ShareService.applyShareAccess(shareResult);
+//     }
+//     // 关闭登录框
+//     resetForm();
+//     close();
+//   } catch (error) {
+//     resetForm();
+//     errorMessage.value = error.response?.data?.message || '登录失败';
+//   }
+// };
 const handleLogin = async () => {
   // 验证表单
   if (!loginForm.account.trim()) {
@@ -83,38 +159,23 @@ const handleLogin = async () => {
     userStore.login();
 
     api.getUserProjects().then(async (res) => {
-      if (res['projects'].length == 0) {
+      const projects = res.data?.projects || []; // 修改这里
+  
+      if (projects.length === 0) {
         const { data } = await api.createProject({ name: 'New Project' });
-        const projectData = data.project; // Assuming the first project is the new one created by the registratio
-        console.log(projectData);
+        const projectData = data.project;
         await codeStore.initProjectFiles(projectData.id);
         userStore.currentProjectId = projectData.id;
       } else {
-        userStore.currentProjectId = res['projects'][0]['id'];
-        try {
-          const projectRes = await api.getProject(userStore.currentProjectId);
-          // console.log(projectRes);
-          const files = projectRes['files'];
-
-          // 创建文件类型映射
-          const typeMapping = {
-            HTML: 'html',
-            CSS: 'css',
-            JS: 'js',
-          };
-
-          // 处理每个文件
-          files.forEach((file) => {
-            const mappedType = typeMapping[file.type];
-            if (mappedType) {
-              codeStore.updateCode(mappedType, file.content);
-            }
-          });
-
-          console.log('项目文件加载完成');
-        } catch (error) {
-          console.error('加载项目文件失败:', error);
-        }
+        userStore.currentProjectId = projects[0].id;
+         try {
+      const projectRes = await api.getProject(userStore.currentProjectId);
+      const files = projectRes.data?.files || []; // 安全访问
+      
+      // 剩余代码保持不变...
+    } catch (error) {
+      console.error('加载项目文件失败:', error);
+    }
       }
     });
 
@@ -132,7 +193,6 @@ const handleLogin = async () => {
     errorMessage.value = error.response?.data?.message || '登录失败';
   }
 };
-
 const switchToRegister = () => {
   emit('register');
 };
