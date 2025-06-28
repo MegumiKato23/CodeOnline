@@ -14,7 +14,11 @@ redis.on('error', (err) => {
 
 module.exports = {
   hset: async (key, fieldValues) => {
-    return redis.hset(key, fieldValues);
+    const serialized = {};
+    for (const [field, value] of Object.entries(fieldValues)) {
+      serialized[field] = typeof value === 'string' ? value : JSON.stringify(value);
+    }
+    return redis.hset(key, serialized);
   },
 
   hgetall: async (key) => {
