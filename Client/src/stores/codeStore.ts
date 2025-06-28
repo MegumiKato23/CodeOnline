@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { api, CreateFileRequest, FileType } from '@/api';
-import codeApi from '@/api';
 
 export const useCodeStore = defineStore('code', () => {
   const htmlCode = ref('<h1>Hello World</h1>');
@@ -19,28 +18,35 @@ export const useCodeStore = defineStore('code', () => {
 
   const saveCode = async (userId: string) => {
     try {
-      await codeApi.saveCode({
+      await api.saveCode({
         userId,
-        html: htmlCode.value,
-        css: cssCode.value,
-        js: jsCode.value,
+        files: [
+          {
+            name: 'index.html',
+            path: 'New project/',
+            content: htmlCode.value, // 确保使用最新值
+            type: FileType.HTML,
+          },
+          {
+            name: 'styles.css',
+            path: 'New project/',
+            content: cssCode.value, // 确保使用最新值
+            type: FileType.CSS,
+          },
+          {
+            name: 'script.js',
+            path: 'New project/',
+            content: jsCode.value, // 确保使用最新值
+            type: FileType.JS,
+          },
+        ],
       });
-      console.log('代码已保存到Redis');
+      saved.value = true;
     } catch (error) {
       console.error('保存失败:', error);
     }
   };
-  // 新增的loadCode方法
-  const loadCode = async (userId: string) => {
-    try {
-      const response = await codeApi.getCode(userId);
-      htmlCode.value = response.data.html || htmlCode.value;
-      cssCode.value = response.data.css || cssCode.value;
-      jsCode.value = response.data.js || jsCode.value;
-    } catch (error) {
-      console.error('加载失败:', error);
-    }
-  };
+
   const setActiveTab = (tab: 'html' | 'css' | 'js') => {
     activeTab.value = tab;
   };
@@ -140,7 +146,6 @@ export const useCodeStore = defineStore('code', () => {
     saveCode,
     setActiveTab,
     initProjectFiles,
-    loadCode,
     loadProjectFromShare,
   };
 });

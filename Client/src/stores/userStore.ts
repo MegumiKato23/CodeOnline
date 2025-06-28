@@ -16,7 +16,6 @@ export const useUserStore = defineStore('user', () => {
   const avatar = ref('');
   const status = ref('true');
   const createAt = ref('');
-  const userId = ref('');
 
   const isLoggedIn = ref(false);
 
@@ -46,10 +45,6 @@ export const useUserStore = defineStore('user', () => {
     createAt.value = newCreateAt;
   };
 
-  const setUserId = (newUserId: string) => {
-    userId.value = newUserId;
-  };
-
   const login = () => {
     isLoggedIn.value = true;
   };
@@ -64,7 +59,6 @@ export const useUserStore = defineStore('user', () => {
     avatar.value = '';
     status.value = '';
     createAt.value = '';
-    userId.value = '';
 
     // 清除项目相关状态
     currentProjectId.value = null;
@@ -111,7 +105,6 @@ export const useUserStore = defineStore('user', () => {
     account,
     avatar,
     status,
-    userId,
     isLoggedIn,
     currentProjectId,
     currentPermissions,
@@ -121,7 +114,6 @@ export const useUserStore = defineStore('user', () => {
     setAvatar,
     setStatus,
     setCreateAt,
-    setUserId,
     login,
     logout,
     toggleView,
