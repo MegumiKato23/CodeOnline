@@ -87,6 +87,9 @@ export const useUserStore = defineStore('user', () => {
   const toggleView = async () => {
     // 切换视图状态
     status.value = status.value === 'true' ? 'false' : 'true';
+    if(!isLoggedIn){
+      return;
+    }
     try {
       // 调用 updateUserProfile 方法更新后台的用户资料
       await api.updateUserProfile({
