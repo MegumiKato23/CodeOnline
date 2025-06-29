@@ -83,7 +83,7 @@ const handleLogin = async () => {
     userStore.login();
 
     api.getUserProjects().then(async (res) => {
-      if (res['projects'].length == 0) {
+      if (res['data']['project'].length == 0) {
         const { data } = await api.createProject({ name: 'New Project' });
         const projectData = data.project; // Assuming the first project is the new one created by the registratio
         console.log(projectData);
