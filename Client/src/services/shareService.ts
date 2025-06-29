@@ -39,7 +39,6 @@ export class ShareService {
 
       const { data: sharedProjectData } = await api.getSharedProject(shareId);
       const projectData = sharedProjectData.project;
-      console.log(await api.getSharedProject(shareId));
       console.log('分享项目数据:', projectData.ownerId); // Log the project data for diagnostic purpose
 
       console.log('用户ID:', userId);
