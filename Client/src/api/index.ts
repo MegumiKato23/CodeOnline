@@ -318,4 +318,3 @@ interface CodeData {
   css: string;
   js: string;
 }
-
