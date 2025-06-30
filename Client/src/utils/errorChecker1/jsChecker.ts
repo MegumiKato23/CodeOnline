@@ -46,21 +46,24 @@ export const jsChecker: ErrorChecker = async (code: string, options?: ErrorCheck
     });
   });
 
+  // 过滤掉字符串内容
+  const codeWithoutStrings = code.replace(/(["'`])(?:\\.|[^\\])*?\1/g, '');
+
   // 2. 检查未声明的变量
   const variableRegex = /(?:^|[^\w.])(var|let|const)\s+([a-zA-Z_$][\w$]*)/g;
   const declaredVars = new Set<string>();
   let varMatch: RegExpExecArray | null;
   
-  while ((varMatch = variableRegex.exec(code)) !== null) {
+  while ((varMatch = variableRegex.exec(codeWithoutStrings)) !== null) {
     declaredVars.add(varMatch[2]);
   }
   
   const usageRegex = /(?:^|[^\w.])([a-zA-Z_$][\w$]*)(?=\s*[^\w])/g;
   let usageMatch: RegExpExecArray | null;
   
-  while ((usageMatch = usageRegex.exec(code)) !== null) {
+  while ((usageMatch = usageRegex.exec(codeWithoutStrings)) !== null) {
     const varName = usageMatch[1];
-    if (!declaredVars.has(varName) && !['true', 'false', 'null', 'undefined', 'this', 'super'].includes(varName)) {
+    if (!declaredVars.has(varName) && !['true', 'false', 'null', 'undefined', 'this', 'super', 'console'].includes(varName)) {
       errors.push({
         message: `Undeclared variable: ${varName}`,
         severity: 'error',
@@ -76,7 +79,7 @@ export const jsChecker: ErrorChecker = async (code: string, options?: ErrorCheck
   const varUsageRegex = /(?:^|[^\w.])([a-zA-Z_$][\w$]*)(?=\s*[^\w])/g;
   let varUsageMatch: RegExpExecArray | null;
   
-  while ((varUsageMatch = varUsageRegex.exec(code)) !== null) {
+  while ((varUsageMatch = varUsageRegex.exec(codeWithoutStrings)) !== null) {
     usedVars.add(varUsageMatch[1]);
   }
   
@@ -97,7 +100,7 @@ export const jsChecker: ErrorChecker = async (code: string, options?: ErrorCheck
   const varCounts: Record<string, number> = {};
   let dupVarMatch: RegExpExecArray | null;
   
-  while ((dupVarMatch = duplicateVarRegex.exec(code)) !== null) {
+  while ((dupVarMatch = duplicateVarRegex.exec(codeWithoutStrings)) !== null) {
     const varName = dupVarMatch[2];
     varCounts[varName] = (varCounts[varName] || 0) + 1;
     

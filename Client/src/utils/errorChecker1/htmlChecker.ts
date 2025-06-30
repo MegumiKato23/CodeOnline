@@ -31,22 +31,24 @@ const REQUIRED_PARENTS = {
   'option': ['select'],
   'optgroup': ['select']
 };
+
 export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorCheckerOptions) => {
   const errors: CodeError[] = [];
   const openTags: { name: string; position: number; parent?: string }[] = [];
   const ignorePatterns = options?.ignorePatterns || [];
-  
-  // 1. 增强标签解析器
+  const isFragment = options?.isFragment || false; // 新增参数，默认false
+
+  // 增强标签解析器
   const tagRegex = /<(\/?)([a-zA-Z][^\s>]*)([^>]*)>/g;
   let match: RegExpExecArray | null;
-  
+
   while ((match = tagRegex.exec(code)) !== null) {
     const [fullMatch, isClosing, tagName, attributes] = match;
     const currentTag = tagName.toLowerCase();
-    
+
     // 检查自闭合标签
     const isSelfClosing = attributes.endsWith('/') || ['img', 'br', 'input', 'meta', 'link', 'hr'].includes(currentTag);
-    
+
     if (isClosing) {
       // 处理闭合标签
       const lastOpenTag = openTags.pop();
@@ -63,8 +65,8 @@ export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorChe
       // 记录非自闭合的开放标签
       const parentTag = openTags.length > 0 ? openTags[openTags.length - 1].name : undefined;
       openTags.push({ name: currentTag, position: match.index, parent: parentTag });
-      
-      // 2. 检查必须包含的父元素
+
+      // 检查必须包含的父元素
       if (REQUIRED_PARENTS[currentTag]) {
         if (!parentTag || !REQUIRED_PARENTS[currentTag].includes(parentTag)) {
           errors.push({
@@ -76,12 +78,11 @@ export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorChe
           });
         }
       }
-      
-      // 3. 检查无效的嵌套组合
+
+      // 检查无效的嵌套组合
       if (parentTag) {
         for (const [parent, child] of INVALID_NESTING) {
-          if ((parent === parentTag && child === currentTag) || 
-              (child === parentTag && parent === currentTag)) {
+          if (parent === parentTag && child === currentTag) {  // 只判断单向
             errors.push({
               message: `Invalid nesting: <${parentTag}> cannot contain <${currentTag}>`,
               severity: 'error',
@@ -93,41 +94,41 @@ export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorChe
         }
       }
     }
-    
-    // 4. 增强属性检查
+
+    // 增强属性检查
     const attrRegex = /(\S+)=["']([^"']*)["']|(\S+)(?=[\s>])/g;
     const seenAttrs = new Set<string>();
     let attrMatch: RegExpExecArray | null;
-    
+
     while ((attrMatch = attrRegex.exec(attributes)) !== null) {
       const attrName = (attrMatch[1] || attrMatch[3]).toLowerCase();
-      
+
       // 检查重复属性
       if (seenAttrs.has(attrName)) {
         errors.push({
           message: `Duplicate attribute: ${attrName}`,
           severity: 'error',
-          from: match.index + match[0].indexOf(attrMatch[0]),
-          to: match.index + match[0].indexOf(attrMatch[0]) + attrMatch[0].length,
+          from: match.index + fullMatch.indexOf(attrMatch[0]),
+          to: match.index + fullMatch.indexOf(attrMatch[0]) + attrMatch[0].length,
           line: 0
         });
       }
       seenAttrs.add(attrName);
-      
+
       // 检查无效属性值
-      if (attrMatch[2] && attrMatch[2].trim() === '') {
+      if (attrMatch[2] !== undefined && attrMatch[2].trim() === '') {
         errors.push({
           message: `Empty value for attribute: ${attrName}`,
           severity: 'warning',
-          from: match.index + match[0].indexOf(attrMatch[0]),
-          to: match.index + match[0].indexOf(attrMatch[0]) + attrMatch[0].length,
+          from: match.index + fullMatch.indexOf(attrMatch[0]),
+          to: match.index + fullMatch.indexOf(attrMatch[0]) + attrMatch[0].length,
           line: 0
         });
       }
     }
   }
-  
-  // 5. 检查未闭合的标签
+
+  // 检查未闭合的标签
   openTags.forEach(tag => {
     return errors.push({
       message: `Unclosed tag: <${tag.name}>`,
@@ -137,47 +138,47 @@ export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorChe
       line: 0
     });
   });
-  
-  // 6. 检查文档结构完整性
-  const hasHtmlTag = code.includes('<html') && code.includes('</html>');
-  const hasHeadTag = code.includes('<head') && code.includes('</head>');
-  const hasBodyTag = code.includes('<body') && code.includes('</body>');
-  
-  if (!hasHtmlTag) {
-    errors.push({
-      message: 'Missing <html> tag',
-      severity: 'warning',
-      from: 0,
-      to: 0,
-      line: 0
-    });
+
+  // 检查文档结构完整性，跳过片段
+  if (!isFragment) {
+    const hasHtmlTag = code.includes('<html') && code.includes('</html>');
+    const hasHeadTag = code.includes('<head') && code.includes('</head>');
+    const hasBodyTag = code.includes('<body') && code.includes('</body>');
+
+    if (!hasHtmlTag) {
+      errors.push({
+        message: 'Missing <html> tag',
+        severity: 'warning',
+        from: 0,
+        to: 0,
+        line: 0
+      });
+    }
+    if (hasHtmlTag && !hasHeadTag) {
+      errors.push({
+        message: 'Missing <head> section',
+        severity: 'warning',
+        from: 0,
+        to: 0,
+        line: 0
+      });
+    }
+    if (hasHtmlTag && !hasBodyTag) {
+      errors.push({
+        message: 'Missing <body> section',
+        severity: 'warning',
+        from: 0,
+        to: 0,
+        line: 0
+      });
+    }
   }
-  
-  if (hasHtmlTag && !hasHeadTag) {
-    errors.push({
-      message: 'Missing <head> section',
-      severity: 'warning',
-      from: 0,
-      to: 0,
-      line: 0
-    });
-  }
-  
-  if (hasHtmlTag && !hasBodyTag) {
-    errors.push({
-      message: 'Missing <body> section',
-      severity: 'warning',
-      from: 0,
-      to: 0,
-      line: 0
-    });
-  }
-  
+
   // 过滤掉用户指定忽略的错误模式
   const filteredErrors = errors.filter(error => 
     !ignorePatterns.some(pattern => error.message.includes(pattern))
   );
-  
+
   return {
     errors: filteredErrors,
     diagnostics: filteredErrors,
