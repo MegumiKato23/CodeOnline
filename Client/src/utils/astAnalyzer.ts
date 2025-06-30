@@ -5,11 +5,11 @@ export interface VariableInfo {
   scope: 'global' | 'function' | 'block' | 'class'
   returnType?: string
   isExported?: boolean
-  isAsync?: boolean // ±ê¼ÇÊÇ·ñÎªÒì²½º¯Êý
-  isArrow?: boolean // ±ê¼ÇÊÇ·ñÎª¼ýÍ·º¯Êý
-  params?: string[] // º¯Êý²ÎÊýÁÐ±í
-  generics?: string[] // ·ºÐÍÀàÐÍ²ÎÊý
-  extends?: string // Àà¼Ì³ÐÀàÐÍ
+  isAsync?: boolean // ï¿½ï¿½ï¿½ï¿½Ç·ï¿½Îªï¿½ì²½ï¿½ï¿½ï¿½ï¿½
+  isArrow?: boolean // ï¿½ï¿½ï¿½ï¿½Ç·ï¿½Îªï¿½ï¿½Í·ï¿½ï¿½ï¿½ï¿½
+  params?: string[] // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½
+  generics?: string[] // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í²ï¿½ï¿½ï¿½
+  extends?: string // ï¿½ï¿½Ì³ï¿½ï¿½ï¿½ï¿½ï¿½
 }
 
 export const analyzeAST = (code: string): VariableInfo[] => {
@@ -19,7 +19,7 @@ export const analyzeAST = (code: string): VariableInfo[] => {
   let currentClass: string | null = null
   let currentGenerics: string[] = []
   
-  // 1. „1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7 (const/let/var) - „1¤7„1¤70£6„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7„1¤7
+  // 1. ï¿½1ï¿½7ï¿½1ï¿½7ï¿½1ï¿½7ï¿½1ï¿½7ï¿½1ï¿½7ï¿½1ï¿½7ï¿½1ï¿½7ï¿½1ï¿½7 (const/let/var) - ï¿½1ï¿½7ï¿½1ï¿½7ï¿½0ï¿½6ï¿½1ï¿½7ï¿½1ï¿½7ï¿½1ï¿½7ï¿½1ï¿½7ï¿½1ï¿½7ï¿½1ï¿½7ï¿½1ï¿½7ï¿½1ï¿½7ï¿½1ï¿½7
   const varRegex = /(?:const|let|var)\s+([a-zA-Z_$][\w$]*)(?:\s*:\s*(\w+))?/g
   let varMatch: RegExpExecArray | null
   while ((varMatch = varRegex.exec(code)) !== null) {
@@ -33,7 +33,7 @@ export const analyzeAST = (code: string): VariableInfo[] => {
     })
   }
 
-  // º¯ÊýÉùÃ÷·ÖÎö
+  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   const funcRegex = /(async\s+)?function\s+([a-zA-Z_$][\w$]*)\s*<([^>]+)>?\s*\(([^)]*)\)\s*(?::\s*(\w+))?/g
   let funcMatch: RegExpExecArray | null
   while ((funcMatch = funcRegex.exec(code)) !== null) {
@@ -57,7 +57,7 @@ export const analyzeAST = (code: string): VariableInfo[] => {
     scopeStack.push('function')
   }
 
-  // ÀàÉùÃ÷·ÖÎö
+  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   const classRegex = /class\s+([a-zA-Z_$][\w$]*)\s*(?:<([^>]+)>)?\s*(?:extends\s+([a-zA-Z_$][\w$]*))?/g
   let classMatch: RegExpExecArray | null
   while ((classMatch = classRegex.exec(code)) !== null) {
@@ -77,7 +77,7 @@ export const analyzeAST = (code: string): VariableInfo[] => {
     currentGenerics = generics
   }
 
-  // React×é¼þ·ÖÎö
+  // Reactï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   const componentRegex = /const\s+([a-zA-Z_$][\w$]*)\s*:\s*(\w+)\s*(?:<([^>]+)>)?\s*=\s*\(([^)]*)\)\s*=>\s*</g
   let componentMatch: RegExpExecArray | null
   while ((componentMatch = componentRegex.exec(code)) !== null) {
@@ -99,9 +99,7 @@ export const analyzeAST = (code: string): VariableInfo[] => {
   return variables
 }
 
-
-  
-// ¿É„1¤7„1¤7£ºÌí¼Ó»º´æ°æ±¾
+// ï¿½É„1ï¿½7ï¿½1ï¿½7ï¿½ï¿½ï¿½ï¿½ï¿½Ó»ï¿½ï¿½ï¿½æ±¾
 let cachedCode = ''
 let cachedResult: VariableInfo[] = []
 

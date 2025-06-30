@@ -1,9 +1,11 @@
 // errorHighlighter.ts
-import { EditorView, Decoration } from '@codemirror/view';
-import { RangeSetBuilder } from '@codemirror/state';
+import { EditorView, Decoration, ViewUpdate } from '@codemirror/view';
+import { RangeSetBuilder, StateField } from '@codemirror/state';
 import { CodeError } from './typescript';
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
+import { showPanel } from '@codemirror/view';
+import { EditorState } from '@codemirror/state';
 
 export const errorHighlighter = (errors: CodeError[]) => {
   // 定义错误高亮样式
@@ -71,18 +73,37 @@ export const errorHighlighter = (errors: CodeError[]) => {
 function createErrorWidget(error: CodeError) {
   const widget = document.createElement('div');
   widget.className = 'cm-error-tooltip';
-  widget.textContent = error.message;
   
+  // 错误信息容器
+  const messageContainer = document.createElement('div');
+  messageContainer.textContent = error.message;
+  
+  // 严重性图标
   const severityIcon = document.createElement('span');
   severityIcon.className = `cm-severity-icon cm-severity-${error.severity}`;
-  widget.prepend(severityIcon);
+  
+  // 快速修复按钮
+  const fixButton = document.createElement('button');
+  fixButton.className = 'cm-fix-button';
+  fixButton.textContent = '快速修复';
+  fixButton.onclick = () => {
+    if (error.fix && typeof error.fix === 'function') {
+      (error.fix as Function)();
+    }
+  };
+  
+  // 错误分类标记
+  const categoryTag = document.createElement('span');
+  categoryTag.className = 'cm-error-category';
+  categoryTag.textContent = error.category || '其他';
+  
+  widget.append(severityIcon, messageContainer, fixButton, categoryTag);
   
   return {
     toDOM: () => widget,
     eq: (other: any) => widget === other.toDOM(),
     updateDOM: (dom: HTMLElement) => {
       dom.className = 'cm-error-tooltip';
-      dom.textContent = error.message;
       return true;
     },
     estimatedHeight: -1,
@@ -96,57 +117,57 @@ function createErrorWidget(error: CodeError) {
   };
 }
 
-// CSS 样式
-/*
-.cm-error-wave { 
-  text-decoration: wavy underline red;
-}
-.cm-warning-wave {
-  text-decoration: wavy underline orange;
-}
-.cm-suggestion-wave {
-  text-decoration: wavy underline #6495ed;
-}
-
-.cm-error-tooltip {
-  position: absolute;
-  background: #ffebee;
-  border-left: 3px solid #f44336;
-  padding: 4px 8px;
-  margin-top: 4px;
-  border-radius: 2px;
-  font-size: 0.8em;
-  max-width: 300px;
-  z-index: 100;
-}
-
-.cm-warning-tooltip {
-  background: #fff3e0;
-  border-left: 3px solid #ff9800;
-}
-
-.cm-suggestion-tooltip {
-  background: #e3f2fd;
-  border-left: 3px solid #2196f3;
-}
-
-.cm-severity-icon {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin-right: 6px;
-}
-
-.cm-severity-error {
-  background: #f44336;
+// 错误面板扩展
+function errorPanel(view: EditorView) {
+  const dom = document.createElement('div');
+  dom.className = 'cm-error-panel';
+  
+  const errors = view.state.field(errorField) as CodeError[];
+  errors.forEach(error => {
+    const errorItem = document.createElement('div');
+    errorItem.className = `cm-error-item cm-severity-${error.severity}`;
+    errorItem.textContent = `${error.message} (行 ${error.line})`;
+    errorItem.onclick = () => {
+      view.dispatch({
+        selection: { anchor: error.from },
+        effects: EditorView.scrollIntoView(error.from, { y: 'center' })
+      });
+    };
+    dom.appendChild(errorItem);
+  });
+  
+  return {
+    dom,
+    update(update: ViewUpdate) {
+      if (update.docChanged || update.selectionSet) {
+        const newErrors = update.state.field(errorField) as CodeError[];
+        dom.textContent = '';
+        newErrors.forEach(error => {
+          const errorItem = document.createElement('div');
+          errorItem.className = `cm-error-item cm-severity-${error.severity}`;
+          errorItem.textContent = `${error.message} (行 ${error.line})`;
+          errorItem.onclick = () => {
+            update.view.dispatch({
+              selection: { anchor: error.from },
+              effects: EditorView.scrollIntoView(error.from, { y: 'center' })
+            });
+          };
+          dom.appendChild(errorItem);
+        });
+      }
+    },
+    destroy() {}
+  };
 }
 
-.cm-severity-warning {
-  background: #ff9800;
-}
+// 错误状态字段
+const errorField = StateField.define<CodeError[]>({
+  create: () => [],
+  update: (value, tr) => {
+    if (tr.docChanged || tr.selection) {
+      return tr.state.field(errorField);
+    }
+    return value;
+  }
+});
 
-.cm-severity-suggestion {
-  background: #2196f3;
-}
-*/

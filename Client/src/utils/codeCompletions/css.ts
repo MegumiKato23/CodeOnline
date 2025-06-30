@@ -1,102 +1,114 @@
 import { Completion, CompletionContext } from '@codemirror/autocomplete'
-const CSS_SELECTORS: Completion[] = [
-  { label: ".class", type: "selector", apply: ".$0" },
-  { label: "#id", type: "selector", apply: "#$0" },
-  { label: "element", type: "selector", apply: "$0" },
-  { label: "[attribute]", type: "selector", apply: "[$0]" }
+
+// CSSÂ±ûÊÄßË°•ÂÖ®
+const CSS_PROPERTIES: Completion[] = [
+  { label: "display", type: "property", apply: "display: $0;", boost: 10, info: "ÂÖÉÁ¥†ÊòæÁ§∫ÊñπÂºè" },
+  { label: "position", type: "property", apply: "position: $0;", boost: 10, info: "ÂÖÉÁ¥†ÂÆö‰ΩçÊñπÂºè" },
+  { label: "width", type: "property", apply: "width: $0;", boost: 10, info: "ÂÖÉÁ¥†ÂÆΩÂ∫¶" },
+  { label: "height", type: "property", apply: "height: $0;", boost: 10, info: "ÂÖÉÁ¥†È´òÂ∫¶" },
+  { label: "margin", type: "property", apply: "margin: $0;", boost: 10, info: "Â§ñËæπË∑ù" },
+  { label: "padding", type: "property", apply: "padding: $0;", boost: 10, info: "ÂÜÖËæπË∑ù" },
+  { label: "color", type: "property", apply: "color: $0;", boost: 10, info: "ÊñáÊú¨È¢úËâ≤" },
+  { label: "background", type: "property", apply: "background: $0;", boost: 10, info: "ËÉåÊôØÂ±ûÊÄß" },
+  { label: "font-size", type: "property", apply: "font-size: $0;", boost: 9, info: "Â≠ó‰ΩìÂ§ßÂ∞è" },
+  { label: "border", type: "property", apply: "border: $0;", boost: 9, info: "ËæπÊ°ÜÂ±ûÊÄß" },
+  { label: "flex", type: "property", apply: "flex: $0;", boost: 9, info: "FlexÂ∏ÉÂ±Ä" },
+  { label: "grid", type: "property", apply: "grid: $0;", boost: 9, info: "GridÂ∏ÉÂ±Ä" },
+  { label: "animation", type: "property", apply: "animation: $0;", boost: 8, info: "Âä®ÁîªÂ±ûÊÄß" },
+  { label: "transition", type: "property", apply: "transition: $0;", boost: 8, info: "ËøáÊ∏°ÊïàÊûú" },
+  { label: "opacity", type: "property", apply: "opacity: $0;", boost: 8, info: "ÈÄèÊòéÂ∫¶" },
+  { label: "z-index", type: "property", apply: "z-index: $0;", boost: 8, info: "Â±ÇÂè†È°∫Â∫è" },
+  { label: "box-shadow", type: "property", apply: "box-shadow: $0;", boost: 8, info: "Èò¥ÂΩ±ÊïàÊûú" },
+  { label: "text-align", type: "property", apply: "text-align: $0;", boost: 8, info: "ÊñáÊú¨ÂØπÈΩê" },
+  { label: "cursor", type: "property", apply: "cursor: $0;", boost: 7, info: "Èº†Ê†áÊåáÈíàÊ†∑Âºè" },
+  { label: "overflow", type: "property", apply: "overflow: $0;", boost: 7, info: "Ê∫¢Âá∫Â§ÑÁêÜ" }
 ]
-// Å0Ë0Ñ1§7Ñ1§7Ñ1§7Å0Ø2Ñ1§7CSSÑ1§7Ñ1§7Ñ1§7Ñ1§7
-const CSS_DATA = {
-  properties: [
-   { label: "display", type: "property", apply: "display: $0", boost: 10, info: "CSS display property" },
-    { label: "position", type: "property", apply: "position: $0", boost: 10, info: "CSS position property" },
-    { label: "flex", type: "property", apply: "flex: $0", boost: 10, info: "CSS flex property" },
-    { label: "grid", type: "property", apply: "grid: $0", boost: 10, info: "CSS grid property" },
-    { label: "float", type: "property", apply: "float: $0", boost: 9, info: "CSS float property" },
-    
-    // Box model
-    { label: "width", type: "property", apply: "width: $0", boost: 10, info: "CSS width property" },
-    { label: "height", type: "property", apply: "height: $0", boost: 10, info: "CSS height property" },
-    { label: "margin", type: "property", apply: "margin: $0", boost: 10, info: "CSS margin property" },
-    { label: "padding", type: "property", apply: "padding: $0", boost: 10, info: "CSS padding property" },
-    { label: "border", type: "property", apply: "border: $0", boost: 10, info: "CSS border property" },
-    
-    // Text styling
-    { label: "color", type: "property", apply: "color: $0", boost: 10, info: "CSS color property" },
-    { label: "font-size", type: "property", apply: "font-size: $0", boost: 10, info: "CSS font size" },
-    { label: "font-family", type: "property", apply: "font-family: $0", boost: 9, info: "CSS font family" },
-    { label: "text-align", type: "property", apply: "text-align: $0", boost: 9, info: "CSS text alignment" },
-    { label: "line-height", type: "property", apply: "line-height: $0", boost: 9, info: "CSS line height" },
-    
-    // Backgrounds and gradients
-    { label: "background", type: "property", apply: "background: $0", boost: 10, info: "CSS background shorthand" },
-    { label: "background-color", type: "property", apply: "background-color: $0", boost: 9, info: "CSS background color" },
-    { label: "background-image", type: "property", apply: "background-image: $0", boost: 9, info: "CSS background image" },
-    { label: "linear-gradient", type: "function", apply: "linear-gradient($0)", boost: 9, info: "CSS linear gradient" },
-    { label: "radial-gradient", type: "function", apply: "radial-gradient($0)", boost: 9, info: "CSS radial gradient" },
-    { label: "conic-gradient", type: "function", apply: "conic-gradient($0)", boost: 9, info: "CSS conic gradient" },
-    
-    // Transitions and animations
-    { label: "transition", type: "property", apply: "transition: $0", boost: 9, info: "CSS transition property" },
-    { label: "animation", type: "property", apply: "animation: $0", boost: 9, info: "CSS animation property" },
-    { label: "transform", type: "property", apply: "transform: $0", boost: 9, info: "CSS transform property" },
-    
-    // CSS variables
-    { label: "--*", type: "variable", apply: "--$0", boost: 8, info: "CSS custom property" },
-    { label: "var", type: "function", apply: "var(--$0)", boost: 8, info: "CSS variable usage" },
-    
-    // Preprocessor support
-    { label: "@mixin", type: "directive", apply: "@mixin $0($1) {\n\t$2\n}", boost: 8, info: "SCSS mixin" },
-    { label: "@include", type: "directive", apply: "@include $0($1)", boost: 8, info: "SCSS include" },
-    { label: "@extend", type: "directive", apply: "@extend $0", boost: 8, info: "SCSS extend" },
-    { label: "@function", type: "directive", apply: "@function $0($1) {\n\t@return $2\n}", boost: 8, info: "SCSS function" },
-    { label: "@if", type: "directive", apply: "@if $0 {\n\t$1\n}", boost: 8, info: "SCSS conditional" },
-    { label: "@for", type: "directive", apply: "@for $0 from $1 through $2 {\n\t$3\n}", boost: 8, info: "SCSS loop" },
-    { label: "@each", type: "directive", apply: "@each $0 in $1 {\n\t$2\n}", boost: 8, info: "SCSS iteration" },
-    { label: "@while", type: "directive", apply: "@while $0 {\n\t$1\n}", boost: 8, info: "SCSS while loop" },
-    { label: "@use", type: "directive", apply: "@use '$0'", boost: 8, info: "SCSS module import" },
-    { label: "@forward", type: "directive", apply: "@forward '$0'", boost: 8, info: "SCSS module forwarding" },
+
+// CSSÂ±ûÊÄßÂÄºË°•ÂÖ®
+const CSS_PROPERTY_VALUES: Record<string, Completion[]> = {
+  "display": [
+    { label: "block", apply: "block", info: "ÂùóÁ∫ßÂÖÉÁ¥†" },
+    { label: "inline", apply: "inline", info: "Ë°åÂÜÖÂÖÉÁ¥†" },
+    { label: "inline-block", apply: "inline-block", info: "Ë°åÂÜÖÂùóÂÖÉÁ¥†" },
+    { label: "flex", apply: "flex", info: "FlexÂ∏ÉÂ±Ä" },
+    { label: "grid", apply: "grid", info: "GridÂ∏ÉÂ±Ä" },
+    { label: "none", apply: "none", info: "‰∏çÊòæÁ§∫ÂÖÉÁ¥†" }
   ],
-  values: [
-    { label: "flex", type: "value", apply: "flex", boost: 10 },
-    { label: "grid", type: "value", apply: "grid", boost: 10 },
-    { label: "block", type: "value", apply: "block", boost: 10 },
-    { label: "inline-block", type: "value", apply: "inline-block", boost: 9 },
-    { label: "none", type: "value", apply: "none", boost: 9 },
-    
-    // Ñ1§7Ñ1§7¶ÀÅ0ˆ5
-    { label: "absolute", type: "value", apply: "absolute", boost: 10 },
-    { label: "relative", type: "value", apply: "relative", boost: 10 },
-    { label: "fixed", type: "value", apply: "fixed", boost: 9 },
-    { label: "sticky", type: "value", apply: "sticky", boost: 9 },
-    
-    // Ñ1§7Å0ê3Ñ1§7Ñ1§7Ñ1§7Ñ1§7Ñ1§7
-    { label: "center", type: "value", apply: "center", boost: 10 },
-    { label: "left", type: "value", apply: "left", boost: 9 },
-    { label: "right", type: "value", apply: "right", boost: 9 },
-    { label: "justify", type: "value", apply: "justify", boost: 9 }
+  "position": [
+    { label: "static", apply: "static", info: "ÈªòËÆ§ÂÆö‰Ωç" },
+    { label: "relative", apply: "relative", info: "Áõ∏ÂØπÂÆö‰Ωç" },
+    { label: "absolute", apply: "absolute", info: "ÁªùÂØπÂÆö‰Ωç" },
+    { label: "fixed", apply: "fixed", info: "Âõ∫ÂÆöÂÆö‰Ωç" },
+    { label: "sticky", apply: "sticky", info: "Á≤òÊÄßÂÆö‰Ωç" }
   ],
-  units: [
-    { label: "px", type: "unit", apply: "px", boost: 10 },
-    { label: "em", type: "unit", apply: "em", boost: 10 },
-    { label: "rem", type: "unit", apply: "rem", boost: 10 },
-    { label: "%", type: "unit", apply: "%", boost: 10 },
-    { label: "vh", type: "unit", apply: "vh", boost: 9 },
-    { label: "vw", type: "unit", apply: "vw", boost: 9 },
-    { label: "vmin", type: "unit", apply: "vmin", boost: 8 },
-    { label: "vmax", type: "unit", apply: "vmax", boost: 8 }
+  "color": [
+    { label: "red", apply: "red", info: "Á∫¢Ëâ≤" },
+    { label: "blue", apply: "blue", info: "ËìùËâ≤" },
+    { label: "green", apply: "green", info: "ÁªøËâ≤" },
+    { label: "black", apply: "black", info: "ÈªëËâ≤" },
+    { label: "white", apply: "white", info: "ÁôΩËâ≤" },
+    { label: "transparent", apply: "transparent", info: "ÈÄèÊòé" },
+    { label: "currentColor", apply: "currentColor", info: "ÂΩìÂâçÈ¢úËâ≤" },
+    { label: "#000000", apply: "#000000", info: "ÂçÅÂÖ≠ËøõÂà∂ÈªëËâ≤" },
+    { label: "#FFFFFF", apply: "#FFFFFF", info: "ÂçÅÂÖ≠ËøõÂà∂ÁôΩËâ≤" },
+    { label: "rgb(0, 0, 0)", apply: "rgb(0, 0, 0)", info: "RGBÈªëËâ≤" },
+    { label: "rgba(0, 0, 0, 0.5)", apply: "rgba(0, 0, 0, 0.5)", info: "RGBAÂçäÈÄèÊòéÈªëËâ≤" }
+  ],
+  "background": [
+    { label: "none", apply: "none", info: "Êó†ËÉåÊôØ" },
+    { label: "transparent", apply: "transparent", info: "ÈÄèÊòéËÉåÊôØ" },
+    { label: "url()", apply: "url($0)", info: "ËÉåÊôØÂõæÁâá" },
+    { label: "linear-gradient()", apply: "linear-gradient($0)", info: "Á∫øÊÄßÊ∏êÂèò" },
+    { label: "radial-gradient()", apply: "radial-gradient($0)", info: "ÂæÑÂêëÊ∏êÂèò" }
   ]
 }
 
-export const cssCompletions = (context: CompletionContext) => {
+// CSSÈÄâÊã©Âô®Ë°•ÂÖ®
+const CSS_SELECTORS: Completion[] = [
+  { label: ".class", type: "selector", apply: ".$0", boost: 10, info: "Á±ªÈÄâÊã©Âô®" },
+  { label: "#id", type: "selector", apply: "#$0", boost: 10, info: "IDÈÄâÊã©Âô®" },
+  { label: "element", type: "selector", apply: "$0", boost: 9, info: "ÂÖÉÁ¥†ÈÄâÊã©Âô®" },
+  { label: "*", type: "selector", apply: "*", boost: 8, info: "ÈÄöÈÖçÁ¨¶ÈÄâÊã©Âô®" },
+  { label: "[attribute]", type: "selector", apply: "[$0]", boost: 8, info: "Â±ûÊÄßÈÄâÊã©Âô®" },
+  { label: ":hover", type: "pseudo", apply: ":hover", boost: 9, info: "ÊÇ¨ÂÅúÁä∂ÊÄÅ" },
+  { label: ":active", type: "pseudo", apply: ":active", boost: 8, info: "ÊøÄÊ¥ªÁä∂ÊÄÅ" },
+  { label: ":focus", type: "pseudo", apply: ":focus", boost: 8, info: "ÁÑ¶ÁÇπÁä∂ÊÄÅ" },
+  { label: ":first-child", type: "pseudo", apply: ":first-child", boost: 8, info: "Á¨¨‰∏Ä‰∏™Â≠êÂÖÉÁ¥†" },
+  { label: ":last-child", type: "pseudo", apply: ":last-child", boost: 8, info: "ÊúÄÂêé‰∏Ä‰∏™Â≠êÂÖÉÁ¥†" },
+  { label: ":nth-child()", type: "pseudo", apply: ":nth-child($0)", boost: 8, info: "Á¨¨n‰∏™Â≠êÂÖÉÁ¥†" },
+  { label: "::before", type: "pseudo", apply: "::before", boost: 8, info: "Ââç‰º™ÂÖÉÁ¥†" },
+  { label: "::after", type: "pseudo", apply: "::after", boost: 8, info: "Âêé‰º™ÂÖÉÁ¥†" }
+]
+
+export function cssCompletions(context: CompletionContext, projectContext?: any) {
   const line = context.state.doc.lineAt(context.pos)
   const textBefore = line.text.slice(0, context.pos - line.from)
-  const isScss = context.state.doc.toString().includes('@mixin') || 
-                context.state.doc.toString().includes('@include')
-  
-  // Ñ1§7Ñ1§7Ñ1§71Ñ1§7Ñ1§7Ñ1§7Ñ1§7Å0‘5Ñ1§7Ñ1§7Ñ1§7Ñ1§7¶ÀÑ1§7Ñ1§7
-  const selectorMatch = /([.#a-zA-Z][^{]*)$/.exec(textBefore)
-  if (selectorMatch && !textBefore.includes('{')) {
+
+  // Â±ûÊÄßÂêçË°•ÂÖ®
+  const propertyNameMatch = /([a-z-]*)$/.exec(textBefore)
+  if (propertyNameMatch && propertyNameMatch[1].length > 0) {
+    return {
+      from: context.pos - propertyNameMatch[1].length,
+      options: CSS_PROPERTIES.filter(prop => prop.label.startsWith(propertyNameMatch[1])),
+      filter: false
+    }
+  }
+
+  // Â±ûÊÄßÂÄºË°•ÂÖ®
+  const propertyMatch = /([a-z-]+)\s*:\s*([^;]*)$/i.exec(textBefore)
+  if (propertyMatch) {
+    const propertyName = propertyMatch[1]
+    const values = CSS_PROPERTY_VALUES[propertyName] || []
+    return {
+      from: context.pos - (propertyMatch[2]?.length || 0),
+      options: values,
+      filter: false
+    }
+  }
+
+  // ÈÄâÊã©Âô®Ë°•ÂÖ®
+  const selectorMatch = /([.#a-z\[]\s*[^\s{]*)$/i.exec(textBefore)
+  if (selectorMatch) {
     return {
       from: context.pos - selectorMatch[1].length,
       options: CSS_SELECTORS,
@@ -104,44 +116,12 @@ export const cssCompletions = (context: CompletionContext) => {
     }
   }
 
-  // Ñ1§7Ñ1§7Ñ1§72Ñ1§7Ñ1§7Ñ1§7Ñ1§7Ñ1§7Ñ1§7Ñ1§7Ñ1§7Ñ1§7Ñ1§7¶ÀÑ1§7Ñ1§7
-  const propMatch = /([a-z-]+)\s*:\s*[^;]*$/i.exec(textBefore)
-  if (!propMatch) {
-    return {
-      from: context.pos,
-      options: [
-        ...CSS_DATA.properties,
-        ...(isScss ? CSS_DATA.properties.filter(p => p.type === 'directive') : [])
-      ],
-      filter: false
-    }
+  // ÈªòËÆ§ËøîÂõûÂ±ûÊÄßË°•ÂÖ® + Âä®ÊÄÅË°•ÂÖ®ÔºàÂ¶Ç CSS ÂèòÈáèÔºâ
+  const dynamicOptions: Completion[] = projectContext?.cssVariables || []
+
+  return {
+    from: context.pos,
+    options: [...CSS_PROPERTIES, ...dynamicOptions],
+    filter: false
   }
-
-  // Ñ1§7Ñ1§7Ñ1§73Ñ1§7Ñ1§7Ñ1§7Ñ1§7Ñ1§7Ñ1§7Ñ1§7Ñ1§7Å0ˆ5¶ÀÑ1§7Ñ1§7
-  const isAfterColon = /:\s*[^;]*$/.test(textBefore)
-  if (isAfterColon) {
-    const currentProp = propMatch[1].toLowerCase()
-    return {
-      from: context.pos - (textBefore.split(':').pop()?.trim().length || 0),
-      options: [
-        ...CSS_DATA.values.filter(v => 
-          v.apply.includes(currentProp) || 
-          currentProp.includes(v.apply)
-        ),
-        ...CSS_DATA.units,
-        ...(currentProp === 'var' ? CSS_DATA.properties.filter(p => p.label.startsWith('--')) : [])
-      ],
-      filter: false
-    }
-  }
-
-  return null
-}
-
-// 4. Ñ1§7Ñ1§7Ñ1§7Ñ1§7Ñ1§7Ñ1§7Ñ1§7Ñ1§7Ñ1§7Ñ1§7Å0©2Ñ1§7Ñ1§7Ñ1§7Ñ1§7Å0©2Ñ1§7Å06Å0Œ5Ñ1§7
-function getCssValuesForProp(prop: string): Completion[] {
-  return CSS_DATA.values.filter(v => 
-    v.apply.includes(prop) || 
-    prop.includes(v.apply)
-  )
 }

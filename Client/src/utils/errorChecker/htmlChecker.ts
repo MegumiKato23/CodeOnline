@@ -1,4 +1,22 @@
 import { CodeError, ErrorChecker, ErrorCheckerOptions } from './typescript';
+import * as parse5 from 'parse5';
+
+interface OpenTag {
+  name: string;
+  position: number;
+  parent?: string;
+  line: number;
+  column: number;
+}
+
+let openTags: OpenTag[] = [];
+
+interface HtmlNode {
+  nodeName: string;
+  attrs?: Array<{name: string; value: string}>;
+  childNodes?: HtmlNode[];
+  parentNode?: HtmlNode;
+}
 
 // 定义HTML5标准标签及其允许的嵌套关系
 const HTML5_TAGS = {
@@ -12,7 +30,6 @@ const HTML5_TAGS = {
 
 // 定义不允许嵌套的标签组合
 const INVALID_NESTING = [
-  ['p', 'div'],
   ['p', 'ul'],
   ['p', 'ol'],
   ['a', 'a'],
@@ -33,8 +50,19 @@ const REQUIRED_PARENTS = {
 };
 export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorCheckerOptions) => {
   const errors: CodeError[] = [];
-  const openTags: { name: string; position: number; parent?: string }[] = [];
   const ignorePatterns = options?.ignorePatterns || [];
+  
+  // 使用parse5解析HTML
+  const document = parse5.parse(code);
+  
+  // 计算行列号
+  const getLineColumn = (index: number) => {
+    const lines = code.substring(0, index).split('\n');
+    return {
+      line: lines.length,
+      column: lines[lines.length - 1].length + 1
+    };
+  };
   
   // 1. 增强标签解析器
   const tagRegex = /<(\/?)([a-zA-Z][^\s>]*)([^>]*)>/g;
@@ -51,18 +79,36 @@ export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorChe
       // 处理闭合标签
       const lastOpenTag = openTags.pop();
       if (!lastOpenTag || lastOpenTag.name !== currentTag) {
-        errors.push({
+        const { line, column } = getLineColumn(match.index);
+      errors.push({
           message: `Mismatched closing tag: expected </${lastOpenTag?.name || '?'}> but found </${currentTag}>`,
           severity: 'error',
           from: match.index,
           to: match.index + fullMatch.length,
-          line: 0
+          line,
+          column,
+          context: code.substring(Math.max(0, match.index - 20), Math.min(code.length, match.index + fullMatch.length + 20)),
+          category: 'syntax',
+          fixes: [
+            {
+              description: `Replace with </${lastOpenTag?.name || '?'}>`,
+              edit: {
+                from: match.index + 2,
+                to: match.index + 2 + currentTag.length,
+                text: lastOpenTag?.name || '?'
+              }
+            }
+          ]
         });
       }
     } else if (!isSelfClosing) {
       // 记录非自闭合的开放标签
       const parentTag = openTags.length > 0 ? openTags[openTags.length - 1].name : undefined;
-      openTags.push({ name: currentTag, position: match.index, parent: parentTag });
+      openTags.push({
+        name: currentTag, position: match.index, parent: parentTag,
+        line: 0,
+        column: 0
+      });
       
       // 2. 检查必须包含的父元素
       if (REQUIRED_PARENTS[currentTag]) {
@@ -116,12 +162,26 @@ export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorChe
       
       // 检查无效属性值
       if (attrMatch[2] && attrMatch[2].trim() === '') {
+        const { line, column } = getLineColumn(match.index + match[0].indexOf(attrMatch[0]));
         errors.push({
           message: `Empty value for attribute: ${attrName}`,
           severity: 'warning',
           from: match.index + match[0].indexOf(attrMatch[0]),
           to: match.index + match[0].indexOf(attrMatch[0]) + attrMatch[0].length,
-          line: 0
+          line,
+          column,
+          context: code.substring(Math.max(0, match.index - 20), Math.min(code.length, match.index + match[0].length + 20)),
+          category: 'syntax',
+          fixes: [
+            {
+              description: `Remove empty attribute ${attrName}`,
+              edit: {
+                from: match.index + match[0].indexOf(attrMatch[0]),
+                to: match.index + match[0].indexOf(attrMatch[0]) + attrMatch[0].length,
+                text: ''
+              }
+            }
+          ]
         });
       }
     }
@@ -129,12 +189,28 @@ export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorChe
   
   // 5. 检查未闭合的标签
   openTags.forEach(tag => {
-    return errors.push({
-      message: `Unclosed tag: <${tag.name}>`,
+    const { line, column } = getLineColumn(tag.position);
+    const isDivTag = tag.name === 'div';
+    
+    errors.push({
+      message: isDivTag ? `Unclosed div tag detected` : `Unclosed tag: <${tag.name}>`,
       severity: 'error',
       from: tag.position,
       to: tag.position + tag.name.length + 1,
-      line: 0
+      line,
+      column,
+      context: code.substring(Math.max(0, tag.position - 20), Math.min(code.length, tag.position + tag.name.length + 21)),
+      category: 'syntax',
+      fixes: [
+        {
+          description: isDivTag ? `Add closing </div> tag` : `Add closing tag </${tag.name}>`,
+          edit: {
+            from: tag.position + tag.name.length + 1,
+            to: tag.position + tag.name.length + 1,
+            text: `</${tag.name}>`
+          }
+        }
+      ]
     });
   });
   
@@ -143,7 +219,7 @@ export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorChe
   const hasHeadTag = code.includes('<head') && code.includes('</head>');
   const hasBodyTag = code.includes('<body') && code.includes('</body>');
   
-  if (!hasHtmlTag) {
+  if (!hasHtmlTag && !options?.allowPartial) {
     errors.push({
       message: 'Missing <html> tag',
       severity: 'warning',

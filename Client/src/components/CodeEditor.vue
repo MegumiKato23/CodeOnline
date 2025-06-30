@@ -83,27 +83,8 @@ const baseExtensions = [
   ]),
   syntaxHighlighting(myHighlightStyle),
   createCompletions(),
-
-  //报错提示
-  linter(async (view) => {
-    const checker = createErrorChecker(activeTab.value);
-    const result = await checker(view.state.doc.toString());
-    return result.diagnostics.map(d => ({
-      from: d.from,
-      to: d.to,
-      severity: d.severity,
-      message: d.message,
-      actions: d.fix ? [{
-        name: d.fix.label,
-        apply: (v, from, to) => v.dispatch({
-          changes: {from, to, insert: d.fix.edit[0].insert}
-        })
-      }] : []
-    }));
-  }),
-
-
-  lintGutter(),
+  
+  
   EditorView.theme({
     "&": { height: "100%" },
     ".cm-scroller": { overflow: "auto" },
