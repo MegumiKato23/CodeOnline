@@ -41,7 +41,7 @@ import { tags } from '@lezer/highlight'
 import { linter, lintGutter, lintKeymap } from '@codemirror/lint'
 import { useEditorStore } from '@/stores/editor'
 import { createCompletions } from '@/utils/codeCompletions/index'
-import { createErrorChecker } from '@/utils/errorChecker'
+import { createErrorChecker } from '@/utils/errorChecker1'
 import HtmlIcon from './icons/HtmlIcon.vue'
 import CssIcon from './icons/CssIcon.vue'
 import JsIcon from './icons/JsIcon.vue'
@@ -83,7 +83,11 @@ const baseExtensions = [
   ]),
   syntaxHighlighting(myHighlightStyle),
   createCompletions(),
+  //报错提示
   
+
+
+  lintGutter(),
   
   EditorView.theme({
     "&": { height: "100%" },
@@ -124,6 +128,28 @@ const getLanguageExtension = () => {
   }
 }
 
+// 设置错误检查扩展
+const setupLinter = () => {
+  // 确保错误检测器只被调用一次
+  const checker = createErrorChecker(activeTab.value);
+  return linter(async (view) => {
+    const result = await checker(view.state.doc.toString());
+    return result.diagnostics.map(d => ({
+      from: d.from,
+      to: d.to,
+      severity: d.severity,
+      message: d.message,
+      actions: d.fix ? [{
+        name: d.fix.label,
+        apply: (v, from, to) => v.dispatch({
+          changes: {from, to, insert: d.fix.edit[0].insert}
+        })
+      }] : []
+    }));
+  });
+}
+
+
 // 初始化编辑器
 const initializeEditor = () => {
   if (!editorElement.value) return
@@ -137,7 +163,8 @@ const initializeEditor = () => {
     doc: currentCode,
     extensions: [
       ...baseExtensions,
-      getLanguageExtension()
+      getLanguageExtension(),
+      setupLinter()
     ]
   })
 

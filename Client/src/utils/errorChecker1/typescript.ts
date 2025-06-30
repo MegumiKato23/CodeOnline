@@ -1,3 +1,4 @@
+
 export interface CodeError {
   message: string;
   severity: 'error' | 'warning' | 'suggestion';

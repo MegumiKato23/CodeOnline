@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { Completion, CompletionContext } from '@codemirror/autocomplete';
-import { analyzeAST, type VariableInfo } from '../astAnalyzer';
+import { analyzeAST, type VariableInfo } from './astAnalyzer';
 const GLOBAL_OBJECTS: Completion[] = [
   { label: "console", type: "variable", detail: "Global object" },
   { label: "document", type: "variable", detail: "Global object" }
