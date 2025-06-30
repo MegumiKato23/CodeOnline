@@ -21,7 +21,7 @@ import { api } from '@/api';
 import { ShareService } from '@/services/shareService';
 
 const userStore = useUserStore();
-// const codeStore = useCodeStore();
+const codeStore = useCodeStore();
 const emit = defineEmits(['login']);
 
 // // 控制下拉框显示状态
@@ -56,6 +56,9 @@ const logout = async () => {
       if (shareResult.success) {
         ShareService.applyShareAccess(shareResult);
       }
+      codeStore.updateCode('html', '');
+      codeStore.updateCode('css', '');
+      codeStore.updateCode('js', '');
     }
   } catch (error) {
     console.error('退出登录失败:', error);

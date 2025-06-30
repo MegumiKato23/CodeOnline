@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount, isReadonly } from 'vue';
 import { storeToRefs } from 'pinia';
 import { debounce } from 'lodash-es'; // 导入防抖函数
 import { useCodeStore } from '@/stores/codeStore';
@@ -247,8 +247,9 @@ const handleBeforeUnload = async (e) => {
     return msg;
   }
 };
-onMounted(() => {
+onMounted(async () => {
   debouncedUpdatePreview(); // 初始加载时调用防抖版本
+
   window.addEventListener('beforeunload', handleBeforeUnload);
   // 仅在调整大小时禁用 iframe 事件
   const iframe = document.querySelector('.preview-frame') as HTMLIFrameElement;
@@ -257,7 +258,9 @@ onMounted(() => {
       document.body.style.cursor = 'col-resize';
     }
   });
-  checkShareAccess();
+
+  await checkShareAccess();
+  console.log(userStore.isReadOnlyMode);
   debouncedUpdatePreview();
 });
 
