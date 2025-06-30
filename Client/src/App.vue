@@ -1,7 +1,8 @@
 <template>
-  <div class="app">
+  <div class="app" >
     <Navbar @login="showLoginDialog = true" />
-    <div v-if="status === 'true'" class="main-content">
+    <div class="left" ref="view">
+    <div class="main-content">
       <div class="editor-panel" ref="editorPanel">
         <CodeEditor :activeTab="activeTab" :isReadOnly="userStore.isReadOnlyMode" />
       </div>
@@ -15,14 +16,6 @@
         ></iframe>
       </div>
     </div>
-    <div v-else class="main-content">
-      <div class="preview-panel">
-        <iframe ref="previewFrame" class="preview-frame" :class="{ 'no-pointer-events': isResizing }"></iframe>
-      </div>
-      <div class="resize-handle" @mousedown="startResize" @dblclick="resetSize"></div>
-      <div class="editor-panel" ref="editorPanel">
-        <CodeEditor :activeTab="activeTab" />
-      </div>
     </div>
     <Footer :isReadOnly="userStore.isReadOnlyMode" @login="showLoginDialog = true" />
     <SettingsDialog v-if="showSettings" @close="showSettings = false" />
@@ -50,11 +43,13 @@ import { api } from '@/api/index';
 import { Users } from 'lucide-vue-next';
 import { ShareService } from '@/services/shareService';
 
+
 const codeStore = useCodeStore();
 const userStore = useUserStore();
 
 //用户访问权限
 const permissions = ref<ProjectPermissions | null>(null);
+
 
 const { htmlCode, cssCode, jsCode, activeTab } = storeToRefs(codeStore);
 const { status } = storeToRefs(userStore);
@@ -68,6 +63,8 @@ const startX = ref(0);
 // 存储编辑器面板的初始宽度
 const startWidth = ref(0);
 const editorPanel = ref<HTMLElement | null>(null);
+const view = ref<HTMLElement | null>(null);
+console .log(view);
 // 创建防抖的预览更新函数 (500ms)
 const debouncedUpdatePreview = debounce(() => {
   if (!previewFrame.value) return;
@@ -106,7 +103,9 @@ const debouncedUpdatePreview = debounce(() => {
 }, 500); // 500ms防抖延迟
 
 watch(status, () => {
-  debouncedUpdatePreview();
+    view.value.className = '';
+    view.value.classList.add(status.value)
+    debouncedUpdatePreview();
 });
 
 // 切换到注册界面
@@ -295,6 +294,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style>
+@import '../viewStyle.css';
 * {
   margin: 0;
   padding: 0;
@@ -309,65 +309,5 @@ onBeforeUnmount(() => {
   color: white;
 }
 
-.main-content {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-  height: calc(100vh - 60px); /* 假设导航栏和页脚总高度为60px */
-  position: relative;
-}
 
-.editor-panel {
-  width: 50%;
-  min-width: 300px;
-  max-width: calc(100% - 300px);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-  background: #1e1e1e;
-}
-
-.resize-handle {
-  width: 8px;
-  background: #1a1a1a;
-  cursor: col-resize;
-  position: relative;
-  z-index: 10;
-  transition: background 0.1s;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-.resize-handle:hover {
-  background: #555;
-}
-
-.resize-handle::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0px;
-  right: 0px;
-  bottom: 0;
-}
-
-.preview-panel {
-  flex: 1;
-  min-width: 300px;
-  display: flex;
-  height: 100%;
-  overflow: auto; /* 改为auto以显示滚动条 */
-}
-
-.preview-frame {
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: white;
-}
-/* 仅在调整大小时禁用指针事件 */
-.preview-frame.no-pointer-events {
-  pointer-events: none;
-}
-</style>
+</style> 

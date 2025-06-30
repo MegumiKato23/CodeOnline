@@ -11,10 +11,20 @@
 
     <!-- 右侧部分：操作按钮 -->
     <div class="right">
-      <UnifiedButton type="primary" size="large" :class="{ status }" :icon="ViewIcon" @click="toggleView">
-        <!-- <ViewIcon class="icon" /> -->
-        <span>{{ status ? 'View1' : 'View2' }}</span>
-      </UnifiedButton>
+
+  <el-dropdown @command="handleCommand" class="custom-dropdown">
+  <span class="el-dropdown-link custom-dropdown-link">
+    Views
+    <el-icon  class="el-icon--right"><arrow-down /></el-icon>
+  </span>
+  <template #dropdown>
+    <el-dropdown-menu class="custom-dropdown-menu">
+      <el-dropdown-item command="left">Left</el-dropdown-item>
+      <el-dropdown-item command="right">Right</el-dropdown-item>
+      <el-dropdown-item command="top">Top</el-dropdown-item>
+    </el-dropdown-menu>
+  </template>
+</el-dropdown>
 
       <UnifiedButton
         type="primary"
@@ -51,7 +61,6 @@ import SettingsIcon from './icons/SettingsIcon.vue';
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 import ViewIcon from './icons/ViewIcon.vue';
 import HeadPortrait from './head_portrait.vue';
-import updateUserProfile, { UpdateUserRequest } from '@/api/index';
 
 const emit = defineEmits(['login']);
 
@@ -60,8 +69,9 @@ const codeStore = useCodeStore();
 const { username, userid, account, avatar, isLoggedIn, status } = storeToRefs(userStore);
 const { saved } = storeToRefs(codeStore);
 
-const toggleView = () => {
-  userStore.toggleView();
+const handleCommand = (command: string ) => {
+  //console.log(command)
+  userStore.toggleView(command);
 };
 const saveCode = () => {
   if (!userStore.isLoggedIn) {
@@ -184,4 +194,45 @@ const login = () => {
   width: 16px;
   height: 16px;
 } */
+
+/* 按钮样式 */
+.custom-dropdown-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  background-color: #444857;  /* 与primary按钮相同的背景色 */
+  color: #fff; /* 白色文字 */
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none; /* 去掉悬停时的边框 */
+  outline: none; /* 去掉悬停时的轮廓 */
+}
+
+.custom-dropdown-link:hover {
+  background-color: #999; /* 悬停时改变背景色 */
+  border: none; /* 去掉悬停时的边框 */
+  outline: none; /* 去掉悬停时的轮廓 */
+}
+
+/* 下拉菜单样式 */
+.custom-dropdown-menu {
+  background-color: #fff;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 下拉菜单项样式 */
+.custom-dropdown-menu .el-dropdown-item {
+  font-size: 14px;
+  color: #303133;
+}
+
+.custom-dropdown-menu .el-dropdown-item:hover {
+  background-color: #f2f6fc; /* 悬停时改变背景色 */
+}
+
 </style>

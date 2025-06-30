@@ -14,7 +14,7 @@ export const useUserStore = defineStore('user', () => {
   const username = ref('');
   const account = ref('');
   const avatar = ref('');
-  const status = ref('true');
+  const status = ref('left');
   const createAt = ref('');
 
   const isLoggedIn = ref(false);
@@ -78,9 +78,9 @@ export const useUserStore = defineStore('user', () => {
     isReadOnlyMode.value = false;
   };
 
-  const toggleView = async () => {
+  const toggleView = async (newStatus: string) => {
     // 切换视图状态
-    status.value = status.value === 'true' ? 'false' : 'true';
+    setStatus(newStatus);
     if (!isLoggedIn) {
       return;
     }
