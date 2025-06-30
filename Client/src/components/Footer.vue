@@ -230,15 +230,18 @@ onUnmounted(() => {
   position: absolute;
   /* bottom: 35px; */
   right: 0;
-  width: 200px;
-  height: 150px;
+  /* align-items: center; */
+  border: 1px solid #333;
+  width: 245px;
+  height: 140px;
   padding: 10px 15px;
-  background-color: rgb(30, 31, 38);
+  background-color: #1a1a1a;
+  border: transparent;
+  border-top-left-radius: 4px;
   animation: shareBox 0.3s ease forwards;
 }
 
 .share_link {
-  width: 180px;
   font-size: 10px;
 }
 
@@ -259,7 +262,7 @@ onUnmounted(() => {
   }
   to {
     opacity: 1;
-    bottom: 35px;
+    bottom: 1.7rem;
   }
 }
 
