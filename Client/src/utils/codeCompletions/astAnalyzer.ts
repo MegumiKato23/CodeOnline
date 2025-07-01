@@ -5,11 +5,11 @@ export interface VariableInfo {
   scope: 'global' | 'function' | 'block' | 'class'
   returnType?: string
   isExported?: boolean
-  isAsync?: boolean // ����Ƿ�Ϊ�첽����
-  isArrow?: boolean // ����Ƿ�Ϊ��ͷ����
-  params?: string[] // ���������б�
-  generics?: string[] // �������Ͳ���
-  extends?: string // ��̳�����
+  isAsync?: boolean
+  isArrow?: boolean
+  params?: string[] 
+  generics?: string[] 
+  extends?: string 
 }
 
 export const analyzeAST = (code: string): VariableInfo[] => {
@@ -19,7 +19,7 @@ export const analyzeAST = (code: string): VariableInfo[] => {
   let currentClass: string | null = null
   let currentGenerics: string[] = []
   
-  // 1. �1�7�1�7�1�7�1�7�1�7�1�7�1�7�1�7 (const/let/var) - �1�7�1�7�0�6�1�7�1�7�1�7�1�7�1�7�1�7�1�7�1�7�1�7
+  // 1. 变量声明 (const/let/var) - 检测变量声明并收集信息
   const varRegex = /(?:const|let|var)\s+([a-zA-Z_$][\w$]*)(?:\s*:\s*(\w+))?/g
   let varMatch: RegExpExecArray | null
   while ((varMatch = varRegex.exec(code)) !== null) {
@@ -33,7 +33,7 @@ export const analyzeAST = (code: string): VariableInfo[] => {
     })
   }
 
-  // ������������
+  // 函数声明分析
   const funcRegex = /(async\s+)?function\s+([a-zA-Z_$][\w$]*)\s*<([^>]+)>?\s*\(([^)]*)\)\s*(?::\s*(\w+))?/g
   let funcMatch: RegExpExecArray | null
   while ((funcMatch = funcRegex.exec(code)) !== null) {
@@ -57,7 +57,7 @@ export const analyzeAST = (code: string): VariableInfo[] => {
     scopeStack.push('function')
   }
 
-  // ����������
+  // 类声明分析
   const classRegex = /class\s+([a-zA-Z_$][\w$]*)\s*(?:<([^>]+)>)?\s*(?:extends\s+([a-zA-Z_$][\w$]*))?/g
   let classMatch: RegExpExecArray | null
   while ((classMatch = classRegex.exec(code)) !== null) {
@@ -77,7 +77,7 @@ export const analyzeAST = (code: string): VariableInfo[] => {
     currentGenerics = generics
   }
 
-  // React�������
+  // React组件分析
   const componentRegex = /const\s+([a-zA-Z_$][\w$]*)\s*:\s*(\w+)\s*(?:<([^>]+)>)?\s*=\s*\(([^)]*)\)\s*=>\s*</g
   let componentMatch: RegExpExecArray | null
   while ((componentMatch = componentRegex.exec(code)) !== null) {
@@ -99,7 +99,7 @@ export const analyzeAST = (code: string): VariableInfo[] => {
   return variables
 }
 
-// �Ʉ1�7�1�7�����ӻ���汾
+// 缓存优化版本
 let cachedCode = ''
 let cachedResult: VariableInfo[] = []
 

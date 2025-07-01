@@ -20,7 +20,7 @@ import { ref, onMounted, watch, toRefs, onBeforeUnmount, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
 import { debounce } from 'lodash-es';
 import { EditorState, StateEffect } from '@codemirror/state';
-import { EditorView, keymap } from '@codemirror/view';
+import { EditorView, keymap, lintGutter } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
@@ -28,7 +28,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import { defaultKeymap, undo, redo, history } from '@codemirror/commands';
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
-import { linter, lintGutter, lintKeymap } from '@codemirror/lint';
+import { linter, lintKeymap } from '@codemirror/lint';
 import { useCodeStore } from '@/stores/codeStore';
 import { useUserStore } from '@/stores/userStore';
 import { createCompletions } from '@/utils/codeCompletions/index';
@@ -50,28 +50,27 @@ const { htmlCode, cssCode, jsCode } = storeToRefs(codeStore);
 const editorElement = ref<HTMLElement | null>(null);
 const editorView = ref<EditorView | null>(null);
 
-// Create deb Karla
+// 创建防抖的代码更新函数 (300ms)
 const debouncedUpdateCode = debounce((code: string) => {
   codeStore.updateCode(activeTab.value, code);
 }, 300);
 
-// Enhanced highlight style
+// 自定义高亮样式
 const myHighlightStyle = HighlightStyle.define([
   { tag: tags.keyword, color: '#c678dd' },
   { tag: tags.comment, color: '#5c6370', fontStyle: 'italic' },
   { tag: tags.string, color: '#98c379' },
-  { tag: tags.number, color: '#dល
+  { tag: tags.number, color: '#d19a66' },
   { tag: tags.bracket, color: '#abb2bf' },
   { tag: tags.tagName, color: '#e06c75' },
   { tag: tags.attributeName, color: '#d19a66' },
-ល
   { tag: tags.className, color: '#61afef' },
 ]);
 
-// Define lint source effect
+// 定义 lint source effect
 const setLintSource = StateEffect.define<(tab: 'html' | 'css' | 'js') => (view: EditorView) => any>();
 
-// Base extensions
+// 基础扩展
 const baseExtensions = [
   history(),
   oneDark,
@@ -98,7 +97,7 @@ const baseExtensions = [
       backgroundImage: 'url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%206%203%22%20enable-background%3D%22new%200%200%206%203%22%20height%3D%223%22%20width%3D%226%22%3E%3Cg%20fill%3D%22%23e51400%22%3E%3Cpolygon%20points%3D%225.5%2C0%202.5%2C3%201.5%2C3%204.5%2C0%22%2F%3E%3Cpolygon%20points%3D%224%2C0%206%2C2%206%2C0.6%205.4%2C0%22%2F%3E%3Cpolygon%20points%3D%220%2C2%201%2C3%202.5%2C3%200%2C0.6%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E")'
     },
     '.cm-lintRange-warning': {
-      backgroundImage: 'url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%206%203%22%20enable-background%3D%22new%200%200%206%203%22%20height%3D%223%22%20width%3D%226%22%3E%3Cg%20fill%3D%22%23ffcc00%22%3E%3Cpolygon%20points%3D%225.5%2C0%202.5%2C3%201.5%2C3%204.5%2C0%22%2F%3E%3Cpolygon%20points%3D%224%2C0%206%2C2%206%2C0.6%205.4%2C0%22%2F%3E%3Cpolygon%20points%3D%220%2C2%201%2C3%202.5%2C3%200%2C0.6%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E")'
+      backgroundImage: 'url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%206%203% kenable-background%3D%22new%200%200%206%203%22%20height%3D%223%22%20width%3D%226%22%3E%3Cg%20fill%3D%22%23ffcc00%22%3E%3Cpolygon%20points%3D%225.5%2C0%202.5%2C3%201.5%2C3%204.5%2C0%22%2F%3E%3Cpolygon%20points%3D%224%2C0%206%2C2%206%2C0.6%205.4%2C0%22%2F%3E%3Cpolygon%20points%3D%220%2C2%201%2C3%202.5%2C3%200%2C0.6%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E")'
     }
   }),
   EditorView.lineWrapping,
@@ -110,12 +109,13 @@ const baseExtensions = [
   }),
 ];
 
-// Get language extension
+// 获取语言扩展
 const getLanguageExtension = () => {
   switch (activeTab.value) {
     case 'html':
       return html({ matchClosingTags: true, autoCloseTags: true });
     case 'css':
+ estimate: 0.1s
       return css();
     case 'js':
       return javascript({ jsx: true });
@@ -124,7 +124,7 @@ const getLanguageExtension = () => {
   }
 };
 
-// Setup linter
+// 设置 linter
 const setupLinter = () => {
   const checker = createErrorChecker(activeTab.value);
   return linter(async (view) => {
@@ -137,14 +137,14 @@ const setupLinter = () => {
       actions: d.fix ? [{
         name: d.fix.label,
         apply: (v, from, to) => v.dispatch({
-          changes: { from, to, insert: d.fix.edit replacing }
+          changes: { from, to, insert: d.fix.edit }
         })
       }] : []
     }));
   });
 };
 
-// Initialize editor
+// 初始化编辑器
 const initializeEditor = () => {
   if (!editorElement.value) return;
 
@@ -178,7 +178,7 @@ const initializeEditor = () => {
   });
 };
 
-// Destroy editor
+// 销毁编辑器
 const destroyEditor = () => {
   if (editorView.value) {
     editorView.value.destroy();
@@ -186,18 +186,18 @@ const destroyEditor = () => {
   }
 };
 
-// Recreate editor
+// 重新创建编辑器
 const recreateEditor = () => {
   destroyEditor();
   initializeEditor();
 };
 
-// Switch tab
+// 切换标签
 const setActiveTab = (tab: 'html' | 'css' | 'js') => {
   codeStore.setActiveTab(tab);
 };
 
-// Lifecycle hooks
+// 生命周期钩子
 onMounted(async () => {
   await nextTick();
   initializeEditor();

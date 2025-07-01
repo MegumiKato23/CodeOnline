@@ -7,7 +7,7 @@ const GLOBAL_OBJECTS: Completion[] = [
 ]
 
 const JS_KEYWORDS: Completion[] = [
- // �1�7�1�7�1�7�0�9�5�5
+ // 控制流关键字
     { label: "if", type: "keyword", apply: "if ($0) {\n\t$1\n}", boost: 10 },
     { label: "else", type: "keyword", apply: "else {\n\t$0\n}", boost: 10 },
     { label: "for", type: "keyword", apply: "for (let i = 0; i < $1; i++) {\n\t$0\n}", boost: 10 },
@@ -15,32 +15,32 @@ const JS_KEYWORDS: Completion[] = [
     { label: "switch", type: "keyword", apply: "switch ($0) {\n\tcase $1:\n\t\t$2\n\t\tbreak;\n\tdefault:\n\t\t$3\n}", boost: 9 },
     { label: "try", type: "keyword", apply: "try {\n\t$0\n} catch (e) {\n\t$1\n}", boost: 9 },
     
-    // �1�7�1�7�1�7�1�7�1�7�1�7�1�7�1�7
+    // 变量声明关键字
     { label: "const", type: "keyword", apply: "const $0 = $1", boost: 10 },
     { label: "let", type: "keyword", apply: "let $0 = $1", boost: 10 },
     { label: "var", type: "keyword", apply: "var $0 = $1", boost: 8 },
     
-    // �1�7�1�7�1�7�1�7
+    // 函数相关关键字
     { label: "function", type: "keyword", apply: "function $0($1) {\n\t$2\n}", boost: 10 },
     { label: "return", type: "keyword", apply: "return $0", boost: 10 },
     { label: "async", type: "keyword", apply: "async function $0($1) {\n\t$2\n}", boost: 9 },
     { label: "await", type: "keyword", apply: "await $0", boost: 9 },
     
-    // �1�7�1�7
+    // 类相关关键字
     { label: "class", type: "keyword", apply: "class $0 {\n\tconstructor($1) {\n\t\t$2\n\t}\n}", boost: 9 },
     { label: "extends", type: "keyword", apply: "extends $0", boost: 9 },
     
-    // DOM�1�7�1�7�1�7�1�7
+    // DOM操作方法
     { label: "document.querySelector", type: "function", apply: "document.querySelector('$0')", boost: 10 },
     { label: "document.querySelectorAll", type: "function", apply: "document.querySelectorAll('$0')", boost: 9 },
     { label: "addEventListener", type: "function", apply: "addEventListener('$0', $1)", boost: 9 },
     
-    // �1�7�1�7�1�7�1�7�0�6
+    // 控制台方法
     { label: "console.log", type: "function", apply: "console.log($0)", boost: 10 },
     { label: "console.error", type: "function", apply: "console.error($0)", boost: 9 },
     { label: "console.warn", type: "function", apply: "console.warn($0)", boost: 9 },
     
-    // �1�7�1�7�1�7�1�7�1�7�1�7
+    // 常用全局方法
     { label: "setTimeout", type: "function", apply: "setTimeout(() => {\n\t$0\n}, $1)", boost: 9 },
     { label: "setInterval", type: "function", apply: "setInterval(() => {\n\t$0\n}, $1)", boost: 9 },
     { label: "JSON.parse", type: "function", apply: "JSON.parse($0)", boost: 9 },
@@ -52,7 +52,7 @@ const JS_KEYWORDS: Completion[] = [
     { label: "import", type: "keyword", apply: "import $0 from '$1'", boost: 9 },
     { label: "export", type: "keyword", apply: "export $0", boost: 9 }
 ]
-// �1�7�1�7�1�7�1�7�1�7�1�7API�1�7�1�7�1�7�1�7Vue/React�1�7�1�7
+// 框架API (Vue/React/Svelte)
 const FRAME_APIS: Record<string, Completion[]> = {
   "vue": [
     { label: "ref", apply: "ref($0)", boost: 10, info: "Vue reactive reference" },
@@ -86,7 +86,7 @@ const FRAME_APIS: Record<string, Completion[]> = {
     { label: "tick", apply: "tick().then(() => {\n\t$0\n})", boost: 8, info: "Svelte DOM update" }
   ]
 };
-// �1�7�1�7�1�7�0�8�1�7�0�0�1�7�0�4�1�7�0�0�0�5�1�7�1�7�0�8�1�7�1�7
+// 将变量信息映射为补全项
 const mapVariableToCompletion = (v: VariableInfo): Completion => ({
   label: v.name,
   type: v.type === 'function' ? 'function' : 
@@ -142,7 +142,7 @@ export const jsCompletions = (context: CompletionContext, projectContext?: any) 
     };
   }
 
-  // 2. �1�7�1�7�1�7�1�7�1�7�1�7�1�7�0�4�1�7�0�0�1�7�1�7�1�7�1�7�1�7�1�7 console.l �1�7�1�7�0�0 log�1�7�1�7
+  // 2. 处理成员表达式补全，例如 console.l 补全为 log
   const memberExprMatch = /([a-zA-Z_$][\w$]*)\.([\w$]*)$/.exec(textBefore)
   if (memberExprMatch) {
     const [_, obj, prop] = memberExprMatch
@@ -156,7 +156,7 @@ export const jsCompletions = (context: CompletionContext, projectContext?: any) 
       filter: false
     }
   }
-  // �1�7�1�0�0�4�1�7�0�0�0�5�1�7�1�7�1�7�1�7�1�7�1�7�1�7�1�8�1�7
+  // 处理普通标识符补全
   const prefix = identifierMatch ? identifierMatch[1] : '';
 if (!prefix) return null;
 
@@ -180,7 +180,7 @@ return {
   filter: false
 }
 
-// �0�5�1�7�1�7�1�7�1�7�1�7�1�7�1�7�1�7�1�7�1�7
+// 获取对象属性补全
 function getObjectCompletions(obj: string): Completion[] {
   const OBJ_PROPS: Record<string, Completion[]> = {
     console: [

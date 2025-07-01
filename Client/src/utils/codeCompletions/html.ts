@@ -1,6 +1,5 @@
 import { Completion, CompletionContext } from '@codemirror/autocomplete'
 
-// �0�0�1�7�1�7�1�7�0�2�1�7HTML�1�7�1�7�0�5�1�7�1�7�1�7�1�7
 const HTML_TAGS: Completion[] = [
   // 结构标签
   { label: "div", type: "tag", apply: "div>$0</div>", boost: 10, info: "Generic container element" },
