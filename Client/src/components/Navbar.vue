@@ -4,67 +4,77 @@
     <div class="left">
       <CodePenLogo class="logo" />
       <div class="title-area">
-        <h1 class="title">{{ title }}</h1>
-        <div class="username">by {{ username }}</div>
+        <h1 class="title">CodeOnline</h1>
+        <div class="teamname">从容应队</div>
       </div>
     </div>
 
     <!-- 右侧部分：操作按钮 -->
     <div class="right">
-      <button 
-        class="btn save-btn" 
+      <UnifiedButton
+        type="primary"
+        size="large"
         :class="{ saved }"
+        :icon="CloudIcon"
+        :disabled="userStore.isReadOnlyMode"
         @click="saveCode"
       >
-        <CloudIcon class="icon" />
         <span>{{ saved ? 'Saved' : 'Save' }}</span>
-      </button>
-      
-      <button class="btn settings-btn" @click="openSettings">
-        <SettingsIcon class="icon" />
+      </UnifiedButton>
+
+      <UnifiedButton type="primary" size="large" :icon="SettingsIcon" @click="openSettings">
         <span>Settings</span>
-      </button>
-      
-      <button class="btn download-btn" @click="download">
-        <DownloadIcon class="icon" />
-        <span>Download</span>
-      </button>
-      
-      <button class="btn login-btn" @click="login">
+      </UnifiedButton>
+
+      <!-- 根据登录状态显示登录按钮或头像 -->
+      <UnifiedButton v-if="!isLoggedIn" type="primary" size="large" @click="login">
         <span>Log In</span>
-      </button>
+      </UnifiedButton>
+      <HeadPortrait v-else />
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import { useEditorStore } from '@/stores/editor'
-import CodePenLogo from './icons/CodePenLogo.vue'
-import DownloadIcon from './icons/DownloadIcon.vue'
-import CloudIcon from './icons/CloudIcon.vue'
-import SettingsIcon from './icons/SettingsIcon.vue'
+import { storeToRefs } from 'pinia';
+import { computed } from 'vue';
+import { useUserStore } from '@/stores/userStore';
+import { useCodeStore } from '@/stores/codeStore';
+import CodePenLogo from './icons/CodePenLogo.vue';
+import CloudIcon from './icons/CloudIcon.vue';
+import SettingsIcon from './icons/SettingsIcon.vue';
+import UnifiedButton from '@/components/ui/UnifiedButton.vue';
+import HeadPortrait from './head_portrait.vue';
 
-const editorStore = useEditorStore()
-const { saved, username, title } = storeToRefs(editorStore)
+const emit = defineEmits(['login']);
+
+const userStore = useUserStore();
+const codeStore = useCodeStore();
+const { username, isLoggedIn } = storeToRefs(userStore);
+const { saved } = storeToRefs(codeStore);
 
 const saveCode = () => {
-  editorStore.saveCode()
-  console.log('Code saved')
-}
+  if (!userStore.isLoggedIn) {
+    console.log('请先登录再保存');
+    return;
+  }
+  codeStore
+    .saveCode(userStore.account)
+    .then(() => {
+      console.log('代码保存成功');
+    })
+    .catch(() => {
+      console.log('代码保存失败');
+    });
+};
 
 const openSettings = () => {
-  console.log('Open settings')
-}
-
-const download = () => {
-  editorStore.saveCode()
-  console.log('Download code')
-}
+  console.log('Open settings');
+};
 
 const login = () => {
-  console.log('Login')
-}
+  emit('login');
+};
 </script>
 
 <style scoped>
@@ -101,7 +111,7 @@ const login = () => {
   font-weight: normal;
 }
 
-.username {
+.teamname {
   font-size: 12px;
   color: #999;
 }
@@ -112,7 +122,7 @@ const login = () => {
   gap: 8px;
 }
 
-.btn {
+/* .btn {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -121,35 +131,41 @@ const login = () => {
   border: none;
   cursor: pointer;
   font-size: 14px;
-}
+} */
 
-.save-btn {
+/* .save-btn {
   background: #5a5f73;
   color: white;
-}
+} */
 
-.save-btn.saved {
+/* .save-btn.saved {
   background: rgba(0, 200, 0, 0.2);
   color: #0f0;
-}
+} */
 
-.settings-btn {
+/* .settings-btn {
   background: #5a5f73;
   color: white;
-}
-
-.download-btn {
-  background: #47cf73;
-  color: black;
 }
 
 .login-btn {
   background: #5a5f73;
   color: white;
+} */
+
+.user-btn {
+  background-color: #333;
+  color: white;
+  border: 1px solid #444;
 }
 
-.icon {
+.username {
+  font-size: 12px;
+  color: #999;
+}
+
+/* .icon {
   width: 16px;
   height: 16px;
-}
+} */
 </style>

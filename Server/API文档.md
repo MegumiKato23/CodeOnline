@@ -5,7 +5,7 @@
 ## 基础信息
 
 - **Base URL**: http://localhost:8080
-- **认证方式**: JWT Bearer Token
+- **认证方式**: JWT 
 - **数据格式**: JSON
 
 ## API 接口
@@ -19,18 +19,25 @@
 ```json
 {
   "username": "string, 必填, 3-20字符",
-  "account": "string, 必填, 邮箱格式",
-  "password": "string, 必填, 6-30字符",
+  "account": "string, 必填, 手机号格式",
+  "password": "string, 必填, 6-30字符，必须包含大小写",
   "confirmPassword": "string, 必填, 需与password一致"
 }
 ```
 - **响应**:
 ```json
 {
-  "id": "string, 用户ID",
-  "username": "string, 用户名",
-  "account": "string, 账户",
-  "createdAt": "string, ISO8601时间格式"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "user": {
+      "id": "string, 用户ID",
+      "username": "string, 用户名",
+      "account": "string, 账户",
+      "avatar": "string, 头像URL",
+      "status": "string, 状态栏"
+    }
+  }
 }
 ```
 
@@ -47,9 +54,27 @@
 - **响应**:
 ```json
 {
-  "access_token": "string, JWT令牌",
-  "token_type": "string, 固定值'Bearer'",
-  "expires_in": "number, 令牌有效期(秒)",
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "user": {
+      "id": "string, 用户ID",
+      "username": "string, 用户名",
+      "account": "string, 账户",
+      "avatar": "string, 头像URL",
+      "status": "string, 状态栏"
+    }
+  }
+}
+```
+
+#### 1.3 更新用户资料
+- **方法**: PUT
+- **路径**: `/users/profile`
+- **认证**: 需要Token
+- **请求体**:
+```json
+{
   "user": {
     "id": "string, 用户ID",
     "username": "string, 用户名",
@@ -59,40 +84,76 @@
   }
 }
 ```
-
-#### 1.3 更新用户资料
-- **方法**: PUT
-- **路径**: `/users/profile`
-- **认证**: 需要Bearer Token
-- **请求体**:
+- **响应**: 返回用户信息
 ```json
 {
-  "user": {
-    "id": "string, 用户ID",
-    "username": "string, 用户名",
-    "account": "string, 账户",
-    "avatar": "string, 头像URL"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "user": {
+      "id": "string, 用户ID",
+      "username": "string, 用户名",
+      "account": "string, 账户",
+      "avatar": "string, 头像URL",
+      "status": "string, 状态栏"
+    }
   }
 }
 ```
 
 #### 1.4 获取用户资料
 - **方法**: GET
-- **路径**: `/users/profile/{userId}`
+- **路径**: `/users/profile`
+- **认证**: 需要Token
 - **响应**: 返回用户信息
+```json
+{
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "user": {
+      "id": "string, 用户ID",
+      "username": "string, 用户名",
+      "account": "string, 账户",
+      "avatar": "string, 头像URL",
+      "status": "string, 状态栏",
+      "createdAt": "Date, 创建时间",
+      "lastLogin": "Date, 上次登录时间"
+    }
+  }
+}
+```
 
 #### 1.5 获取用户项目集
 - **方法**: GET
-- **路径**: `/users/project/{userId}`
+- **路径**: `/users/project`
+- **认证**: 需要Token
+- **响应**: 返回用户项目集
+```json
+{
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "projects": [
+      {
+        "id": "string, 项目ID",
+        "name": "string, 项目名",
+        "createdAt": "Date, 创建时间",
+        "updatedAt": "Date, 更新时间"
+      }
+    ]
+  }
+}
+```
+
+#### 1.6 更新token
+- **方法**: POST
+- **路径**: `/users/auth/refresh`
 - **响应**:
 ```json
 {
-  "id": "string, 用户ID",
-  "projects": [
-    {
-      "id": "string, 项目ID"
-    }
-  ]
+  "code": "number, 状态码",
+  "message": "string, 状态描述"
 }
 ```
 
@@ -101,7 +162,7 @@
 #### 2.1 创建项目
 - **方法**: POST
 - **路径**: `/projects`
-- **认证**: 需要Bearer Token
+- **认证**: 需要Token
 - **请求体**:
 ```json
 {
@@ -111,33 +172,45 @@
 - **响应**:
 ```json
 {
-  "id": "string, 项目ID",
-  "ownerId": "string, 所属者ID",
-  "name": "string, 项目名",
-  "createdAt": "Date, 创建时间", 
-  "updatedAt": "Date, 更新时间"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "project": {
+      "id": "string, 项目ID",
+      "ownerId": "string, 所属者ID",
+      "name": "string, 项目名",
+      "createdAt": "Date, 创建时间", 
+      "updatedAt": "Date, 更新时间"
+    }
+  }
 }
 ``` 
 
 #### 2.2 获取单个项目
 - **方法**: GET
 - **路径**: `/projects/{projectId}`
+- **认证**: 需要Token
 - **响应**:
 ```json
 {
-  "id": "string, 项目ID",
-  "name": "string, 项目名",
-  "owner": "User, 所属者信息",
-  "files": "File[], 文件数组",
-  "createdAt": "Date, 创建时间", 
-  "updatedAt": "Date, 更新时间"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "project": {
+      "id": "string, 项目ID",
+      "name": "string, 项目名",
+      "files": "File[], 文件数组",
+      "createdAt": "Date, 创建时间", 
+      "updatedAt": "Date, 更新时间"
+    }
+  }
 }
 ```
 
 #### 2.3 更新项目
 - **方法**: PUT
 - **路径**: `/projects/{projectId}`
-- **认证**: 需要Bearer Token
+- **认证**: 需要Token
 - **请求体**:
 ```json
 {
@@ -147,29 +220,66 @@
 - **响应**:
 ```json
 {
-  "id": "string, 项目ID",
-  "ownerId": "string, 所属者ID",
-  "name": "string, 项目名",
-  "createdAt": "Date, 创建时间", 
-  "updatedAt": "Date, 更新时间"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "project": {
+      "id": "string, 项目ID",
+      "name": "string, 项目名",
+      "createdAt": "Date, 创建时间", 
+      "updatedAt": "Date, 更新时间"
+    }
+  }
 }
 ``` 
 
 #### 2.4 删除项目
 - **方法**: DELETE
 - **路径**: `/projects/{projectId}`
-- **认证**: 需要Bearer Token
+- **认证**: 需要Token
+- **响应**:
+```json
+{
+  "code": "number, 状态码",
+  "message": "string, 状态描述"
+}
+```
 
 #### 2.5 获取分享短链
 - **方法**: GET
 - **路径**: `/projects/share/{projectId}`
-- **认证**: 需要Bearer Token
+- **认证**: 需要Token
 - **响应**:
 ```json
 {
-  "shareUrl": "string, 分享链接",
-  "shareId": "string, 分享id",
-  "expiresAt": "Date, 到期时间"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "shareId": "string, 分享id",
+    "expiresAt": "Date, 到期时间"
+  }
+}
+```
+
+#### 2.6 获取分享项目
+- **方法**: GET
+- **路径**: `/projects/share/to/{shareId}`
+- **认证**: 需要Token
+- **响应**:
+```json
+{
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "project": {
+      "id": "string, 项目ID",
+      "name": "string, 项目名",
+      "files": "File[], 文件数组",
+      "ownerId": "string, 所属者ID",
+      "createdAt": "Date, 创建时间", 
+      "updatedAt": "Date, 更新时间"
+    }
+  }
 }
 ```
 
@@ -178,7 +288,7 @@
 #### 3.1 创建文件
 - **方法**: POST
 - **路径**: `/projects/{projectId}/files`
-- **认证**: 需要Bearer Token
+- **认证**: 需要Token
 - **请求体**:
 ```json
 {
@@ -191,21 +301,27 @@
 - **响应**:
 ```json
 {
-  "id": "string, 文件id",
-  "name": "string, 文件名",
-  "path": "string, 文件路径",
-  "content": "string, 文件内容",
-  "type": "string, 文件类型(HTML|CSS|JS|JSX|TS|VUE|SCSS|LESS)",
-  "projectId": "string, 所属项目ID",
-  "createdAt": "Date, 创建时间", 
-  "updatedAt": "Date, 更新时间"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "file": {
+      "id": "string, 文件id",
+      "name": "string, 文件名",
+      "path": "string, 文件路径",
+      "content": "string, 文件内容",
+      "type": "string, 文件类型(HTML|CSS|JS|JSX|TS|VUE|SCSS|LESS)",
+      "projectId": "string, 所属项目ID",
+      "createdAt": "Date, 创建时间", 
+      "updatedAt": "Date, 更新时间"
+    }
+  }
 }
 ```
 
 #### 3.2 更新文件
 - **方法**: PUT
 - **路径**: `/projects/{projectId}/files/{fileId}`
-- **认证**: 需要Bearer Token
+- **认证**: 需要Token
 - **请求体**:
 ```json
 {
@@ -218,36 +334,56 @@
 - **响应**:
 ```json
 {
-  "id": "string, 文件id",
-  "name": "string, 文件名",
-  "path": "string, 文件路径",
-  "content": "string, 文件内容",
-  "type": "string, 文件类型(HTML|CSS|JS|JSX|TS|VUE|SCSS|LESS)",
-  "projectId": "string, 所属项目ID",
-  "createdAt": "Date, 创建时间", 
-  "updatedAt": "Date, 更新时间"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "file": {
+      "id": "string, 文件id",
+      "name": "string, 文件名",
+      "path": "string, 文件路径",
+      "content": "string, 文件内容",
+      "type": "string, 文件类型(HTML|CSS|JS|JSX|TS|VUE|SCSS|LESS)",
+      "projectId": "string, 所属项目ID",
+      "createdAt": "Date, 创建时间", 
+      "updatedAt": "Date, 更新时间"
+    }
+  }
 }
 ```
 
 #### 3.3 删除文件
 - **方法**: DELETE
 - **路径**: `/projects/{projectId}/files/{fileId}`
-- **认证**: 需要Bearer Token
+- **认证**: 需要Token
+- **响应**:
+```json
+{
+  "code": "number, 状态码",
+  "message": "string, 状态描述"
+}
+```
 
 #### 3.4 获取文件
 - **方法**: GET
 - **路径**: `/projects/{projectId}/files/{fileId}`
+- **认证**: 需要Token
 - **响应**:
 ```json
 {
-  "id": "string, 文件id",
-  "name": "string, 文件名",
-  "path": "string, 文件路径",
-  "content": "string, 文件内容",
-  "type": "string, 文件类型(HTML|CSS|JS|JSX|TS|VUE|SCSS|LESS)",
-  "projectId": "string, 所属项目ID",
-  "createdAt": "Date, 创建时间", 
-  "updatedAt": "Date, 更新时间"
+  "code": "number, 状态码",
+  "message": "string, 状态描述",
+  "data": {
+    "file": {
+      "id": "string, 文件id",
+      "name": "string, 文件名",
+      "path": "string, 文件路径",
+      "content": "string, 文件内容",
+      "type": "string, 文件类型(HTML|CSS|JS|JSX|TS|VUE|SCSS|LESS)",
+      "projectId": "string, 所属项目ID",
+      "createdAt": "Date, 创建时间", 
+      "updatedAt": "Date, 更新时间"
+    }
+  }
 }
 ```
 
