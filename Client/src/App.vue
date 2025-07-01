@@ -1,24 +1,24 @@
 <template>
-  <div class="app" >
-    <Navbar @login="showLoginDialog = true" />
+  <div class="app">
+    <Navbar @login="showLoginDialog = true"  @openSettings="showSettings = true"/>
     <div class="left" ref="view">
-    <div class="main-content">
-      <div class="editor-panel" ref="editorPanel">
-        <CodeEditor :activeTab="activeTab" :isReadOnly="userStore.isReadOnlyMode" />
+      <div class="main-content">
+        <div class="editor-panel" ref="editorPanel">
+          <CodeEditor :activeTab="activeTab" :isReadOnly="userStore.isReadOnlyMode" />
+        </div>
+        <div class="resize-handle" @mousedown="startResize" @dblclick="resetSize"></div>
+        <div class="preview-panel">
+          <iframe
+            sandbox="allow-scripts  allow-same-origin"
+            ref="previewFrame"
+            class="preview-frame"
+            :class="{ 'no-pointer-events': isResizing }"
+          ></iframe>
+        </div>
       </div>
-      <div class="resize-handle" @mousedown="startResize" @dblclick="resetSize"></div>
-      <div class="preview-panel">
-        <iframe
-          sandbox="allow-scripts  allow-same-origin"
-          ref="previewFrame"
-          class="preview-frame"
-          :class="{ 'no-pointer-events': isResizing }"
-        ></iframe>
-      </div>
-    </div>
     </div>
     <Footer :isReadOnly="userStore.isReadOnlyMode" @login="showLoginDialog = true" />
-    <SettingsDialog v-if="showSettings" @close="showSettings = false" />
+    <SettingsDialog :dialogFormVisible="showSettings" @closeDialog="showSettings = false" />
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
     <!-- <head_portrait @login="showLoginDialog = true" /> -->
@@ -35,7 +35,7 @@ import type { ProjectPermissions } from '@/stores/userStore';
 import Navbar from '@/components/Navbar.vue';
 import CodeEditor from '@/components/CodeEditor.vue';
 import Footer from '@/components/Footer.vue';
-import SettingsDialog from '@/components/icons/SettingsIcon.vue';
+import SettingsDialog from '@/components/dialogs/SettingDialog.vue';
 import LoginDialog from '@/components/login/LoginDialog.vue';
 import RegisterDialog from '@/components/login/RegisterDialog.vue';
 import head_portrait from './components/head_portrait.vue';
@@ -43,13 +43,11 @@ import { api } from '@/api/index';
 import { Users } from 'lucide-vue-next';
 import { ShareService } from '@/services/shareService';
 
-
 const codeStore = useCodeStore();
 const userStore = useUserStore();
 
 //用户访问权限
 const permissions = ref<ProjectPermissions | null>(null);
-
 
 const { htmlCode, cssCode, jsCode, activeTab } = storeToRefs(codeStore);
 const { status } = storeToRefs(userStore);
@@ -64,7 +62,7 @@ const startX = ref(0);
 const startWidth = ref(0);
 const editorPanel = ref<HTMLElement | null>(null);
 const view = ref<HTMLElement | null>(null);
-console .log(view);
+console.log(view);
 // 创建防抖的预览更新函数 (500ms)
 const debouncedUpdatePreview = debounce(() => {
   if (!previewFrame.value) return;
@@ -103,10 +101,17 @@ const debouncedUpdatePreview = debounce(() => {
 }, 500); // 500ms防抖延迟
 
 watch(status, () => {
-    view.value.className = '';
-    view.value.classList.add(status.value)
-    debouncedUpdatePreview();
+  view.value.className = '';
+  view.value.classList.add(status.value);
+  debouncedUpdatePreview();
 });
+
+// //切换到settings界面
+// const switchToSettings = () => {
+//   //console.log(showSettings.value)
+//   showSettings.value = true;
+//   //console.log(showSettings.value)
+// }
 
 // 切换到注册界面
 const switchToRegister = () => {
@@ -308,6 +313,4 @@ onBeforeUnmount(() => {
   background: #1a1a1a;
   color: white;
 }
-
-
-</style> 
+</style>
