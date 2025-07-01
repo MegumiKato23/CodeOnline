@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
-    "lib": ["es2016", "dom", "dom.iterable"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node",
+    "lib": ["ES2019", "DOM", "ES2015.Promise", "dom.iterable"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
