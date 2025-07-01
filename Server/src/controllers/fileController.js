@@ -6,7 +6,11 @@ const createFile = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({
+        code: 400,
+        message: 'Validation failed',
+        errors: errors.array(),
+      });
     }
 
     const projectId = req.params.projectId;
@@ -14,15 +18,21 @@ const createFile = async (req, res) => {
 
     // 检查项目是否存在并且用户有权限
     const project = await prisma.project.findUnique({
-      where: { id: projectId }
+      where: { id: projectId },
     });
 
     if (!project) {
-      return res.status(404).json({ error: 'Project not found' });
+      return res.status(404).json({
+        code: 404,
+        message: 'Project not found',
+      });
     }
 
-    if (project.ownerId !== req.user.id) {
-      return res.status(403).json({ error: 'Permission denied' });
+    if (project.ownerId !== req.session.userId) {
+      return res.status(400).json({
+        code: 400,
+        message: 'Permission denied',
+      });
     }
 
     const file = await prisma.file.create({
@@ -31,24 +41,43 @@ const createFile = async (req, res) => {
         path: path,
         content: content,
         type: type,
-        ownerId: projectId
-      }
+        ownerId: projectId,
+      },
+    });
+
+    // 更新项目
+    await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        files: {
+          connect: { id: file.id },
+        },
+      },
     });
 
     res.status(200).json({
-      id: file.id,
-      name: file.name,
-      path: file.path,
-      content: file.content,
-      type: file.type,
-      projectId: projectId,
-      createdAt: file.createdAt.toISOString(),
-      updatedAt: file.updatedAt.toISOString()
+      code: 200,
+      message: 'success',
+      data: {
+        file: {
+          id: file.id,
+          name: file.name,
+          path: file.path,
+          content: file.content,
+          type: file.type,
+          projectId: projectId,
+          createdAt: file.createdAt.toISOString(),
+          updatedAt: file.updatedAt.toISOString(),
+        },
+      },
     });
-
   } catch (error) {
     console.error('Create file error:', error);
-    res.status(500).json({ error: 'Failed to create file' });
+    res.status(500).json({
+      code: 500,
+      message: 'Create file failed',
+      data: null,
+    });
   }
 };
 
@@ -57,7 +86,11 @@ const updateFile = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({
+        code: 400,
+        message: 'Validation failed',
+        errors: errors.array(),
+      });
     }
 
     const projectId = req.params.projectId;
@@ -66,27 +99,36 @@ const updateFile = async (req, res) => {
 
     // 检查项目是否存在并且用户有权限
     const project = await prisma.project.findUnique({
-      where: { id: projectId }
+      where: { id: projectId },
     });
 
     if (!project) {
-      return res.status(404).json({ error: 'Project not found' });
+      return res.status(404).json({
+        code: 404,
+        message: 'Project not found',
+      });
     }
 
-    if (project.ownerId !== req.user.id) {
-      return res.status(403).json({ error: 'Permission denied' });
+    if (project.ownerId !== req.session.userId) {
+      return res.status(400).json({
+        code: 400,
+        message: 'Permission denied',
+      });
     }
 
     // 检查文件是否存在并且属于该项目
     const existingFile = await prisma.file.findFirst({
       where: {
         id: fileId,
-        ownerId: projectId
-      }
+        ownerId: projectId,
+      },
     });
 
     if (!existingFile) {
-      return res.status(404).json({ error: 'File not found' });
+      return res.status(404).json({
+        code: 404,
+        message: 'File not found',
+      });
     }
 
     const updatedFile = await prisma.file.update({
@@ -95,24 +137,33 @@ const updateFile = async (req, res) => {
         name: name,
         path: path,
         content: content,
-        type: type
-      }
+        type: type,
+      },
     });
 
     res.status(200).json({
-      id: updatedFile.id,
-      name: updatedFile.name,
-      path: updatedFile.path,
-      content: updatedFile.content,
-      type: updatedFile.type,
-      projectId: projectId,
-      createdAt: updatedFile.createdAt.toISOString(),
-      updatedAt: updatedFile.updatedAt.toISOString()
+      code: 200,
+      message: 'success',
+      data: {
+        file: {
+          id: updatedFile.id,
+          name: updatedFile.name,
+          path: updatedFile.path,
+          content: updatedFile.content,
+          type: updatedFile.type,
+          projectId: projectId,
+          createdAt: updatedFile.createdAt.toISOString(),
+          updatedAt: updatedFile.updatedAt.toISOString(),
+        },
+      },
     });
-
   } catch (error) {
     console.error('Update file error:', error);
-    res.status(500).json({ error: 'Failed to update file' });
+    res.status(500).json({
+      code: 500,
+      message: 'Update file failed',
+      data: null,
+    });
   }
 };
 
@@ -124,38 +175,52 @@ const deleteFile = async (req, res) => {
 
     // 检查项目是否存在并且用户有权限
     const project = await prisma.project.findUnique({
-      where: { id: projectId }
+      where: { id: projectId },
     });
 
     if (!project) {
-      return res.status(404).json({ error: 'Project not found' });
+      return res.status(404).json({
+        code: 404,
+        message: 'Project not found',
+      });
     }
 
-    if (project.ownerId !== req.user.id) {
-      return res.status(403).json({ error: 'Permission denied' });
+    if (project.ownerId !== req.session.userId) {
+      return res.status(400).json({
+        code: 400,
+        message: 'Permission denied',
+      });
     }
 
     // 检查文件是否存在并且属于该项目
     const existingFile = await prisma.file.findFirst({
       where: {
         id: fileId,
-        ownerId: projectId
-      }
+        ownerId: projectId,
+      },
     });
 
     if (!existingFile) {
-      return res.status(404).json({ error: 'File not found' });
+      return res.status(404).json({
+        code: 404,
+        message: 'File not found',
+      });
     }
 
     await prisma.file.delete({
-      where: { id: fileId }
+      where: { id: fileId },
     });
 
-    res.status(200).json({ message: 'File deleted successfully' });
-
+    res.status(200).json({
+      code: 200,
+      message: 'Delete file success',
+    });
   } catch (error) {
     console.error('Delete file error:', error);
-    res.status(500).json({ error: 'Failed to delete file' });
+    res.status(500).json({
+      code: 500,
+      message: 'Delete file failed',
+    });
   }
 };
 
@@ -167,39 +232,54 @@ const getFile = async (req, res) => {
 
     // 检查项目是否存在
     const project = await prisma.project.findUnique({
-      where: { id: projectId }
+      where: { id: projectId },
     });
 
     if (!project) {
-      return res.status(404).json({ error: 'Project not found' });
+      return res.status(404).json({
+        code: 404,
+        message: 'Project not found',
+      });
     }
 
     // 检查文件是否存在并且属于该项目
     const file = await prisma.file.findFirst({
       where: {
         id: fileId,
-        ownerId: projectId
-      }
+        ownerId: projectId,
+      },
     });
 
     if (!file) {
-      return res.status(404).json({ error: 'File not found' });
+      return res.status(404).json({
+        code: 404,
+        message: 'File not found',
+      });
     }
 
     res.status(200).json({
-      id: file.id,
-      name: file.name,
-      path: file.path,
-      content: file.content,
-      type: file.type,
-      projectId: projectId,
-      createdAt: file.createdAt.toISOString(),
-      updatedAt: file.updatedAt.toISOString()
+      code: 200,
+      message: 'success',
+      data: {
+        file: {
+          id: file.id,
+          name: file.name,
+          path: file.path,
+          content: file.content,
+          type: file.type,
+          projectId: projectId,
+          createdAt: file.createdAt.toISOString(),
+          updatedAt: file.updatedAt.toISOString(),
+        },
+      },
     });
-
   } catch (error) {
     console.error('Get file error:', error);
-    res.status(500).json({ error: 'Failed to get file' });
+    res.status(500).json({
+      code: 500,
+      message: 'Get file failed',
+      data: null,
+    });
   }
 };
 
@@ -207,6 +287,5 @@ module.exports = {
   createFile,
   updateFile,
   deleteFile,
-  getFile
+  getFile,
 };
-
