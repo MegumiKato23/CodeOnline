@@ -19,8 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, toRefs, onBeforeUnmount, nextTick } from 'vue';
-import { storeToRefs } from 'pinia';
+import { ref, onMounted, watch, toRefs, onBeforeUnmount } from 'vue';
 import { debounce } from 'lodash-es'; // 导入防抖函数
 import { EditorState } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
@@ -46,7 +45,6 @@ const props = defineProps<{
 const { activeTab, isReadOnly } = toRefs(props);
 const userStore = useUserStore();
 const codeStore = useCodeStore();
-const { htmlCode, cssCode, jsCode } = storeToRefs(codeStore);
 const editorElement = ref<HTMLElement | null>(null);
 const editorView = ref<EditorView | null>(null);
 
@@ -155,8 +153,7 @@ const setActiveTab = (tab: 'html' | 'css' | 'js') => {
   codeStore.setActiveTab(tab);
 };
 
-onMounted(async () => {
-  await nextTick();
+onMounted(() => {
   initializeEditor();
   // 异步加载远程代码（如果用户已登录）
   if (userStore.isLoggedIn) {
@@ -164,15 +161,14 @@ onMounted(async () => {
   }
 });
 
-watch([activeTab, isReadOnly], () => {
+watch(activeTab, () => {
   recreateEditor();
 });
 
 // 分别监听各种代码类型的变化
 watch(
-  [htmlCode, cssCode, jsCode],
+  [() => codeStore.htmlCode, () => codeStore.cssCode, () => codeStore.jsCode],
   () => {
-    // console.log('代码变化');
     // 当代码内容变化且当前标签页对应的代码发生变化时，更新编辑器
     if (editorView.value) {
       const currentCode =

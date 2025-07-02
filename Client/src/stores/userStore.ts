@@ -1,6 +1,7 @@
 import { set } from 'lodash-es';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
+import { api } from '@/api';
 
 export interface ProjectPermissions {
   isOwner: boolean;
@@ -9,10 +10,11 @@ export interface ProjectPermissions {
 
 export const useUserStore = defineStore('user', () => {
   // 用户信息
+  const userid = ref('');
   const username = ref('');
   const account = ref('');
   const avatar = ref('');
-  const status = ref('');
+  const status = ref('left');
   const createAt = ref('');
 
   const isLoggedIn = ref(false);
@@ -76,8 +78,30 @@ export const useUserStore = defineStore('user', () => {
     isReadOnlyMode.value = false;
   };
 
+  const toggleView = async (newStatus: string) => {
+    // 切换视图状态
+    setStatus(newStatus);
+    if (!isLoggedIn) {
+      return;
+    }
+    try {
+      // 调用 updateUserProfile 方法更新后台的用户资料
+      await api.updateUserProfile({
+        user: {
+          id: userid.value,
+          username: username.value,
+          account: account.value,
+          status: status.value,
+        },
+      });
+      console.log('视图状态更新成功');
+    } catch (error) {
+      console.error('视图状态更新失败:', error);
+    }
+  };
   return {
     username,
+    userid,
     account,
     avatar,
     status,
@@ -92,6 +116,7 @@ export const useUserStore = defineStore('user', () => {
     setCreateAt,
     login,
     logout,
+    toggleView,
     setPermissions,
     clearPermissions,
   };
