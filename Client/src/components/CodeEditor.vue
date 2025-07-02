@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, toRefs, onBeforeUnmount } from 'vue';
 import { debounce } from 'lodash-es'; // 导入防抖函数
-import { EditorState } from '@codemirror/state';
+import { EditorState, StateEffect } from '@codemirror/state'
 import { EditorView, keymap } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { html } from '@codemirror/lang-html';
@@ -30,8 +30,11 @@ import { javascript } from '@codemirror/lang-javascript';
 import { defaultKeymap, undo, redo, history } from '@codemirror/commands';
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
+import { linter, lintGutter, lintKeymap } from '@codemirror/lint'
 import { useCodeStore } from '@/stores/codeStore';
 import { useUserStore } from '@/stores/userStore';
+import { createCompletions } from '@/utils/codeCompletions/index'
+import { createErrorChecker } from '@/utils/errorChecker1'
 import HtmlIcon from './icons/HtmlIcon.vue';
 import CssIcon from './icons/CssIcon.vue';
 import JsIcon from './icons/JsIcon.vue';
@@ -70,7 +73,8 @@ const myHighlightStyle = HighlightStyle.define([
   { tag: tags.attributeName, color: '#d19a66' },
   { tag: tags.className, color: '#61afef' },
 ]);
-
+// 定义错误检查效果
+const setLintSource = StateEffect.define<(tab: 'html' | 'css' | 'js') => (view: EditorView) => any>()
 // 基础扩展
 const baseExtensions = [
   history(), // 历史记录必须放在前面
@@ -82,6 +86,9 @@ const baseExtensions = [
     { key: 'Mod-Shift-z', run: redo, preventDefault: true },
   ]),
   syntaxHighlighting(myHighlightStyle),
+   createCompletions(),
+  //报错提示
+  lintGutter(),
   EditorView.theme({
     '&': { height: '100%' },
     '.cm-scroller': { overflow: 'auto' },
@@ -108,7 +115,26 @@ const getLanguageExtension = () => {
       return javascript();
   }
 };
-
+// 设置错误检查扩展
+const setupLinter = () => {
+  // 确保错误检测器只被调用一次
+  const checker = createErrorChecker(activeTab.value);
+  return linter(async (view) => {
+    const result = await checker(view.state.doc.toString());
+    return result.diagnostics.map(d => ({
+      from: d.from,
+      to: d.to,
+      severity: d.severity,
+      message: d.message,
+      actions: d.fix ? [{
+        name: d.fix.label,
+        apply: (v, from, to) => v.dispatch({
+          changes: {from, to, insert: d.fix.edit[0].insert}
+        })
+      }] : []
+    }));
+  });
+}
 const initializeEditor = () => {
   if (!editorElement.value) return;
 
@@ -116,7 +142,7 @@ const initializeEditor = () => {
     activeTab.value === 'html' ? codeStore.htmlCode : activeTab.value === 'css' ? codeStore.cssCode : codeStore.jsCode;
 
   // 根据只读状态配置扩展
-  const extensions = [...baseExtensions, getLanguageExtension()];
+  const extensions = [...baseExtensions, getLanguageExtension(), setupLinter()]; // 这里加入了 setupLinter()
   if (isReadOnly?.value) {
     extensions.push(EditorState.readOnly.of(true));
   }
