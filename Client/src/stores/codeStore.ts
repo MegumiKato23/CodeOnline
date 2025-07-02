@@ -3,9 +3,9 @@ import { ref } from 'vue';
 import { api, CreateFileRequest, FileType } from '@/api';
 
 export const useCodeStore = defineStore('code', () => {
-  const htmlCode = ref('');
-  const cssCode = ref('');
-  const jsCode = ref('');
+  const htmlCode = ref('<h1>Hello World</h1>');
+  const cssCode = ref('body { font-family: Arial, sans-serif; color: #333; }');
+  const jsCode = ref('console.log("Hello from CodePen Clone")');
   const activeTab = ref<'html' | 'css' | 'js'>('html');
   const saved = ref(true);
 
