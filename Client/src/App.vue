@@ -58,8 +58,9 @@ const startX = ref(0);
 // 存储编辑器面板的初始宽度
 const startWidth = ref(0);
 const editorPanel = ref<HTMLElement | null>(null);
+
 // 创建防抖的预览更新函数 (500ms)
-const debouncedUpdatePreview = debounce(() => {
+const debouncedUpdatePreview = debounce(async () => {
   if (!previewFrame.value) return;
 
   const doc = previewFrame.value.contentDocument;
@@ -68,8 +69,7 @@ const debouncedUpdatePreview = debounce(() => {
   // 设置sandbox属性
   previewFrame.value.setAttribute('sandbox', 'allow-scripts  allow-same-origin');
 
-  doc.open();
-  doc.write(`
+  const fullContent = `
     <!DOCTYPE html>
     <html>
       <head>
@@ -87,13 +87,40 @@ const debouncedUpdatePreview = debounce(() => {
               timestamp: Date.now()
             }, '*');
           });
-        ${jsCode.value}
+          ${jsCode.value}
         <\/script>
       </body>
     </html>
-  `);
-  doc.close();
+  `;
+
+  // 使用分块注入函数
+  await streamInject(previewFrame.value, fullContent);
 }, 500); // 500ms防抖延迟
+
+// 分块与流式注入函数
+const streamInject = (iframe: HTMLIFrameElement, htmlContent: string, chunkSize = 8192) => {
+  return new Promise<void>((resolve) => {
+    const doc = iframe.contentDocument;
+    if (!doc) return resolve();
+
+    doc.open();
+
+    let i = 0;
+    function writeChunk() {
+      if (i < htmlContent.length) {
+        const chunk = htmlContent.substring(i, i + chunkSize);
+        doc.write(chunk);
+        i += chunkSize;
+        // 使用 requestAnimationFrame 来调度下一次写入，避免阻塞UI
+        requestAnimationFrame(writeChunk);
+      } else {
+        doc.close();
+        resolve();
+      }
+    }
+    writeChunk();
+  });
+};
 // 切换到注册界面
 const switchToRegister = () => {
   showLoginDialog.value = false;

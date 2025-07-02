@@ -64,7 +64,7 @@
             {{ confirmPasswordTip || '请再次输入相同的密码' }}
           </div>
         </div>
-        <div class="message" v-if="message">{{ message }}</div>
+        <div class="message" :class="isRegistered ? 'success' : ''" v-if="message">{{ message }}</div>
       </div>
       <div class="register-footer">
         <button class="btn login-btn" @click="switchToLogin">返回登录</button>
@@ -110,6 +110,7 @@ const passwordValid = ref(false);
 const confirmPasswordValid = ref(false);
 
 const message = ref('');
+const isRegistered = ref(false);
 
 const registerForm = reactive({
   username: '',
@@ -211,6 +212,7 @@ const handleRegister = async () => {
     if (response.code === 200) {
       // 显示成功提示
       message.value = '注册成功！';
+      isRegistered.value = true;
       setTimeout(() => {
         resetForm();
         switchToLogin();
@@ -491,6 +493,10 @@ input.error {
   color: #ff6b6b;
   font-size: 14px;
   margin-top: 10px;
+}
+
+.success {
+  color: #4caf50;
 }
 
 .register-footer {
