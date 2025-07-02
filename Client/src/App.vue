@@ -18,7 +18,7 @@
       </div>
     </div>
     <Footer :isReadOnly="userStore.isReadOnlyMode" @login="showLoginDialog = true" />
-    <SettingsDialog :dialogFormVisible="showSettings" @closeDialog="showSettings = false" />
+    <SettingDialog :dialogFormVisible="showSettings" @closeDialog="showSettings = false" />
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
     <!-- <head_portrait @login="showLoginDialog = true" /> -->
@@ -35,7 +35,7 @@ import type { ProjectPermissions } from '@/stores/userStore';
 import Navbar from '@/components/Navbar.vue';
 import CodeEditor from '@/components/CodeEditor.vue';
 import Footer from '@/components/Footer.vue';
-import SettingsDialog from '@/components/dialogs/SettingDialog.vue';
+import SettingDialog from '@/components/dialogs/SettingDialog.vue';
 import LoginDialog from '@/components/login/LoginDialog.vue';
 import RegisterDialog from '@/components/login/RegisterDialog.vue';
 import head_portrait from './components/head_portrait.vue';
