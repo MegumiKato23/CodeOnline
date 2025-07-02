@@ -46,7 +46,6 @@ const props = defineProps<{
 const { activeTab, isReadOnly } = toRefs(props);
 const userStore = useUserStore();
 const codeStore = useCodeStore();
-const { htmlCode, cssCode, jsCode } = storeToRefs(codeStore);
 const editorElement = ref<HTMLElement | null>(null);
 const editorView = ref<EditorView | null>(null);
 
@@ -206,9 +205,10 @@ onMounted(async () => {
   }
 });
 
-watch([activeTab, isReadOnly], () => {
+watch(activeTab, () => {
   recreateEditor();
 });
+
 
 watch([htmlCode, cssCode, jsCode], () => {
   if (editorView.value) {
@@ -225,6 +225,29 @@ watch([htmlCode, cssCode, jsCode], () => {
           insert: currentCode
         }
       });
+
+// 分别监听各种代码类型的变化
+watch(
+  [() => codeStore.htmlCode, () => codeStore.cssCode, () => codeStore.jsCode],
+  () => {
+    // 当代码内容变化且当前标签页对应的代码发生变化时，更新编辑器
+    if (editorView.value) {
+      const currentCode =
+        activeTab.value === 'html'
+          ? codeStore.htmlCode
+          : activeTab.value === 'css'
+            ? codeStore.cssCode
+            : codeStore.jsCode;
+
+      if (currentCode !== editorView.value.state.doc.toString()) {
+        editorView.value.dispatch({
+          changes: {
+            from: 0,
+            to: editorView.value.state.doc.length,
+            insert: currentCode,
+          },
+        });
+      }
     }
   }
 }, { deep: true });

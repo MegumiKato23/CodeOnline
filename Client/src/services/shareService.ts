@@ -19,6 +19,9 @@ export class ShareService {
 
   static async checkShareAccess(options?: { shareId?: string }): Promise<ShareAccessResult> {
     try {
+      const { data: userProfileData } = await api.getUserProfile();
+      const { id: userId } = userProfileData.user;
+      console.log('用户ID:', userId); // Log the user ID for diagnostic purpose
       let { shareId } = options || {};
 
       // 如果没有提供shareId，从URL解析
@@ -32,33 +35,18 @@ export class ShareService {
       }
 
       console.log('分享ID:', shareId);
+      console.log('正在加载分享项目...');
 
       const { data: sharedProjectData } = await api.getSharedProject(shareId);
       const projectData = sharedProjectData.project;
       console.log('分享项目数据:', projectData.ownerId); // Log the project data for diagnostic purpose
 
-      let userId: string | null = null;
-      let permissions: ProjectPermissions;
-
-      try {
-        // 有cookie时尝试获取用户信息
-        const { data: userProfileData } = await api.getUserProfile();
-        userId = userProfileData.user.id;
-        console.log('用户ID:', userId);
-
-        // 确定权限
-        permissions = {
-          isOwner: projectData.ownerId === userId,
-          accessType: projectData.ownerId === userId ? 'owner' : 'readonly',
-        };
-      } catch (error) {
-        // 如果获取用户信息失败，设置为只读权限
-        console.log('获取用户信息失败，设置为只读权限');
-        permissions = {
-          isOwner: false,
-          accessType: 'readonly',
-        };
-      }
+      console.log('用户ID:', userId);
+      // 确定权限
+      const permissions: ProjectPermissions = {
+        isOwner: projectData.ownerId === userId,
+        accessType: projectData.ownerId === userId ? 'owner' : 'readonly',
+      };
 
       console.log('权限检查结果:', permissions);
 
