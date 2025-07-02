@@ -2,15 +2,12 @@
   <div class="editor-container">
     <div class="tabs">
       <UnifiedButton type="tab" :active="activeTab === 'html'" :icon="HtmlIcon" @click="setActiveTab('html')">
-        <!-- <HtmlIcon class="icon" /> -->
         HTML
       </UnifiedButton>
       <UnifiedButton type="tab" :active="activeTab === 'css'" :icon="CssIcon" @click="setActiveTab('css')">
-        <!-- <CssIcon class="icon" /> -->
         CSS
       </UnifiedButton>
       <UnifiedButton type="tab" :active="activeTab === 'js'" :icon="JsIcon" @click="setActiveTab('js')">
-        <!-- <JsIcon class="icon" /> -->
         JS
       </UnifiedButton>
     </div>
@@ -19,10 +16,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, toRefs, onBeforeUnmount } from 'vue';
-import { debounce } from 'lodash-es'; // 导入防抖函数
-import { EditorState } from '@codemirror/state';
-import { EditorView, keymap } from '@codemirror/view';
+import { ref, onMounted, watch, toRefs, onBeforeUnmount, nextTick } from 'vue';
+import { storeToRefs } from 'pinia';
+import { debounce } from 'lodash-es';
+import { EditorState, StateEffect } from '@codemirror/state';
+import { EditorView, keymap, lintGutter } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
@@ -30,8 +28,11 @@ import { javascript } from '@codemirror/lang-javascript';
 import { defaultKeymap, undo, redo, history } from '@codemirror/commands';
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
+import { linter, lintKeymap } from '@codemirror/lint';
 import { useCodeStore } from '@/stores/codeStore';
 import { useUserStore } from '@/stores/userStore';
+import { createCompletions } from '@/utils/codeCompletions/index';
+import { createErrorChecker } from '@/utils/errorChecker1';
 import HtmlIcon from './icons/HtmlIcon.vue';
 import CssIcon from './icons/CssIcon.vue';
 import JsIcon from './icons/JsIcon.vue';
@@ -48,17 +49,11 @@ const codeStore = useCodeStore();
 const editorElement = ref<HTMLElement | null>(null);
 const editorView = ref<EditorView | null>(null);
 
-// 添加对 activeTab 的 watch
-watch(activeTab, (newTab, oldTab) => {
-  if (newTab !== oldTab) {
-    recreateEditor();
-  }
-});
-
 // 创建防抖的代码更新函数 (300ms)
 const debouncedUpdateCode = debounce((code: string) => {
   codeStore.updateCode(activeTab.value, code);
-}, 300); // 300ms防抖延迟
+}, 300);
+
 // 自定义高亮样式
 const myHighlightStyle = HighlightStyle.define([
   { tag: tags.keyword, color: '#c678dd' },
@@ -71,72 +66,118 @@ const myHighlightStyle = HighlightStyle.define([
   { tag: tags.className, color: '#61afef' },
 ]);
 
+// 定义 lint source effect
+const setLintSource = StateEffect.define<(tab: 'html' | 'css' | 'js') => (view: EditorView) => any>();
+
 // 基础扩展
 const baseExtensions = [
-  history(), // 历史记录必须放在前面
+  history(),
   oneDark,
   keymap.of([
     ...defaultKeymap,
+    ...lintKeymap,
     { key: 'Mod-z', run: undo, preventDefault: true },
     { key: 'Mod-y', run: redo, preventDefault: true },
     { key: 'Mod-Shift-z', run: redo, preventDefault: true },
   ]),
   syntaxHighlighting(myHighlightStyle),
+  createCompletions(),
+  lintGutter(),
   EditorView.theme({
     '&': { height: '100%' },
     '.cm-scroller': { overflow: 'auto' },
     '.cm-content': { padding: '10px 0' },
-    '.cm-gutters': { backgroundColor: '#282c34', color: '#abb2bf' },
+    '.cm-gutters': { 
+      backgroundColor: '#282c34', 
+      color: '#abb2bf',
+      borderRight: '1px solid #3a3f4b'
+    },
+    '.cm-lintRange-error': {
+      backgroundImage: 'url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%206%203%22%20enable-background%3D%22new%200%200%206%203%22%20height%3D%223%22%20width%3D%226%22%3E%3Cg%20fill%3D%22%23e51400%22%3E%3Cpolygon%20points%3D%225.5%2C0%202.5%2C3%201.5%2C3%204.5%2C0%22%2F%3E%3Cpolygon%20points%3D%224%2C0%206%2C2%206%2C0.6%205.4%2C0%22%2F%3E%3Cpolygon%20points%3D%220%2C2%201%2C3%202.5%2C3%200%2C0.6%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E")'
+    },
+    '.cm-lintRange-warning': {
+      backgroundImage: 'url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%206%203% kenable-background%3D%22new%200%200%206%203%22%20height%3D%223%22%20width%3D%226%22%3E%3Cg%20fill%3D%22%23ffcc00%22%3E%3Cpolygon%20points%3D%225.5%2C0%202.5%2C3%201.5%2C3%204.5%2C0%22%2F%3E%3Cpolygon%20points%3D%224%2C0%206%2C2%206%2C0.6%205.4%2C0%22%2F%3E%3Cpolygon%20points%3D%220%2C2%201%2C3%202.5%2C3%200%2C0.6%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E")'
+    }
   }),
+  EditorView.lineWrapping,
   EditorView.updateListener.of((update) => {
     if (update.docChanged) {
       const code = update.state.doc.toString();
-      debouncedUpdateCode(code); // 使用防抖函数
+      debouncedUpdateCode(code);
     }
   }),
 ];
 
+// 获取语言扩展
 const getLanguageExtension = () => {
   switch (activeTab.value) {
     case 'html':
-      return html();
+      return html({ matchClosingTags: true, autoCloseTags: true });
     case 'css':
+ estimate: 0.1s
       return css();
     case 'js':
-      return javascript();
+      return javascript({ jsx: true });
     default:
       return javascript();
   }
 };
 
+// 设置 linter
+const setupLinter = () => {
+  const checker = createErrorChecker(activeTab.value);
+  return linter(async (view) => {
+    const result = await checker(view.state.doc.toString());
+    return result.diagnostics.map(d => ({
+      from: d.from,
+      to: d.to,
+      severity: d.severity,
+      message: d.message,
+      actions: d.fix ? [{
+        name: d.fix.label,
+        apply: (v, from, to) => v.dispatch({
+          changes: { from, to, insert: d.fix.edit }
+        })
+      }] : []
+    }));
+  });
+};
+
+// 初始化编辑器
 const initializeEditor = () => {
   if (!editorElement.value) return;
 
   const currentCode =
-    activeTab.value === 'html' ? codeStore.htmlCode : activeTab.value === 'css' ? codeStore.cssCode : codeStore.jsCode;
+    activeTab.value === 'html' ? codeStore.htmlCode :
+    activeTab.value === 'css' ? codeStore.cssCode :
+    codeStore.jsCode;
 
-  // 根据只读状态配置扩展
-  const extensions = [...baseExtensions, getLanguageExtension()];
+  const extensions = [
+    ...baseExtensions,
+    getLanguageExtension(),
+    setupLinter()
+  ];
+
   if (isReadOnly?.value) {
     extensions.push(EditorState.readOnly.of(true));
   }
 
   const state = EditorState.create({
     doc: currentCode,
-    extensions,
+    extensions
   });
 
-  // 在创建新编辑器前销毁旧的
   if (editorView.value) {
     editorView.value.destroy();
   }
 
   editorView.value = new EditorView({
     state,
-    parent: editorElement.value,
+    parent: editorElement.value
   });
 };
 
+// 销毁编辑器
 const destroyEditor = () => {
   if (editorView.value) {
     editorView.value.destroy();
@@ -144,18 +185,21 @@ const destroyEditor = () => {
   }
 };
 
+// 重新创建编辑器
 const recreateEditor = () => {
   destroyEditor();
   initializeEditor();
 };
 
+// 切换标签
 const setActiveTab = (tab: 'html' | 'css' | 'js') => {
   codeStore.setActiveTab(tab);
 };
 
-onMounted(() => {
+// 生命周期钩子
+onMounted(async () => {
+  await nextTick();
   initializeEditor();
-  // 异步加载远程代码（如果用户已登录）
   if (userStore.isLoggedIn) {
     recreateEditor();
   }
@@ -164,6 +208,23 @@ onMounted(() => {
 watch(activeTab, () => {
   recreateEditor();
 });
+
+
+watch([htmlCode, cssCode, jsCode], () => {
+  if (editorView.value) {
+    const currentCode =
+      activeTab.value === 'html' ? codeStore.htmlCode :
+      activeTab.value === 'css' ? codeStore.cssCode :
+      codeStore.jsCode;
+
+    if (currentCode !== editorView.value.state.doc.toString()) {
+      editorView.value.dispatch({
+        changes: {
+          from: 0,
+          to: editorView.value.state.doc.length,
+          insert: currentCode
+        }
+      });
 
 // 分别监听各种代码类型的变化
 watch(
@@ -188,9 +249,8 @@ watch(
         });
       }
     }
-  },
-  { deep: true }
-);
+  }
+}, { deep: true });
 
 onBeforeUnmount(() => {
   destroyEditor();
@@ -203,6 +263,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: #282c34;
 }
 
 .tabs {
@@ -211,38 +272,12 @@ onBeforeUnmount(() => {
   padding: 0.5rem;
   gap: 0.5rem;
   flex-shrink: 0;
+  border-bottom: 1px solid #3a3f4b;
 }
-
-/* .tabs button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: #2a2a2a;
-  color: #ccc;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-} */
-
-/* .tabs button.active {
-  background: #333;
-  color: white;
-} */
-
-/* .tabs button:hover {
-  background: #333;
-} */
 
 .editor {
   flex: 1;
   overflow: hidden;
   position: relative;
 }
-
-/* .icon {
-  width: 16px;
-  height: 16px;
-} */
 </style>
