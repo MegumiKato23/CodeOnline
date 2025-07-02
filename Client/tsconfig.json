@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
+    "esModuleInterop": true, // 关键配置
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node",
+    "lib": ["ES2019", "DOM", "ES2015.Promise"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]

@@ -1,11 +1,5 @@
 <template>
-  <svg
-    class="file-type-icon"
-    viewBox="0 0 15 15"
-    width="1em"
-    height="1em"
-    v-bind="$attrs"
-  >
+  <svg class="file-type-icon" viewBox="0 0 15 15" width="1em" height="1em" v-bind="$attrs">
     <rect width="15" height="15" fill="#FCD000" rx="4" />
     <path
       fill="#282828"
@@ -15,12 +9,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'JSIcon',
-  inheritAttrs: false
-})
+  inheritAttrs: false,
+});
 </script>
 
 <style scoped>
