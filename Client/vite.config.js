@@ -19,11 +19,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      'path': 'path-browserify'
-    }
+      path: 'path-browserify',
+    },
   },
   server: {
-    port: 3000
+    port: 3000,
   },
   optimizeDeps: {
     include: [
@@ -35,12 +35,12 @@ export default defineConfig({
       '@codemirror/lang-html',
       '@codemirror/lang-css',
       '@codemirror/lang-javascript',
-      '@codemirror/theme-one-dark'
-    ]
+      '@codemirror/theme-one-dark',
+    ],
   },
   build: {
     commonjsOptions: {
-      include: [/pinia/, /codemirror/, /node_modules/]
-    }
-  }
-})
+      include: [/pinia/, /codemirror/, /node_modules/],
+    },
+  },
+});
