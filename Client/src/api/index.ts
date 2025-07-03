@@ -127,13 +127,6 @@ class ApiClient {
               await this.refreshToken();
             } catch (refreshError) {
               // 刷新token失败，清除本地存储的用户信息
-// 清除所有cookie
-document.cookie.split(';').forEach(cookie => {
-  const eqPos = cookie.indexOf('=');
-  const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-  document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
-});
-
               return Promise.reject(refreshError);
             }
           }
