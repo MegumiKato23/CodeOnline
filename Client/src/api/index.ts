@@ -179,8 +179,8 @@ class ApiClient {
     return response.data;
   }
 
-  async refreshToken(): Promise<{ code: number; message: string }> {
-    const response = await this.client.post<{ code: number; message: string }>('/users/auth/refresh');
+  async refreshToken(): Promise<{ code: number; message: string; data: any }> {
+    const response = await this.client.post<{ code: number; message: string; data: any }>('/users/auth/refresh');
     return response.data;
   }
 
