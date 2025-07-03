@@ -25,6 +25,7 @@ declare module 'vue' {
     ElOption: typeof import('element-plus/es')['ElOption']
     ElSelect: typeof import('element-plus/es')['ElSelect']
     Footer: typeof import('./src/components/Footer.vue')['default']
+    FormatPrompt: typeof import('./src/components/FormatPrompt.vue')['default']
     Head_portrait: typeof import('./src/components/head_portrait.vue')['default']
     HtmlIcon: typeof import('./src/components/icons/HtmlIcon.vue')['default']
     JsIcon: typeof import('./src/components/icons/JsIcon.vue')['default']
