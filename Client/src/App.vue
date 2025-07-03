@@ -435,5 +435,13 @@ onBeforeUnmount(() => {
   color: white;
 }
 
+body, .cm-content, .cm-line {
+  font-family: 'Consolas', 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.editor {
+  font-family: inherit;
+}
 
 </style> 
