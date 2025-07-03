@@ -1,5 +1,6 @@
 <template>
-  <div class="custom-dialog" v-if="internalVisible">
+  <div class="custom-overlay" v-if="internalVisible">
+    <div class="custom-dialog">
     <div class="dialog-header">
       <h2>Settings</h2>
       <button class="close-btn" @click="cancel">×</button>
@@ -7,7 +8,7 @@
     <div class="dialog-body">
       <div class="form-group">
         <label for="region1">Framework</label>
-        <el-select v-model="form.framework" id="region1" placeholder="请选择">
+        <el-select v-model="form.framework" id="region1"  placeholder="请选择">
           <el-option label="Vue" value="vue" />
           <el-option label="React" value="react" />
         </el-select>
@@ -21,57 +22,71 @@
       </div>
     </div>
     <div class="dialog-footer">
-      <button class="cancel-btn" @click="cancel">Cancel</button>
-      <button class="confirm-btn" @click="handleSettings">Confirm</button>
+      <button class=" btn cancel-btn" @click="cancel">Cancel</button>
+      <button class=" btn confirm-btn" @click="handleSettings">Confirm</button>
     </div>
+  </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue'
-const props = defineProps<{ 
-  dialogFormVisible: boolean; 
-}>();  
+import { reactive, ref, watch } from 'vue';
+const props = defineProps<{
+  dialogFormVisible: boolean;
+}>();
 
 const internalVisible = ref(props.dialogFormVisible);
 
-watch(() => props.dialogFormVisible, (newVal) => {
-  internalVisible.value = newVal;
-});
+watch(
+  () => props.dialogFormVisible,
+  (newVal) => {
+    internalVisible.value = newVal;
+  }
+);
 
-const emit = defineEmits(['closeDialog','updateSettings']);
+const emit = defineEmits(['closeDialog', 'updateSettings']);
 const form = reactive({
-  framework:'',
-  syntax:''
+  framework: '',
+  syntax: '',
 });
 
-const cancel = () => { 
-  console.log("cancel") 
-  emit('closeDialog') 
-} 
+const cancel = () => {
+  console.log('cancel');
+  emit('closeDialog');
+};
 
-const handleSettings = () => { 
+const handleSettings = () => {
   emit('updateSettings', form.framework, form.syntax);
-  emit('closeDialog') 
-} 
+  emit('closeDialog');
+};
 </script>
 
 <style scoped>
-.custom-dialog {
+.custom-overlay {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 500px;
-  background-color: #fff;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   z-index: 1000;
+}
+
+.custom-dialog {
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  color: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .dialog-header {
   padding: 16px 20px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #3a3a3a;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -80,13 +95,13 @@ const handleSettings = () => {
 .dialog-header h2 {
   margin: 0;
   font-size: 18px;
-  color:black;
 }
 
 .close-btn {
   background: none;
   border: none;
-  font-size: 20px;
+  color: #999;
+  font-size: 24px;
   cursor: pointer;
 }
 
@@ -96,46 +111,44 @@ const handleSettings = () => {
 
 .form-group {
   margin-bottom: 16px;
-  color:black;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: #ccc;
 }
+
 
 .dialog-footer {
-  padding: 10px 20px;
-  border-top: 1px solid #eee;
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-top: 1px solid #3a3a3a;
 }
 
-.cancel-btn,
-.confirm-btn {
+.btn {
   padding: 8px 16px;
   border-radius: 4px;
+  font-size: 14px;
   cursor: pointer;
-  border: 1px solid #dcdfe6;
+  border: none;
+}
+
+.cancel-btn{
+  background-color: transparent;
+  color: #ccc;
+  border: 1px solid #555;
 }
 
 .confirm-btn {
   background-color: #409eff;
   color: white;
-  border-color: #409eff;
 }
 
 .confirm-btn:hover {
   background-color: #66b1ff;
-  border-color: #66b1ff;
 }
 
-.cancel-btn:hover {
-  color: #409eff;
-  border-color: #c6e2ff;
-  background-color: #ecf5ff;
-}
 </style>
-

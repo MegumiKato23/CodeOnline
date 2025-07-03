@@ -1,6 +1,6 @@
 <template>
   <div class="app">
-    <Navbar @login="showLoginDialog = true"  @openSettings="showSettings = true"/>
+    <Navbar @login="showLoginDialog = true" @openSettings="showSettings = true" />
     <div class="left" ref="view">
       <div class="main-content">
         <div class="editor-panel" ref="editorPanel">
@@ -18,7 +18,11 @@
       </div>
     </div>
     <Footer :isReadOnly="userStore.isReadOnlyMode" @login="showLoginDialog = true" />
-    <SettingDialog :dialogFormVisible="showSettings" @closeDialog="showSettings = false"  @updateSettings="handleSettingsUpdate"/>
+    <SettingDialog
+      :dialogFormVisible="showSettings"
+      @closeDialog="showSettings = false"
+      @updateSettings="handleSettingsUpdate"
+    />
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
     <!-- <head_portrait @login="showLoginDialog = true" /> -->
@@ -52,7 +56,6 @@ const userStore = useUserStore();
 //用户访问权限
 const permissions = ref<ProjectPermissions | null>(null);
 
-
 const { htmlCode, cssCode, jsCode, activeTab } = storeToRefs(codeStore);
 const { status } = storeToRefs(userStore);
 const previewFrame = ref<HTMLIFrameElement | null>(null);
@@ -68,7 +71,7 @@ const editorPanel = ref<HTMLElement | null>(null);
 const view = ref<HTMLElement | null>(null);
 const cssSyntax = ref<'css' | 'sass' | 'less'>('css');
 
-const handleSettingsUpdate = (framework: string,  syntax: 'css' | 'sass' | 'less') => {
+const handleSettingsUpdate = (framework: string, syntax: 'css' | 'sass' | 'less') => {
   cssSyntax.value = syntax;
 };
 // 创建防抖的预览更新函数 (500ms)
@@ -78,8 +81,7 @@ const debouncedUpdatePreview = debounce(async () => {
   const doc = previewFrame.value.contentDocument;
   if (!doc) return;
   // 检查内容安全性
-  if (SecurityService.hasXSS(htmlCode.value) || 
-      SecurityService.hasXSS(jsCode.value)) {
+  if (SecurityService.hasXSS(htmlCode.value) || SecurityService.hasXSS(jsCode.value)) {
     console.warn('检测到潜在XSS风险，已阻止执行');
     return;
   }
@@ -97,17 +99,17 @@ const debouncedUpdatePreview = debounce(async () => {
   }
   if (cssSyntax.value === 'sass') {
     try {
-      const result = sass.compileString(cssCode.value); 
+      const result = sass.compileString(cssCode.value);
       safeCSS = result.css;
     } catch (error) {
-      console.error('Sass 编译失败:', error); 
+      console.error('Sass 编译失败:', error);
     }
   }
   const safeJS = SecurityService.sanitizeForWrite(jsCode.value);
   // 设置sandbox属性
   previewFrame.value.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals');
   try {
-    const fullContent =`
+    const fullContent = `
       <!DOCTYPE html>
       <html>
         <head>
@@ -131,10 +133,10 @@ const debouncedUpdatePreview = debounce(async () => {
       </html>
     `;
     // 使用分块注入函数
-  await streamInject(previewFrame.value, fullContent);
+    await streamInject(previewFrame.value, fullContent);
   } catch (error) {
     console.error('文档写入失败:', error);
-    const fullContent =`
+    const fullContent = `
       <!DOCTYPE html>
       <html>
         <body>
@@ -144,7 +146,7 @@ const debouncedUpdatePreview = debounce(async () => {
       </html>
     `;
     // 使用分块注入函数
-  await streamInject(previewFrame.value, fullContent);
+    await streamInject(previewFrame.value, fullContent);
   }
 }, 500);
 
@@ -174,9 +176,9 @@ const streamInject = (iframe: HTMLIFrameElement, htmlContent: string, chunkSize 
 };
 
 watch(status, () => {
-    view.value.className = '';
-    view.value.classList.add(status.value)
-    debouncedUpdatePreview();
+  view.value.className = '';
+  view.value.classList.add(status.value);
+  debouncedUpdatePreview();
 });
 
 // 切换到注册界面
@@ -359,13 +361,7 @@ const checkLoginStatus = async () => {
     const response = await api.refreshToken();
     if (response.code === 200) {
       const { user } = response.data;
-      userStore.login(
-        user.username,
-        user.account,
-        user.avatar,
-        user.status,
-        user.createAt
-      );
+      userStore.login(user.username, user.account, user.avatar, user.status, user.createAt);
 
       api.getUserProjects().then(async (res) => {
         console.log(res);
@@ -376,7 +372,8 @@ const checkLoginStatus = async () => {
           console.log(projectData);
           await codeStore.initProjectFiles(projectData.id);
           userStore.currentProjectId = projectData.id;
-        } else {  // 有项目
+        } else {
+          // 有项目
           userStore.currentProjectId = userProjectData['projects'][0]['id'];
           try {
             const { data } = await api.getProject(userStore.currentProjectId);
@@ -398,19 +395,19 @@ const checkLoginStatus = async () => {
               }
             });
 
-          console.log('项目文件加载完成');
-        } catch (error) {
-          console.error('加载项目文件失败:', error);
+            console.log('项目文件加载完成');
+          } catch (error) {
+            console.error('加载项目文件失败:', error);
+          }
         }
+      });
+
+      // 登录成功后，重新检查分享权限
+      const shareResult = await ShareService.checkShareAccess();
+
+      if (shareResult.success) {
+        ShareService.applyShareAccess(shareResult);
       }
-    });
-
-    // 登录成功后，重新检查分享权限
-    const shareResult = await ShareService.checkShareAccess();
-
-    if (shareResult.success) {
-      ShareService.applyShareAccess(shareResult);
-    }
     } else {
       userStore.isLoggedIn = false;
     }

@@ -61,7 +61,7 @@ import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 import ViewIcon from './icons/ViewIcon.vue';
 import HeadPortrait from './head_portrait.vue';
 
-const emit = defineEmits(['login','openSettings']);
+const emit = defineEmits(['login', 'openSettings']);
 
 const userStore = useUserStore();
 const codeStore = useCodeStore();
@@ -220,8 +220,8 @@ const login = () => {
 .custom-dropdown-menu {
   background-color: #1a1a1a;
   border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 /* 下拉菜单项样式 */

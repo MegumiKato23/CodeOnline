@@ -19,9 +19,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, toRefs, onBeforeUnmount, nextTick} from 'vue';
+import { ref, onMounted, watch, toRefs, onBeforeUnmount, nextTick } from 'vue';
 import { debounce } from 'lodash-es'; // 导入防抖函数
-import { EditorState, StateEffect } from '@codemirror/state'
+import { EditorState, StateEffect } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { html } from '@codemirror/lang-html';
@@ -32,11 +32,11 @@ import { less } from '@codemirror/lang-less';
 import { defaultKeymap, undo, redo, history } from '@codemirror/commands';
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
-import { linter, lintGutter, lintKeymap } from '@codemirror/lint'
+import { linter, lintGutter, lintKeymap } from '@codemirror/lint';
 import { useCodeStore } from '@/stores/codeStore';
 import { useUserStore } from '@/stores/userStore';
-import { createCompletions } from '@/utils/codeCompletions/index'
-import { createErrorChecker } from '@/utils/errorChecker1'
+import { createCompletions } from '@/utils/codeCompletions/index';
+import { createErrorChecker } from '@/utils/errorChecker1';
 import HtmlIcon from './icons/HtmlIcon.vue';
 import CssIcon from './icons/CssIcon.vue';
 import JsIcon from './icons/JsIcon.vue';
@@ -55,7 +55,7 @@ const editorElement = ref<HTMLElement | null>(null);
 const editorViews = ref({
   html: null as EditorView | null,
   css: null as EditorView | null,
-  js: null as EditorView | null
+  js: null as EditorView | null,
 });
 
 const currentView = ref<EditorView | null>(null);
@@ -76,7 +76,7 @@ const myHighlightStyle = HighlightStyle.define([
   { tag: tags.className, color: '#61afef' },
 ]);
 // 定义错误检查效果
-const setLintSource = StateEffect.define<(tab: 'html' | 'css' | 'js') => (view: EditorView) => any>()
+const setLintSource = StateEffect.define<(tab: 'html' | 'css' | 'js') => (view: EditorView) => any>();
 // 基础扩展
 const baseExtensions = [
   history(), // 历史记录必须放在前面
@@ -88,7 +88,7 @@ const baseExtensions = [
     { key: 'Mod-Shift-z', run: redo, preventDefault: true },
   ]),
   syntaxHighlighting(myHighlightStyle),
-   createCompletions(),
+  createCompletions(),
   //报错提示
   lintGutter(),
   EditorView.theme({
@@ -129,20 +129,25 @@ const setupLinter = () => {
   const checker = createErrorChecker(activeTab.value);
   return linter(async (view) => {
     const result = await checker(view.state.doc.toString());
-    return result.diagnostics.map(d => ({
+    return result.diagnostics.map((d) => ({
       from: d.from,
       to: d.to,
       severity: d.severity,
       message: d.message,
-      actions: d.fix ? [{
-        name: d.fix.label,
-        apply: (v, from, to) => v.dispatch({
-          changes: {from, to, insert: d.fix.edit[0].insert}
-        })
-      }] : []
+      actions: d.fix
+        ? [
+            {
+              name: d.fix.label,
+              apply: (v, from, to) =>
+                v.dispatch({
+                  changes: { from, to, insert: d.fix.edit[0].insert },
+                }),
+            },
+          ]
+        : [],
     }));
   });
-}
+};
 const initializeEditor = () => {
   if (!editorElement.value) return;
   editorElement.value.innerHTML = '';
@@ -153,9 +158,7 @@ const initializeEditor = () => {
     return;
   }
   const currentCode =
-    activeTab.value === 'html' ? codeStore.htmlCode : 
-    activeTab.value === 'css' ? codeStore.cssCode : 
-    codeStore.jsCode;
+    activeTab.value === 'html' ? codeStore.htmlCode : activeTab.value === 'css' ? codeStore.cssCode : codeStore.jsCode;
 
   // 根据只读状态配置扩展
   const extensions = [...baseExtensions, getLanguageExtension(), setupLinter()]; // 这里加入了 setupLinter()
@@ -176,8 +179,8 @@ const initializeEditor = () => {
   editorViews.value[activeTab.value] = view;
   currentView.value = view;
 };
-  const destroyAllEditors = () => {
-  Object.values(editorViews.value).forEach(view => {
+const destroyAllEditors = () => {
+  Object.values(editorViews.value).forEach((view) => {
     if (view) {
       view.destroy();
     }
@@ -193,7 +196,7 @@ const setActiveTab = (tab: 'html' | 'css' | 'js') => {
 onMounted(async () => {
   initializeEditor();
   if (userStore.isLoggedIn) {
-    await nextTick();  
+    await nextTick();
     initializeEditor();
   }
 });
@@ -210,10 +213,12 @@ watch(
     // 当代码内容变化且当前标签页对应的代码发生变化时，更新编辑器
     if (!view) return;
 
-    const currentCode = 
-      activeTab.value === 'html' ? codeStore.htmlCode : 
-      activeTab.value === 'css' ? codeStore.cssCode : 
-      codeStore.jsCode;
+    const currentCode =
+      activeTab.value === 'html'
+        ? codeStore.htmlCode
+        : activeTab.value === 'css'
+          ? codeStore.cssCode
+          : codeStore.jsCode;
 
     if (currentCode !== view.state.doc.toString()) {
       view.dispatch({

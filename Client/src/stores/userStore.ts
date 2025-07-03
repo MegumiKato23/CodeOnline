@@ -92,23 +92,27 @@ export const useUserStore = defineStore('user', () => {
   const toggleView = async (newStatus: string) => {
     // 切换视图状态
     setStatus(newStatus);
-    if (!isLoggedIn) {
+    if (isLoggedIn.value) {
       try {
-      // 调用 updateUserProfile 方法更新后台的用户资料
-      await api.updateUserProfile({
-        user: {
-          id: JSON.parse(sessionStorage.getItem('userid')),
-          username: username.value,
-          account: account.value,
-          status: status.value,
-        },
-      });
-      console.log('视图状态更新成功');
-    } catch (error) {
-      console.error('视图状态更新失败:', error);
+        const userId = sessionStorage.getItem('userid');
+        if (!userId) { 
+          console.error('未找到 userid，请检查登录状态');
+          return;
+        }
+        // 调用 updateUserProfile 方法更新后台的用户资料
+        await api.updateUserProfile({
+          user: {
+            id: JSON.parse(sessionStorage.getItem('userid')),
+            username: username.value,
+            account: account.value,
+            status: status.value,
+          },
+        });
+        console.log('视图状态更新成功');
+      } catch (error) {
+        console.error('视图状态更新失败:', error);
+      }
     }
-    }
-    
   };
   return {
     username,

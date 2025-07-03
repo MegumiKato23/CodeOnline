@@ -142,13 +142,12 @@ const openShareBox = async () => {
   try {
     // 1. 先保存Redis数据到数据库
     await saveRedisToDatabase();
-    
+
     // 2. 获取分享链接
     await getProjectShareLink();
-    
+
     // 3. 显示分享框
     isShareExpanded.value = true;
-    
   } catch (error) {
     console.error('分享准备失败:', error);
     // 可以添加用户提示
@@ -214,7 +213,7 @@ const saveRedisToDatabase = async () => {
 
     // 等待所有更新完成
     const updateResults = await Promise.all(updatePromises);
-    
+
     // 检查失败情况
     const failedUpdates = updateResults.filter((r) => r.status === 'failed');
     if (failedUpdates.length > 0) {
@@ -225,7 +224,6 @@ const saveRedisToDatabase = async () => {
       success: updateResults.filter((r) => r.status === 'success').length,
       skipped: updateResults.filter((r) => r.status === 'skipped').length,
     });
-    
   } catch (error) {
     console.error('保存Redis数据失败:', error);
     throw error; // 抛出错误让上层处理
