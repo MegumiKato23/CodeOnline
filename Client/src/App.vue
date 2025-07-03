@@ -9,10 +9,11 @@
       <div class="resize-handle" @mousedown="startResize" @dblclick="resetSize"></div>
       <div class="preview-panel">
         <iframe
-          sandbox="allow-scripts  allow-same-origin"
+          sandbox="allow-scripts allow-same-origin allow-modals"
           ref="previewFrame"
           class="preview-frame"
           :class="{ 'no-pointer-events': isResizing }"
+          csp="script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
         ></iframe>
       </div>
     </div>
@@ -42,7 +43,7 @@ import head_portrait from './components/head_portrait.vue';
 import { api } from '@/api/index';
 import { Users } from 'lucide-vue-next';
 import { ShareService } from '@/services/shareService';
-
+import { SecurityService } from '@/services/security';
 
 const codeStore = useCodeStore();
 const userStore = useUserStore();
@@ -72,37 +73,60 @@ const debouncedUpdatePreview = debounce(async () => {
 
   const doc = previewFrame.value.contentDocument;
   if (!doc) return;
+  // 检查内容安全性
+  if (SecurityService.hasXSS(htmlCode.value) || 
+      SecurityService.hasXSS(jsCode.value)) {
+    console.warn('检测到潜在XSS风险，已阻止执行');
+    return;
+  }
 
+  // 使用不同的净化方法
+  const safeHTML = SecurityService.sanitizeForWrite(htmlCode.value);
+  const safeCSS = cssCode.value; // CSS不需要特殊处理
+  const safeJS = SecurityService.sanitizeForWrite(jsCode.value);
   // 设置sandbox属性
-  previewFrame.value.setAttribute('sandbox', 'allow-scripts  allow-same-origin');
-
-  const fullContent = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <style>${cssCode.value}</style>
-      </head>
-      <body>
-        ${htmlCode.value}
-        <script>
-        // 监听iframe内部的点击事件
-          document.addEventListener('click', function(e) {
-            // 向父页面发送消息
-            window.parent.postMessage({
-              type: 'iframe-click',
-              target: e.target.tagName,
-              timestamp: Date.now()
-            }, '*');
-          });
-          ${jsCode.value}
-        <\/script>
-      </body>
-    </html>
-  `;
-
-  // 使用分块注入函数
+  previewFrame.value.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals');
+  try {
+    const fullContent =`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta http-equiv="Content-Security-Policy" content="
+            default-src 'none';
+            script-src 'self' 'unsafe-inline';
+            style-src 'self' 'unsafe-inline';
+          ">
+          <style>${safeCSS}</style>
+        </head>
+        <body>
+          ${safeHTML}
+          <script>
+            try {
+              ${safeJS}
+            } catch(e) {
+              console.error('执行错误:', e);
+            }
+          <\/script>
+        </body>
+      </html>
+    `;
+    // 使用分块注入函数
   await streamInject(previewFrame.value, fullContent);
-}, 500); // 500ms防抖延迟
+  } catch (error) {
+    console.error('文档写入失败:', error);
+    const fullContent =`
+      <!DOCTYPE html>
+      <html>
+        <body>
+          <h2>预览渲染错误</h2>
+          <p>${SecurityService.sanitizeForDisplay(error.message)}</p>
+        </body>
+      </html>
+    `;
+    // 使用分块注入函数
+  await streamInject(previewFrame.value, fullContent);
+  }
+}, 500);
 
 // 分块与流式注入函数
 const streamInject = (iframe: HTMLIFrameElement, htmlContent: string, chunkSize = 8192) => {
@@ -244,8 +268,8 @@ const handleBeforeUnload = async (e) => {
 
           console.log(`正在更新 ${file.name} (ID: ${fileId})`);
           const updateResponse = await api.updateFile(currentProjectId, fileId, {
-            name: file.name,
-            path: file.path,
+            name: SecurityService.sanitizeForSQL(file.name),
+            path: SecurityService.sanitizeForSQL(file.path),
             content: file.content,
             type: file.type,
           });
@@ -288,8 +312,15 @@ const handleBeforeUnload = async (e) => {
     return msg;
   }
 };
+const handleGlobalShortcut = (e: KeyboardEvent) => {
+  if (e.ctrlKey && e.key === 's') {
+    e.preventDefault();
+    codeStore.saveCode(userStore.account);
+  }
+};
 onMounted(() => {
   debouncedUpdatePreview(); // 初始加载时调用防抖版本
+  window.addEventListener('keydown', handleGlobalShortcut);
   window.addEventListener('beforeunload', handleBeforeUnload);
   // 仅在调整大小时禁用 iframe 事件
   const iframe = document.querySelector('.preview-frame') as HTMLIFrameElement;
@@ -383,6 +414,7 @@ const checkShareAccess = async () => {
 // 组件卸载时取消防抖
 onBeforeUnmount(() => {
   debouncedUpdatePreview.cancel();
+  window.removeEventListener('keydown', handleGlobalShortcut);
   window.removeEventListener('beforeunload', handleBeforeUnload);
 });
 </script>
