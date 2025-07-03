@@ -4,7 +4,7 @@
     <div class="left" ref="view">
       <div class="main-content">
         <div class="editor-panel" ref="editorPanel">
-          <CodeEditor :activeTab="activeTab" :isReadOnly="userStore.isReadOnlyMode" />
+          <CodeEditor :activeTab="activeTab" :isReadOnly="userStore.isReadOnlyMode" :cssSyntax="cssSyntax" />
         </div>
         <div class="resize-handle" @mousedown="startResize" @dblclick="resetSize"></div>
         <div class="preview-panel">
@@ -18,7 +18,7 @@
       </div>
     </div>
     <Footer :isReadOnly="userStore.isReadOnlyMode" @login="showLoginDialog = true" />
-    <SettingDialog :dialogFormVisible="showSettings" @closeDialog="showSettings = false" />
+    <SettingDialog :dialogFormVisible="showSettings" @closeDialog="showSettings = false"  @updateSettings="handleSettingsUpdate"/>
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
     <!-- <head_portrait @login="showLoginDialog = true" /> -->
@@ -42,6 +42,8 @@ import head_portrait from './components/head_portrait.vue';
 import { api } from '@/api/index';
 import { Users } from 'lucide-vue-next';
 import { ShareService } from '@/services/shareService';
+import less from 'less';
+import * as sass from 'sass';
 
 const codeStore = useCodeStore();
 const userStore = useUserStore();
@@ -62,9 +64,13 @@ const startX = ref(0);
 const startWidth = ref(0);
 const editorPanel = ref<HTMLElement | null>(null);
 const view = ref<HTMLElement | null>(null);
-console.log(view);
+const cssSyntax = ref<'css' | 'sass' | 'less'>('css');
+
+const handleSettingsUpdate = (framework: string,  syntax: 'css' | 'sass' | 'less') => {
+  cssSyntax.value = syntax;
+};
 // 创建防抖的预览更新函数 (500ms)
-const debouncedUpdatePreview = debounce(() => {
+const debouncedUpdatePreview = debounce(async () => {
   if (!previewFrame.value) return;
 
   const doc = previewFrame.value.contentDocument;
@@ -74,11 +80,29 @@ const debouncedUpdatePreview = debounce(() => {
   previewFrame.value.setAttribute('sandbox', 'allow-scripts  allow-same-origin');
 
   doc.open();
+  let cssToInsert = cssCode.value;
+  if (cssSyntax.value === 'less') {
+    try {
+      const result = await less.render(cssCode.value);
+      cssToInsert = result.css;
+    } catch (error) {
+      console.error('Less 编译失败:', error);
+    }
+  }
+  if (cssSyntax.value === 'sass') {
+    try {
+      const result = sass.compileString(cssCode.value); 
+      cssToInsert = result.css;
+    } catch (error) {
+      console.error('Sass 编译失败:', error); 
+    }
+  }
+
   doc.write(`
     <!DOCTYPE html>
     <html>
       <head>
-        <style>${cssCode.value}</style>
+        <style>${cssToInsert}</style>
       </head>
       <body>
         ${htmlCode.value}

@@ -218,7 +218,7 @@ const login = () => {
 
 /* 下拉菜单样式 */
 .custom-dropdown-menu {
-  background-color: #fff;
+  background-color: #1a1a1a;
   border: 1px solid #dcdfe6;
   border-radius: 4px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
@@ -227,10 +227,10 @@ const login = () => {
 /* 下拉菜单项样式 */
 .custom-dropdown-menu .el-dropdown-item {
   font-size: 14px;
-  color: #303133;
+  color: white;
 }
 
 .custom-dropdown-menu .el-dropdown-item:hover {
-  background-color: #f2f6fc; /* 悬停时改变背景色 */
+  background-color: hsl(227.37deg 12.26% 30.39%); /* 悬停时改变背景色 */
 }
 </style>

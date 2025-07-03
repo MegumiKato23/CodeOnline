@@ -36,12 +36,10 @@ const props = defineProps<{
 const internalVisible = ref(props.dialogFormVisible);
 
 watch(() => props.dialogFormVisible, (newVal) => {
-  console.log(props.dialogFormVisible)
   internalVisible.value = newVal;
-  console.log(props.dialogFormVisible)
 });
 
-const emit = defineEmits(['closeDialog']);
+const emit = defineEmits(['closeDialog','updateSettings']);
 const form = reactive({
   framework:'',
   syntax:''
@@ -53,7 +51,7 @@ const cancel = () => {
 } 
 
 const handleSettings = () => { 
-  console.log("handleSettings") 
+  emit('updateSettings', form.framework, form.syntax);
   emit('closeDialog') 
 } 
 </script>
