@@ -95,14 +95,14 @@ export const useUserStore = defineStore('user', () => {
     if (isLoggedIn.value) {
       try {
         const userId = sessionStorage.getItem('userid');
-        if (!userId) { 
+        if (!userId) {
           console.error('未找到 userid，请检查登录状态');
           return;
         }
         // 调用 updateUserProfile 方法更新后台的用户资料
         await api.updateUserProfile({
           user: {
-            id: JSON.parse(sessionStorage.getItem('userid')),
+            id: JSON.parse(userId),
             username: username.value,
             account: account.value,
             status: status.value,

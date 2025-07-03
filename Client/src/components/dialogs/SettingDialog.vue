@@ -1,31 +1,31 @@
 <template>
   <div class="custom-overlay" v-if="internalVisible">
     <div class="custom-dialog">
-    <div class="dialog-header">
-      <h2>Settings</h2>
-      <button class="close-btn" @click="cancel">×</button>
-    </div>
-    <div class="dialog-body">
-      <div class="form-group">
-        <label for="region1">Framework</label>
-        <el-select v-model="form.framework" id="region1"  placeholder="请选择">
-          <el-option label="Vue" value="vue" />
-          <el-option label="React" value="react" />
-        </el-select>
+      <div class="dialog-header">
+        <h2>Settings</h2>
+        <button class="close-btn" @click="cancel">×</button>
       </div>
-      <div class="form-group">
-        <label for="region2">Syntax in CSS</label>
-        <el-select v-model="form.syntax" id="region2" placeholder="请选择">
-          <el-option label="Sass" value="sass" />
-          <el-option label="Less" value="less" />
-        </el-select>
+      <div class="dialog-body">
+        <div class="form-group">
+          <label for="region1">Framework</label>
+          <el-select v-model="form.framework" id="region1" placeholder="请选择">
+            <el-option label="Vue" value="vue" />
+            <el-option label="React" value="react" />
+          </el-select>
+        </div>
+        <div class="form-group">
+          <label for="region2">Syntax in CSS</label>
+          <el-select v-model="form.syntax" id="region2" placeholder="请选择">
+            <el-option label="Sass" value="sass" />
+            <el-option label="Less" value="less" />
+          </el-select>
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn cancel-btn" @click="cancel">Cancel</button>
+        <button class="btn confirm-btn" @click="handleSettings">Confirm</button>
       </div>
     </div>
-    <div class="dialog-footer">
-      <button class=" btn cancel-btn" @click="cancel">Cancel</button>
-      <button class=" btn confirm-btn" @click="handleSettings">Confirm</button>
-    </div>
-  </div>
   </div>
 </template>
 
@@ -120,7 +120,6 @@ const handleSettings = () => {
   color: #ccc;
 }
 
-
 .dialog-footer {
   display: flex;
   justify-content: space-between;
@@ -136,7 +135,7 @@ const handleSettings = () => {
   border: none;
 }
 
-.cancel-btn{
+.cancel-btn {
   background-color: transparent;
   color: #ccc;
   border: 1px solid #555;
@@ -150,5 +149,4 @@ const handleSettings = () => {
 .confirm-btn:hover {
   background-color: #66b1ff;
 }
-
 </style>
