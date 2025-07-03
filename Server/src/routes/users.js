@@ -11,7 +11,7 @@ const {
   refreshToken,
 } = require('../controllers/userController');
 
-const { authenticateToken, authenticateRefreshToken } = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 const { validateRegister, validateLogin } = require('../middleware/validation');
 const { cookieAuth } = require('../middleware/cookie');
 
@@ -34,6 +34,6 @@ router.get('/profile', cookieAuth, getProfile);
 router.get('/project', cookieAuth, getUserProjects);
 
 // 更新token
-router.post('/auth/refresh', cookieAuth, authenticateRefreshToken, refreshToken);
+router.post('/auth/refresh', refreshToken);
 
 module.exports = router;

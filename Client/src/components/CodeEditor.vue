@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, toRefs, onBeforeUnmount } from 'vue';
+import { ref, onMounted, watch, toRefs, onBeforeUnmount, nextTick} from 'vue';
 import { debounce } from 'lodash-es'; // 导入防抖函数
 import { EditorState, StateEffect } from '@codemirror/state'
 import { EditorView, keymap } from '@codemirror/view';
@@ -49,14 +49,13 @@ const { activeTab, isReadOnly } = toRefs(props);
 const userStore = useUserStore();
 const codeStore = useCodeStore();
 const editorElement = ref<HTMLElement | null>(null);
-const editorView = ref<EditorView | null>(null);
-
-// 添加对 activeTab 的 watch
-watch(activeTab, (newTab, oldTab) => {
-  if (newTab !== oldTab) {
-    recreateEditor();
-  }
+const editorViews = ref({
+  html: null as EditorView | null,
+  css: null as EditorView | null,
+  js: null as EditorView | null
 });
+
+const currentView = ref<EditorView | null>(null);
 
 // 创建防抖的代码更新函数 (300ms)
 const debouncedUpdateCode = debounce((code: string) => {
@@ -137,9 +136,17 @@ const setupLinter = () => {
 }
 const initializeEditor = () => {
   if (!editorElement.value) return;
-
+  editorElement.value.innerHTML = '';
+  // 如果当前标签页的编辑器已存在，只需显示它
+  if (editorViews.value[activeTab.value]) {
+    editorElement.value.innerHTML = '';
+    editorElement.value.appendChild(editorViews.value[activeTab.value]!.dom);
+    return;
+  }
   const currentCode =
-    activeTab.value === 'html' ? codeStore.htmlCode : activeTab.value === 'css' ? codeStore.cssCode : codeStore.jsCode;
+    activeTab.value === 'html' ? codeStore.htmlCode : 
+    activeTab.value === 'css' ? codeStore.cssCode : 
+    codeStore.jsCode;
 
   // 根据只读状态配置扩展
   const extensions = [...baseExtensions, getLanguageExtension(), setupLinter()]; // 这里加入了 setupLinter()
@@ -151,75 +158,69 @@ const initializeEditor = () => {
     doc: currentCode,
     extensions,
   });
-
-  // 在创建新编辑器前销毁旧的
-  if (editorView.value) {
-    editorView.value.destroy();
-  }
-
-  editorView.value = new EditorView({
+  // 创建新编辑器
+  const view = new EditorView({
     state,
     parent: editorElement.value,
   });
+  // 保存编辑器视图
+  editorViews.value[activeTab.value] = view;
+  currentView.value = view;
 };
-
-const destroyEditor = () => {
-  if (editorView.value) {
-    editorView.value.destroy();
-    editorView.value = null;
-  }
-};
-
-const recreateEditor = () => {
-  destroyEditor();
-  initializeEditor();
+  const destroyAllEditors = () => {
+  Object.values(editorViews.value).forEach(view => {
+    if (view) {
+      view.destroy();
+    }
+  });
+  editorViews.value = { html: null, css: null, js: null };
+  currentView.value = null;
 };
 
 const setActiveTab = (tab: 'html' | 'css' | 'js') => {
   codeStore.setActiveTab(tab);
 };
 
-onMounted(() => {
+onMounted(async () => {
   initializeEditor();
-  // 异步加载远程代码（如果用户已登录）
   if (userStore.isLoggedIn) {
-    recreateEditor();
+    await nextTick();  
+    initializeEditor();
   }
 });
 
 watch(activeTab, () => {
-  recreateEditor();
+  initializeEditor();
 });
 
 // 分别监听各种代码类型的变化
 watch(
   [() => codeStore.htmlCode, () => codeStore.cssCode, () => codeStore.jsCode],
   () => {
+    const view = editorViews.value[activeTab.value];
     // 当代码内容变化且当前标签页对应的代码发生变化时，更新编辑器
-    if (editorView.value) {
-      const currentCode =
-        activeTab.value === 'html'
-          ? codeStore.htmlCode
-          : activeTab.value === 'css'
-            ? codeStore.cssCode
-            : codeStore.jsCode;
+    if (!view) return;
 
-      if (currentCode !== editorView.value.state.doc.toString()) {
-        editorView.value.dispatch({
-          changes: {
-            from: 0,
-            to: editorView.value.state.doc.length,
-            insert: currentCode,
-          },
-        });
-      }
+    const currentCode = 
+      activeTab.value === 'html' ? codeStore.htmlCode : 
+      activeTab.value === 'css' ? codeStore.cssCode : 
+      codeStore.jsCode;
+
+    if (currentCode !== view.state.doc.toString()) {
+      view.dispatch({
+        changes: {
+          from: 0,
+          to: view.state.doc.length,
+          insert: currentCode,
+        },
+      });
     }
   },
   { deep: true }
 );
 
 onBeforeUnmount(() => {
-  destroyEditor();
+  destroyAllEditors();
 });
 </script>
 

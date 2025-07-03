@@ -45,7 +45,18 @@ export const useUserStore = defineStore('user', () => {
     createAt.value = newCreateAt;
   };
 
-  const login = () => {
+  const login = (
+    newUsername: string,
+    newAccount: string,
+    newAvatar: string,
+    newStatus: string,
+    newCreateAt: string
+  ) => {
+    setUsername(newUsername);
+    setAccount(newAccount);
+    setAvatar(newAvatar);
+    setStatus(newStatus);
+    setCreateAt(newCreateAt);
     isLoggedIn.value = true;
   };
 
@@ -57,7 +68,7 @@ export const useUserStore = defineStore('user', () => {
     username.value = '';
     account.value = '';
     avatar.value = '';
-    status.value = '';
+    status.value = 'left';
     createAt.value = '';
 
     // 清除项目相关状态
