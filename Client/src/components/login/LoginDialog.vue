@@ -76,13 +76,7 @@ const handleLogin = async () => {
     const { user } = response.data;
 
     // 更新用户信息
-    userStore.login(
-      user.username,
-      user.account,
-      user.avatar,
-      user.status,
-      user.createAt
-    );
+    userStore.login(user.username, user.account, user.avatar, user.status, user.createAt);
 
     api.getUserProjects().then(async (res) => {
       console.log(res);

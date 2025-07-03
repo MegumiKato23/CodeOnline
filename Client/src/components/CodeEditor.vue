@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, toRefs, onBeforeUnmount } from 'vue';
 import { debounce } from 'lodash-es'; // 导入防抖函数
-import { EditorState, StateEffect } from '@codemirror/state'
+import { EditorState, StateEffect } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { html } from '@codemirror/lang-html';
@@ -30,11 +30,11 @@ import { javascript } from '@codemirror/lang-javascript';
 import { defaultKeymap, undo, redo, history } from '@codemirror/commands';
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
-import { linter, lintGutter, lintKeymap } from '@codemirror/lint'
+import { linter, lintGutter, lintKeymap } from '@codemirror/lint';
 import { useCodeStore } from '@/stores/codeStore';
 import { useUserStore } from '@/stores/userStore';
-import { createCompletions } from '@/utils/codeCompletions/index'
-import { createErrorChecker } from '@/utils/errorChecker1'
+import { createCompletions } from '@/utils/codeCompletions/index';
+import { createErrorChecker } from '@/utils/errorChecker1';
 import HtmlIcon from './icons/HtmlIcon.vue';
 import CssIcon from './icons/CssIcon.vue';
 import JsIcon from './icons/JsIcon.vue';
@@ -74,7 +74,7 @@ const myHighlightStyle = HighlightStyle.define([
   { tag: tags.className, color: '#61afef' },
 ]);
 // 定义错误检查效果
-const setLintSource = StateEffect.define<(tab: 'html' | 'css' | 'js') => (view: EditorView) => any>()
+const setLintSource = StateEffect.define<(tab: 'html' | 'css' | 'js') => (view: EditorView) => any>();
 // 基础扩展
 const baseExtensions = [
   history(), // 历史记录必须放在前面
@@ -86,7 +86,7 @@ const baseExtensions = [
     { key: 'Mod-Shift-z', run: redo, preventDefault: true },
   ]),
   syntaxHighlighting(myHighlightStyle),
-   createCompletions(),
+  createCompletions(),
   //报错提示
   lintGutter(),
   EditorView.theme({
@@ -121,20 +121,25 @@ const setupLinter = () => {
   const checker = createErrorChecker(activeTab.value);
   return linter(async (view) => {
     const result = await checker(view.state.doc.toString());
-    return result.diagnostics.map(d => ({
+    return result.diagnostics.map((d) => ({
       from: d.from,
       to: d.to,
       severity: d.severity,
       message: d.message,
-      actions: d.fix ? [{
-        name: d.fix.label,
-        apply: (v, from, to) => v.dispatch({
-          changes: {from, to, insert: d.fix.edit[0].insert}
-        })
-      }] : []
+      actions: d.fix
+        ? [
+            {
+              name: d.fix.label,
+              apply: (v, from, to) =>
+                v.dispatch({
+                  changes: { from, to, insert: d.fix.edit[0].insert },
+                }),
+            },
+          ]
+        : [],
     }));
   });
-}
+};
 const initializeEditor = () => {
   if (!editorElement.value) return;
 

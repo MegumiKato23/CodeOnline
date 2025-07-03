@@ -3,11 +3,37 @@ import { CodeError, ErrorChecker, ErrorCheckerOptions } from './typescript';
 // 定义HTML5标准标签及其允许的嵌套关系
 const HTML5_TAGS = {
   // 块级元素
-  block: ['div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot', 'form', 'section', 'article', 'header', 'footer', 'nav', 'aside'],
+  block: [
+    'div',
+    'p',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'ul',
+    'ol',
+    'li',
+    'table',
+    'tr',
+    'td',
+    'th',
+    'thead',
+    'tbody',
+    'tfoot',
+    'form',
+    'section',
+    'article',
+    'header',
+    'footer',
+    'nav',
+    'aside',
+  ],
   // 内联元素
   inline: ['span', 'a', 'strong', 'em', 'i', 'b', 'u', 'img', 'input', 'button', 'label', 'select', 'textarea'],
   // 特殊元素
-  special: ['html', 'head', 'body', 'meta', 'link', 'script', 'style', 'title']
+  special: ['html', 'head', 'body', 'meta', 'link', 'script', 'style', 'title'],
 };
 
 // 定义不允许嵌套的标签组合
@@ -16,20 +42,20 @@ const INVALID_NESTING = [
   ['p', 'ul'],
   ['p', 'ol'],
   ['a', 'a'],
-  ['button', 'button']
+  ['button', 'button'],
 ];
 
 // 定义必须包含的父元素
 const REQUIRED_PARENTS = {
-  'li': ['ul', 'ol'],
-  'tr': ['table'],
-  'td': ['tr'],
-  'th': ['tr'],
-  'thead': ['table'],
-  'tbody': ['table'],
-  'tfoot': ['table'],
-  'option': ['select'],
-  'optgroup': ['select']
+  li: ['ul', 'ol'],
+  tr: ['table'],
+  td: ['tr'],
+  th: ['tr'],
+  thead: ['table'],
+  tbody: ['table'],
+  tfoot: ['table'],
+  option: ['select'],
+  optgroup: ['select'],
 };
 
 export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorCheckerOptions) => {
@@ -58,7 +84,7 @@ export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorChe
           severity: 'error',
           from: match.index,
           to: match.index + fullMatch.length,
-          line: 0
+          line: 0,
         });
       }
     } else if (!isSelfClosing) {
@@ -74,7 +100,7 @@ export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorChe
             severity: 'error',
             from: match.index,
             to: match.index + fullMatch.length,
-            line: 0
+            line: 0,
           });
         }
       }
@@ -82,13 +108,14 @@ export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorChe
       // 检查无效的嵌套组合
       if (parentTag) {
         for (const [parent, child] of INVALID_NESTING) {
-          if (parent === parentTag && child === currentTag) {  // 只判断单向
+          if (parent === parentTag && child === currentTag) {
+            // 只判断单向
             errors.push({
               message: `Invalid nesting: <${parentTag}> cannot contain <${currentTag}>`,
               severity: 'error',
               from: match.index,
               to: match.index + fullMatch.length,
-              line: 0
+              line: 0,
             });
           }
         }
@@ -110,7 +137,7 @@ export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorChe
           severity: 'error',
           from: match.index + fullMatch.indexOf(attrMatch[0]),
           to: match.index + fullMatch.indexOf(attrMatch[0]) + attrMatch[0].length,
-          line: 0
+          line: 0,
         });
       }
       seenAttrs.add(attrName);
@@ -122,20 +149,20 @@ export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorChe
           severity: 'warning',
           from: match.index + fullMatch.indexOf(attrMatch[0]),
           to: match.index + fullMatch.indexOf(attrMatch[0]) + attrMatch[0].length,
-          line: 0
+          line: 0,
         });
       }
     }
   }
 
   // 检查未闭合的标签
-  openTags.forEach(tag => {
+  openTags.forEach((tag) => {
     return errors.push({
       message: `Unclosed tag: <${tag.name}>`,
       severity: 'error',
       from: tag.position,
       to: tag.position + tag.name.length + 1,
-      line: 0
+      line: 0,
     });
   });
 
@@ -151,7 +178,7 @@ export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorChe
         severity: 'warning',
         from: 0,
         to: 0,
-        line: 0
+        line: 0,
       });
     }
     if (hasHtmlTag && !hasHeadTag) {
@@ -160,7 +187,7 @@ export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorChe
         severity: 'warning',
         from: 0,
         to: 0,
-        line: 0
+        line: 0,
       });
     }
     if (hasHtmlTag && !hasBodyTag) {
@@ -169,24 +196,22 @@ export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorChe
         severity: 'warning',
         from: 0,
         to: 0,
-        line: 0
+        line: 0,
       });
     }
   }
 
   // 过滤掉用户指定忽略的错误模式
-  const filteredErrors = errors.filter(error => 
-    !ignorePatterns.some(pattern => error.message.includes(pattern))
-  );
+  const filteredErrors = errors.filter((error) => !ignorePatterns.some((pattern) => error.message.includes(pattern)));
 
   return {
     errors: filteredErrors,
     diagnostics: filteredErrors,
     stats: {
-      errorCount: filteredErrors.filter(e => e.severity === 'error').length,
-      warningCount: filteredErrors.filter(e => e.severity === 'warning').length,
-      suggestionCount: filteredErrors.filter(e => e.severity === 'suggestion').length
+      errorCount: filteredErrors.filter((e) => e.severity === 'error').length,
+      warningCount: filteredErrors.filter((e) => e.severity === 'warning').length,
+      suggestionCount: filteredErrors.filter((e) => e.severity === 'suggestion').length,
     },
-    map: (fn: (error: any) => any) => filteredErrors.map(fn)
+    map: (fn: (error: any) => any) => filteredErrors.map(fn),
   };
 };
