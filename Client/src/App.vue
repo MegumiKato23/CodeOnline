@@ -44,12 +44,14 @@ import { Users } from 'lucide-vue-next';
 import { ShareService } from '@/services/shareService';
 import less from 'less';
 import * as sass from 'sass';
+import { SecurityService } from '@/services/security';
 
 const codeStore = useCodeStore();
 const userStore = useUserStore();
 
 //用户访问权限
 const permissions = ref<ProjectPermissions | null>(null);
+
 
 const { htmlCode, cssCode, jsCode, activeTab } = storeToRefs(codeStore);
 const { status } = storeToRefs(userStore);
@@ -75,16 +77,20 @@ const debouncedUpdatePreview = debounce(async () => {
 
   const doc = previewFrame.value.contentDocument;
   if (!doc) return;
+  // 检查内容安全性
+  if (SecurityService.hasXSS(htmlCode.value) || 
+      SecurityService.hasXSS(jsCode.value)) {
+    console.warn('检测到潜在XSS风险，已阻止执行');
+    return;
+  }
 
-  // 设置sandbox属性
-  previewFrame.value.setAttribute('sandbox', 'allow-scripts  allow-same-origin');
-
-  doc.open();
-  let cssToInsert = cssCode.value;
+  // 使用不同的净化方法
+  const safeHTML = SecurityService.sanitizeForWrite(htmlCode.value);
+  let safeCSS = cssCode.value; // CSS不需要特殊处理
   if (cssSyntax.value === 'less') {
     try {
       const result = await less.render(cssCode.value);
-      cssToInsert = result.css;
+      safeCSS = result.css;
     } catch (error) {
       console.error('Less 编译失败:', error);
     }
@@ -92,50 +98,86 @@ const debouncedUpdatePreview = debounce(async () => {
   if (cssSyntax.value === 'sass') {
     try {
       const result = sass.compileString(cssCode.value); 
-      cssToInsert = result.css;
+      safeCSS = result.css;
     } catch (error) {
       console.error('Sass 编译失败:', error); 
     }
   }
+  const safeJS = SecurityService.sanitizeForWrite(jsCode.value);
+  // 设置sandbox属性
+  previewFrame.value.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals');
+  try {
+    const fullContent =`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta http-equiv="Content-Security-Policy" content="
+            default-src 'none';
+            script-src 'self' 'unsafe-inline';
+            style-src 'self' 'unsafe-inline';
+          ">
+          <style>${safeCSS}</style>
+        </head>
+        <body>
+          ${safeHTML}
+          <script>
+            try {
+              ${safeJS}
+            } catch(e) {
+              console.error('执行错误:', e);
+            }
+          <\/script>
+        </body>
+      </html>
+    `;
+    // 使用分块注入函数
+  await streamInject(previewFrame.value, fullContent);
+  } catch (error) {
+    console.error('文档写入失败:', error);
+    const fullContent =`
+      <!DOCTYPE html>
+      <html>
+        <body>
+          <h2>预览渲染错误</h2>
+          <p>${SecurityService.sanitizeForDisplay(error.message)}</p>
+        </body>
+      </html>
+    `;
+    // 使用分块注入函数
+  await streamInject(previewFrame.value, fullContent);
+  }
+}, 500);
 
-  doc.write(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <style>${cssToInsert}</style>
-      </head>
-      <body>
-        ${htmlCode.value}
-        <script>
-        // 监听iframe内部的点击事件
-          document.addEventListener('click', function(e) {
-            // 向父页面发送消息
-            window.parent.postMessage({
-              type: 'iframe-click',
-              target: e.target.tagName,
-              timestamp: Date.now()
-            }, '*');
-          });
-        ${jsCode.value}
-        <\/script>
-      </body>
-    </html>
-  `);
-  doc.close();
-}, 500); // 500ms防抖延迟
+// 分块与流式注入函数
+const streamInject = (iframe: HTMLIFrameElement, htmlContent: string, chunkSize = 8192) => {
+  return new Promise<void>((resolve) => {
+    const doc = iframe.contentDocument;
+    if (!doc) return resolve();
+
+    doc.open();
+
+    let i = 0;
+    function writeChunk() {
+      if (i < htmlContent.length) {
+        const chunk = htmlContent.substring(i, i + chunkSize);
+        doc.write(chunk);
+        i += chunkSize;
+        // 使用 requestAnimationFrame 来调度下一次写入，避免阻塞UI
+        requestAnimationFrame(writeChunk);
+      } else {
+        doc.close();
+        resolve();
+      }
+    }
+    writeChunk();
+  });
+};
 
 watch(status, () => {
-  view.value.className = '';
-  view.value.classList.add(status.value);
-  debouncedUpdatePreview();
+    view.value.className = '';
+    view.value.classList.add(status.value)
+    debouncedUpdatePreview();
 });
-
-// //切换到settings界面
-// const switchToSettings = () => {
-//   //console.log(showSettings.value)
-//   showSettings.value = true;
-//   //console.log(showSettings.value)
-// }
 
 // 切换到注册界面
 const switchToRegister = () => {
@@ -246,8 +288,8 @@ const handleBeforeUnload = async (e) => {
 
           console.log(`正在更新 ${file.name} (ID: ${fileId})`);
           const updateResponse = await api.updateFile(currentProjectId, fileId, {
-            name: file.name,
-            path: file.path,
+            name: SecurityService.sanitizeForSQL(file.name),
+            path: SecurityService.sanitizeForSQL(file.path),
             content: file.content,
             type: file.type,
           });
@@ -290,8 +332,15 @@ const handleBeforeUnload = async (e) => {
     return msg;
   }
 };
+const handleGlobalShortcut = (e: KeyboardEvent) => {
+  if (e.ctrlKey && e.key === 's') {
+    e.preventDefault();
+    codeStore.saveCode(userStore.account);
+  }
+};
 onMounted(() => {
   debouncedUpdatePreview(); // 初始加载时调用防抖版本
+  window.addEventListener('keydown', handleGlobalShortcut);
   window.addEventListener('beforeunload', handleBeforeUnload);
   // 仅在调整大小时禁用 iframe 事件
   const iframe = document.querySelector('.preview-frame') as HTMLIFrameElement;
@@ -300,9 +349,76 @@ onMounted(() => {
       document.body.style.cursor = 'col-resize';
     }
   });
+  checkLoginStatus();
   checkShareAccess();
   debouncedUpdatePreview();
 });
+
+const checkLoginStatus = async () => {
+  try {
+    const response = await api.refreshToken();
+    if (response.code === 200) {
+      const { user } = response.data;
+      userStore.login(
+        user.username,
+        user.account,
+        user.avatar,
+        user.status,
+        user.createAt
+      );
+
+      api.getUserProjects().then(async (res) => {
+        console.log(res);
+        const { data: userProjectData } = res;
+        if (userProjectData['projects'].length == 0) {
+          const { data } = await api.createProject({ name: 'New Project' });
+          const projectData = data.project; // Assuming the first project is the new one created by the registration
+          console.log(projectData);
+          await codeStore.initProjectFiles(projectData.id);
+          userStore.currentProjectId = projectData.id;
+        } else {  // 有项目
+          userStore.currentProjectId = userProjectData['projects'][0]['id'];
+          try {
+            const { data } = await api.getProject(userStore.currentProjectId);
+            // console.log(projectRes);
+            const files = data.project['files'];
+
+            // 创建文件类型映射
+            const typeMapping = {
+              HTML: 'html',
+              CSS: 'css',
+              JS: 'js',
+            };
+
+            // 处理每个文件
+            files.forEach((file) => {
+              const mappedType = typeMapping[file.type];
+              if (mappedType) {
+                codeStore.updateCode(mappedType, file.content);
+              }
+            });
+
+          console.log('项目文件加载完成');
+        } catch (error) {
+          console.error('加载项目文件失败:', error);
+        }
+      }
+    });
+
+    // 登录成功后，重新检查分享权限
+    const shareResult = await ShareService.checkShareAccess();
+
+    if (shareResult.success) {
+      ShareService.applyShareAccess(shareResult);
+    }
+    } else {
+      userStore.isLoggedIn = false;
+    }
+  } catch (error) {
+    console.error('登录状态检查失败:', error);
+    userStore.isLoggedIn = false;
+  }
+};
 
 // 检查是否为分享链接访问
 const checkShareAccess = async () => {
@@ -318,6 +434,7 @@ const checkShareAccess = async () => {
 // 组件卸载时取消防抖
 onBeforeUnmount(() => {
   debouncedUpdatePreview.cancel();
+  window.removeEventListener('keydown', handleGlobalShortcut);
   window.removeEventListener('beforeunload', handleBeforeUnload);
 });
 </script>

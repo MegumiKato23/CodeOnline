@@ -1,4 +1,4 @@
-const { verifyAccessToken, verifyRefreshToken } = require('../utils/jwt');
+const { verifyAccessToken } = require('../utils/jwt');
 
 const authenticateToken = (req, res, next) => {
   const token = req.cookies.access_token;
@@ -16,24 +16,6 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
-const authenticateRefreshToken = (req, res, next) => {
-  const token = req.cookies.refresh_token;
-
-  if (!token) {
-    return res.status(401).json({ error: 'Refresh token required' });
-  }
-
-  try {
-    const decoded = verifyRefreshToken(token);
-    req.user = decoded;
-    next();
-  } catch (error) {
-    console.error('Refresh token error:', error);
-    return res.status(403).json({ error: 'Invalid or expired token' });
-  }
-};
-
 module.exports = {
   authenticateToken,
-  authenticateRefreshToken,
 };

@@ -1,6 +1,3 @@
-body {
-    overflow-y: hidden;
-}
 .left{
   .main-content {
   display: flex;
@@ -70,7 +67,7 @@ body {
   display: flex;
   flex: 1;
   overflow: hidden;
-  height: calc(100vh - 70px); /* 假设导航栏和页脚总高度为60px */
+  height: calc(100vh - 70px); /* 假设导航栏和页脚总高度为70px */
   position: relative;
   flex-direction: row-reverse; /* 将代码编辑区域移到右边 */
 }
@@ -136,7 +133,7 @@ body {
   display: flex;
   flex: 1;
   overflow: hidden;
-  height: calc(100vh - 70px); /* 假设导航栏和页脚总高度为60px */
+  height: calc(100vh - 70px); /* 假设导航栏和页脚总高度为70px */
   position: relative;
   flex-direction: column; /* 改为垂直方向排列 */
 }

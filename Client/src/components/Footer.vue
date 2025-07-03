@@ -136,9 +136,99 @@ const getProjectShareLink = async () => {
 const openShareBox = async () => {
   if (!userStore.isLoggedIn) {
     emit('login');
-  } else {
+    return;
+  }
+
+  try {
+    // 1. 先保存Redis数据到数据库
+    await saveRedisToDatabase();
+    
+    // 2. 获取分享链接
     await getProjectShareLink();
+    
+    // 3. 显示分享框
     isShareExpanded.value = true;
+    
+  } catch (error) {
+    console.error('分享准备失败:', error);
+    // 可以添加用户提示
+    alert('准备分享链接失败，请稍后再试');
+  }
+};
+const saveRedisToDatabase = async () => {
+  try {
+    // 1. 获取当前项目ID
+    const currentProjectId = userStore.currentProjectId;
+    if (!currentProjectId) {
+      throw new Error('未设置当前项目');
+    }
+
+    // 2. 从Redis获取文件内容
+    const codeResponse = await api.getCode(userStore.account);
+    const filesToUpdate = codeResponse.data?.files || [];
+    if (filesToUpdate.length === 0) {
+      console.log('没有需要保存的文件');
+      return;
+    }
+
+    // 3. 获取项目文件列表
+    const projectResponse = await api.getProject(currentProjectId);
+    const projectData = projectResponse.data?.project || projectResponse.data;
+    const existingFiles = projectData?.files || [];
+
+    // 4. 创建文件名到ID的映射
+    const fileIdMap = new Map();
+    existingFiles.forEach((file) => {
+      fileIdMap.set(file.name, file.id);
+    });
+
+    // 5. 执行文件更新
+    const updatePromises = filesToUpdate.map(async (file) => {
+      const fileId = fileIdMap.get(file.name);
+      if (!fileId) {
+        console.warn(`未找到文件 ${file.name} 的ID，跳过更新`);
+        return { name: file.name, status: 'skipped' };
+      }
+
+      try {
+        const updateResponse = await api.updateFile(currentProjectId, fileId, {
+          name: file.name,
+          path: file.path,
+          content: file.content,
+          type: file.type,
+        });
+
+        if (updateResponse.code !== 200) {
+          throw new Error(updateResponse.message || '更新失败');
+        }
+        return { name: file.name, status: 'success' };
+      } catch (error) {
+        console.error(`文件 ${file.name} 更新失败:`, error);
+        return {
+          name: file.name,
+          status: 'failed',
+          error: error.message,
+        };
+      }
+    });
+
+    // 等待所有更新完成
+    const updateResults = await Promise.all(updatePromises);
+    
+    // 检查失败情况
+    const failedUpdates = updateResults.filter((r) => r.status === 'failed');
+    if (failedUpdates.length > 0) {
+      throw new Error(`${failedUpdates.length}个文件更新失败`);
+    }
+
+    console.log('Redis数据保存成功:', {
+      success: updateResults.filter((r) => r.status === 'success').length,
+      skipped: updateResults.filter((r) => r.status === 'skipped').length,
+    });
+    
+  } catch (error) {
+    console.error('保存Redis数据失败:', error);
+    throw error; // 抛出错误让上层处理
   }
 };
 
@@ -262,7 +352,7 @@ onUnmounted(() => {
   }
   to {
     opacity: 1;
-    bottom: 1.7rem;
+    bottom: 2.15rem;
   }
 }
 
