@@ -19,9 +19,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, toRefs, onBeforeUnmount, nextTick} from 'vue';
+import { ref, onMounted, watch, toRefs, onBeforeUnmount, nextTick } from 'vue';
 import { debounce } from 'lodash-es'; // 导入防抖函数
-import { EditorState, StateEffect } from '@codemirror/state'
+import { EditorState, StateEffect } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { html } from '@codemirror/lang-html';
@@ -30,15 +30,16 @@ import { javascript } from '@codemirror/lang-javascript';
 import { defaultKeymap, undo, redo, history } from '@codemirror/commands';
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
-import { linter, lintGutter, lintKeymap } from '@codemirror/lint'
+import { linter, lintGutter, lintKeymap } from '@codemirror/lint';
 import { useCodeStore } from '@/stores/codeStore';
 import { useUserStore } from '@/stores/userStore';
-import { createCompletions } from '@/utils/codeCompletions/index'
-import { createErrorChecker } from '@/utils/errorChecker1'
+import { createCompletions } from '@/utils/codeCompletions/index';
+import { createErrorChecker } from '@/utils/errorChecker1';
 import HtmlIcon from './icons/HtmlIcon.vue';
 import CssIcon from './icons/CssIcon.vue';
 import JsIcon from './icons/JsIcon.vue';
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps<{
   activeTab: 'html' | 'css' | 'js';
@@ -48,11 +49,12 @@ const props = defineProps<{
 const { activeTab, isReadOnly } = toRefs(props);
 const userStore = useUserStore();
 const codeStore = useCodeStore();
+const { htmlCode, cssCode, jsCode } = storeToRefs(codeStore);
 const editorElement = ref<HTMLElement | null>(null);
 const editorViews = ref({
   html: null as EditorView | null,
   css: null as EditorView | null,
-  js: null as EditorView | null
+  js: null as EditorView | null,
 });
 
 const currentView = ref<EditorView | null>(null);
@@ -73,7 +75,7 @@ const myHighlightStyle = HighlightStyle.define([
   { tag: tags.className, color: '#61afef' },
 ]);
 // 定义错误检查效果
-const setLintSource = StateEffect.define<(tab: 'html' | 'css' | 'js') => (view: EditorView) => any>()
+const setLintSource = StateEffect.define<(tab: 'html' | 'css' | 'js') => (view: EditorView) => any>();
 // 基础扩展
 const baseExtensions = [
   history(), // 历史记录必须放在前面
@@ -85,13 +87,22 @@ const baseExtensions = [
     { key: 'Mod-Shift-z', run: redo, preventDefault: true },
   ]),
   syntaxHighlighting(myHighlightStyle),
-   createCompletions(),
+  createCompletions(),
   //报错提示
   lintGutter(),
   EditorView.theme({
-    '&': { height: '100%' },
-    '.cm-scroller': { overflow: 'auto' },
-    '.cm-content': { padding: '10px 0' },
+    '&': {
+      height: '100%',
+      maxHeight: '100%', // 添加最大高度限制
+    },
+    '.cm-scroller': {
+      overflow: 'auto',
+      maxHeight: '100%', // 确保滚动容器不超过父容器
+    },
+    '.cm-content': {
+      padding: '10px 0',
+      minHeight: '100%', // 确保内容区域至少填满容器
+    },
     '.cm-gutters': { backgroundColor: '#282c34', color: '#abb2bf' },
   }),
   EditorView.updateListener.of((update) => {
@@ -120,38 +131,54 @@ const setupLinter = () => {
   const checker = createErrorChecker(activeTab.value);
   return linter(async (view) => {
     const result = await checker(view.state.doc.toString());
-    return result.diagnostics.map(d => ({
+    return result.diagnostics.map((d) => ({
       from: d.from,
       to: d.to,
       severity: d.severity,
       message: d.message,
-      actions: d.fix ? [{
-        name: d.fix.label,
-        apply: (v, from, to) => v.dispatch({
-          changes: {from, to, insert: d.fix.edit[0].insert}
-        })
-      }] : []
+      actions: d.fix
+        ? [
+            {
+              name: d.fix.label,
+              apply: (v, from, to) =>
+                v.dispatch({
+                  changes: { from, to, insert: d.fix.edit[0].insert },
+                }),
+            },
+          ]
+        : [],
     }));
   });
-}
+};
 const initializeEditor = () => {
   if (!editorElement.value) return;
   editorElement.value.innerHTML = '';
-  // 如果当前标签页的编辑器已存在，只需显示它
-  if (editorViews.value[activeTab.value]) {
-    editorElement.value.innerHTML = '';
-    editorElement.value.appendChild(editorViews.value[activeTab.value]!.dom);
-    return;
+
+  // 检查当前编辑器是否存在以及只读状态是否匹配
+  const existingView = editorViews.value[activeTab.value];
+  if (existingView) {
+    // 检查当前编辑器的只读状态是否与期望一致
+    const currentReadOnly = existingView.state.readOnly;
+    const expectedReadOnly = isReadOnly?.value || false;
+
+    if (currentReadOnly === expectedReadOnly) {
+      // 状态一致，直接复用
+      editorElement.value.appendChild(existingView.dom);
+      return;
+    } else {
+      // 状态不一致，销毁旧编辑器，重新创建
+      existingView.destroy();
+      editorViews.value[activeTab.value] = null;
+    }
   }
   const currentCode =
-    activeTab.value === 'html' ? codeStore.htmlCode : 
-    activeTab.value === 'css' ? codeStore.cssCode : 
-    codeStore.jsCode;
+    activeTab.value === 'html' ? codeStore.htmlCode : activeTab.value === 'css' ? codeStore.cssCode : codeStore.jsCode;
 
   // 根据只读状态配置扩展
   const extensions = [...baseExtensions, getLanguageExtension(), setupLinter()]; // 这里加入了 setupLinter()
   if (isReadOnly?.value) {
     extensions.push(EditorState.readOnly.of(true));
+    console.log(isReadOnly?.value);
   }
 
   const state = EditorState.create({
@@ -167,8 +194,8 @@ const initializeEditor = () => {
   editorViews.value[activeTab.value] = view;
   currentView.value = view;
 };
-  const destroyAllEditors = () => {
-  Object.values(editorViews.value).forEach(view => {
+const destroyAllEditors = () => {
+  Object.values(editorViews.value).forEach((view) => {
     if (view) {
       view.destroy();
     }
@@ -182,29 +209,28 @@ const setActiveTab = (tab: 'html' | 'css' | 'js') => {
 };
 
 onMounted(async () => {
+  await nextTick();
   initializeEditor();
-  if (userStore.isLoggedIn) {
-    await nextTick();  
-    initializeEditor();
-  }
 });
 
-watch(activeTab, () => {
+watch([activeTab, isReadOnly], () => {
   initializeEditor();
 });
 
 // 分别监听各种代码类型的变化
 watch(
-  [() => codeStore.htmlCode, () => codeStore.cssCode, () => codeStore.jsCode],
+  [htmlCode, cssCode, jsCode],
   () => {
     const view = editorViews.value[activeTab.value];
     // 当代码内容变化且当前标签页对应的代码发生变化时，更新编辑器
     if (!view) return;
 
-    const currentCode = 
-      activeTab.value === 'html' ? codeStore.htmlCode : 
-      activeTab.value === 'css' ? codeStore.cssCode : 
-      codeStore.jsCode;
+    const currentCode =
+      activeTab.value === 'html'
+        ? codeStore.htmlCode
+        : activeTab.value === 'css'
+          ? codeStore.cssCode
+          : codeStore.jsCode;
 
     if (currentCode !== view.state.doc.toString()) {
       view.dispatch({
@@ -266,6 +292,18 @@ onBeforeUnmount(() => {
   flex: 1;
   overflow: hidden;
   position: relative;
+  max-height: 100%; /* 添加最大高度限制 */
+}
+
+/* 确保CodeMirror编辑器不会超出容器 */
+.editor :deep(.cm-editor) {
+  height: 100%;
+  max-height: 100%;
+}
+
+.editor :deep(.cm-scroller) {
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 /* .icon {

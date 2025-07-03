@@ -389,18 +389,18 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  height: 35px;
+  height: 40px;
   background: #1a1a1a;
   border-top: 1px solid #333;
 }
 
 /* 展开状态 */
 .footer.expanded {
-  height: 40%;
+  height: 45%;
 }
 
 .tabs {
-  height: 30px;
+  height: 40px;
   padding: 0 10px;
   display: flex;
   justify-content: space-between;

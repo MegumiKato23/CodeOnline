@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount, isReadonly } from 'vue';
 import { storeToRefs } from 'pinia';
 import { debounce } from 'lodash-es'; // 导入防抖函数
 import { useCodeStore } from '@/stores/codeStore';
@@ -433,7 +433,7 @@ const handleGlobalShortcut = (e: KeyboardEvent) => {
     codeStore.saveCode(userStore.account);
   }
 };
-onMounted(() => {
+onMounted(async () => {
   debouncedUpdatePreview(); // 初始加载时调用防抖版本
   window.addEventListener('keydown', handleGlobalShortcut);
   window.addEventListener('beforeunload', handleBeforeUnload);
@@ -445,7 +445,8 @@ onMounted(() => {
     }
   });
   checkLoginStatus();
-  checkShareAccess();
+  await checkShareAccess();
+  console.log(userStore.isReadOnlyMode);
   debouncedUpdatePreview();
 });
 
@@ -453,47 +454,10 @@ const checkLoginStatus = async () => {
   try {
     const response = await api.refreshToken();
     if (response.code === 200) {
-      const { user } = response;
+      const { user } = response.data;
       userStore.login(user.username, user.account, user.avatar, user.status, user.createAt);
 
-      api.getUserProjects().then(async (res) => {
-        console.log(res);
-        const { data: userProjectData } = res;
-        if (userProjectData['projects'].length == 0) {
-          const { data } = await api.createProject({ name: 'New Project' });
-          const projectData = data.project; // Assuming the first project is the new one created by the registration
-          console.log(projectData);
-          await codeStore.initProjectFiles(projectData.id);
-          userStore.currentProjectId = projectData.id;
-        } else {
-          // 有项目
-          userStore.currentProjectId = userProjectData['projects'][0]['id'];
-          try {
-            const { data } = await api.getProject(userStore.currentProjectId);
-            // console.log(projectRes);
-            const files = data.project['files'];
-
-            // 创建文件类型映射
-            const typeMapping = {
-              HTML: 'html',
-              CSS: 'css',
-              JS: 'js',
-            };
-
-            // 处理每个文件
-            files.forEach((file) => {
-              const mappedType = typeMapping[file.type];
-              if (mappedType) {
-                codeStore.updateCode(mappedType, file.content);
-              }
-            });
-
-            console.log('项目文件加载完成');
-          } catch (error) {
-            console.error('加载项目文件失败:', error);
-          }
-        }
-      });
+      codeStore.initProject();
 
       // 登录成功后，重新检查分享权限
       const shareResult = await ShareService.checkShareAccess();
