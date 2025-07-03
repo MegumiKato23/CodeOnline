@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@codemirror/basic-setup": "^0.20.0",
     "@codemirror/commands": "^6.8.1",
     "@codemirror/lang-css": "^6.3.1",
     "@codemirror/lang-html": "^6.4.9",
@@ -29,8 +30,8 @@
     "vue": "^3.5.13"
   },
   "devDependencies": {
-    "@types/node": "^24.0.3",
     "@types/lodash-es": "^4.17.12",
+    "@types/node": "^24.0.3",
     "@vitejs/plugin-vue": "^5.2.3",
     "babel-plugin-component": "^1.1.1",
     "prettier": "^3.5.3",

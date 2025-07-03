@@ -139,41 +139,7 @@ export const htmlChecker: ErrorChecker = async (code: string, options?: ErrorChe
     });
   });
 
-  // 检查文档结构完整性，跳过片段
-  if (!isFragment) {
-    const hasHtmlTag = code.includes('<html') && code.includes('</html>');
-    const hasHeadTag = code.includes('<head') && code.includes('</head>');
-    const hasBodyTag = code.includes('<body') && code.includes('</body>');
-
-    if (!hasHtmlTag) {
-      errors.push({
-        message: 'Missing <html> tag',
-        severity: 'warning',
-        from: 0,
-        to: 0,
-        line: 0
-      });
-    }
-    if (hasHtmlTag && !hasHeadTag) {
-      errors.push({
-        message: 'Missing <head> section',
-        severity: 'warning',
-        from: 0,
-        to: 0,
-        line: 0
-      });
-    }
-    if (hasHtmlTag && !hasBodyTag) {
-      errors.push({
-        message: 'Missing <body> section',
-        severity: 'warning',
-        from: 0,
-        to: 0,
-        line: 0
-      });
-    }
-  }
-
+  
   // 过滤掉用户指定忽略的错误模式
   const filteredErrors = errors.filter(error => 
     !ignorePatterns.some(pattern => error.message.includes(pattern))
