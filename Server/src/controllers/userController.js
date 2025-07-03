@@ -1,7 +1,8 @@
 const bcrypt = require('bcryptjs');
 const { validationResult } = require('express-validator');
 const prisma = require('../utils/prisma');
-const { generateAccessToken, generateRefreshToken } = require('../utils/jwt');
+const { generateAccessToken, generateRefreshToken, ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } = require('../utils/jwt');
+const jwt = require('jsonwebtoken');
 
 // 用户注册
 const register = async (req, res) => {
@@ -331,46 +332,99 @@ const getUserProjects = async (req, res) => {
   }
 };
 
-// 更新token
+// 更新token，验证用户状态
 const refreshToken = async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.session.userId },
-    });
+    const token = req.cookies.access_token;
 
-    if (!user) {
-      return res.status(404).json({
-        code: 404,
-        message: 'User not found',
+    if (!token) {
+      return res.status(400).json({
+        code: 400,
+        message: 'Unauthorized',
+        data: null,
       });
     }
 
-    // 生成新的访问令牌
-    const newAccessToken = generateAccessToken({
-      id: user.id,
-      username: user.name,
-      account: user.account,
+    // 验证token
+    const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET);
+    const user = await prisma.user.findUnique({
+      where: {
+        id: decoded.id,
+      },
     });
-
-    // 设置HttpOnly Cookie
-    res.cookie('access_token', newAccessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000, // 24小时
-      path: '/',
-    });
-
-    res.status(200).json({
+    return res.status(200).json({
       code: 200,
       message: 'success',
+      data: {
+        user: {
+          id: user.id,
+          username: user.name,
+          account: user.account,
+          avatar: user.avatar || null,
+          status: user.status,
+        },
+      },
     });
   } catch (error) {
-    console.error('Refresh token error:', error);
-    res.status(500).json({
-      code: 500,
-      message: 'Refresh token failed',
-    });
+    try {
+      const refreshToken = req.cookies.refresh_token;
+
+      if (!refreshToken) {
+        return res.status(400).json({
+          code: 400,
+          message: 'Unauthorized',
+          data: null,
+        });
+      }
+
+      const decoded = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.id },
+      });
+
+      if (!user) {
+        return res.status(400).json({
+          code: 400,
+          message: 'Unauthorized',
+          data: null,
+        });
+      }
+
+      const newAccessToken = generateAccessToken({
+        id: user.id,
+        username: user.name,
+        account: user.account,
+      });
+
+      res.cookie('access_token', newAccessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 24 * 60 * 60 * 1000, // 24小时
+        path: '/',
+      });
+
+      return res.status(200).json({
+        code: 200,
+        message: 'success',
+        data: {
+          user: {
+            id: user.id,
+            username: user.name,
+            account: user.account,
+            avatar: user.avatar || null,
+            status: user.status,
+          },
+        }
+      });
+    } catch(refreshError) {
+      console.error('Refresh token error:', refreshError);
+      return res.status(400).json({
+        code: 400,
+        message: 'Unauthorized',
+        data: null,
+      });
+    }
   }
 };
 

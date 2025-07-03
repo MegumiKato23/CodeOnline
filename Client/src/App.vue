@@ -298,9 +298,76 @@ onMounted(() => {
       document.body.style.cursor = 'col-resize';
     }
   });
+  checkLoginStatus();
   checkShareAccess();
   debouncedUpdatePreview();
 });
+
+const checkLoginStatus = async () => {
+  try {
+    const response = await api.refreshToken();
+    if (response.code === 200) {
+      const { user } = response.data;
+      userStore.login(
+        user.username,
+        user.account,
+        user.avatar,
+        user.status,
+        user.createAt
+      );
+
+      api.getUserProjects().then(async (res) => {
+        console.log(res);
+        const { data: userProjectData } = res;
+        if (userProjectData['projects'].length == 0) {
+          const { data } = await api.createProject({ name: 'New Project' });
+          const projectData = data.project; // Assuming the first project is the new one created by the registration
+          console.log(projectData);
+          await codeStore.initProjectFiles(projectData.id);
+          userStore.currentProjectId = projectData.id;
+        } else {  // 有项目
+          userStore.currentProjectId = userProjectData['projects'][0]['id'];
+          try {
+            const { data } = await api.getProject(userStore.currentProjectId);
+            // console.log(projectRes);
+            const files = data.project['files'];
+
+            // 创建文件类型映射
+            const typeMapping = {
+              HTML: 'html',
+              CSS: 'css',
+              JS: 'js',
+            };
+
+            // 处理每个文件
+            files.forEach((file) => {
+              const mappedType = typeMapping[file.type];
+              if (mappedType) {
+                codeStore.updateCode(mappedType, file.content);
+              }
+            });
+
+          console.log('项目文件加载完成');
+        } catch (error) {
+          console.error('加载项目文件失败:', error);
+        }
+      }
+    });
+
+    // 登录成功后，重新检查分享权限
+    const shareResult = await ShareService.checkShareAccess();
+
+    if (shareResult.success) {
+      ShareService.applyShareAccess(shareResult);
+    }
+    } else {
+      userStore.isLoggedIn = false;
+    }
+  } catch (error) {
+    console.error('登录状态检查失败:', error);
+    userStore.isLoggedIn = false;
+  }
+};
 
 // 检查是否为分享链接访问
 const checkShareAccess = async () => {

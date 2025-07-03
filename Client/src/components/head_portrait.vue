@@ -51,11 +51,7 @@ const logout = async () => {
     const response = await api.logout();
     if (response.code === 200) {
       userStore.logout();
-      // 退出登录后,检查权限
-      const shareResult = await ShareService.checkShareAccess();
-      if (shareResult.success) {
-        ShareService.applyShareAccess(shareResult);
-      }
+      window.location.reload(); // 退出登录后刷新页面
     }
   } catch (error) {
     console.error('退出登录失败:', error);
