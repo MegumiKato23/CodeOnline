@@ -1,0 +1,194 @@
+.left{
+  .main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - 70px); 
+  position: relative;
+}
+
+.editor-panel {
+  width: 50%;
+  min-width: 300px;
+  max-width: calc(100% - 300px);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: #1e1e1e;
+}
+
+.resize-handle {
+  width: 8px;
+  background: #1a1a1a;
+  cursor: col-resize;
+  position: relative;
+  z-index: 10;
+  transition: background 0.1s;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.resize-handle:hover {
+  background: #555;
+}
+
+.resize-handle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0px;
+  right: 0px;
+  bottom: 0;
+}
+
+.preview-panel {
+  flex: 1;
+  min-width: 300px;
+  display: flex;
+  height: 100%;
+  overflow: auto; /* 改为auto以显示滚动条 */
+}
+
+.preview-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: white;
+}
+/* 仅在调整大小时禁用指针事件 */
+.preview-frame.no-pointer-events {
+  pointer-events: none;
+}
+}
+
+.right{
+ .main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - 70px); /* 假设导航栏和页脚总高度为70px */
+  position: relative;
+  flex-direction: row-reverse; /* 将代码编辑区域移到右边 */
+}
+
+.editor-panel {
+  width: 50%;
+  min-width: 300px;
+  max-width: calc(100% - 300px);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: #1e1e1e;
+}
+
+.resize-handle {
+  width: 8px;
+  background: #1a1a1a;
+  cursor: col-resize;
+  position: relative;
+  z-index: 10;
+  transition: background 0.1s;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.resize-handle:hover {
+  background: #555;
+}
+
+.resize-handle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0px;
+  right: 0px;
+  bottom: 0;
+}
+
+.preview-panel {
+  flex: 1;
+  min-width: 300px;
+  display: flex;
+  height: 100%;
+  overflow: auto; /* 改为auto以显示滚动条 */
+}
+
+.preview-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: white;
+}
+
+/* 仅在调整大小时禁用指针事件 */
+.preview-frame.no-pointer-events {
+  pointer-events: none;
+}
+}
+
+.top{
+    .main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - 70px); /* 假设导航栏和页脚总高度为70px */
+  position: relative;
+  flex-direction: column; /* 改为垂直方向排列 */
+}
+
+.editor-panel {
+  height: 50%; /* 代码编辑区域占据父容器的50%高度 */
+  min-height: 300px;
+  max-height: calc(100% - 300px);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden;
+  background: #1e1e1e;
+}
+
+.resize-handle {
+  height: 8px; /* 调整大小条的高度 */
+  background: #1a1a1a;
+  cursor: row-resize; /* 改为纵向调整大小 */
+  position: relative;
+  z-index: 10;
+  transition: background 0.1s;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.resize-handle:hover {
+  background: #555;
+}
+
+.resize-handle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.preview-panel {
+  flex: 1;
+  min-height: 300px; /* 确保预览区域也有最小高度 */
+  display: flex;
+  width: 100%;
+  overflow: auto; /* 改为auto以显示滚动条 */
+}
+
+.preview-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: white;
+}
+/* 仅在调整大小时禁用指针事件 */
+.preview-frame.no-pointer-events {
+  pointer-events: none;
+}
+}
