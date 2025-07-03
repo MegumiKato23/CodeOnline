@@ -1,4 +1,3 @@
-
 export interface CodeError {
   message: string;
   severity: 'error' | 'warning' | 'suggestion';
@@ -86,7 +85,9 @@ export type ErrorChecker = (
   code: string,
   options?: ErrorCheckerOptions
 ) => Promise<{
-  map(arg0: (error: any) => any): readonly import("@codemirror/lint").Diagnostic[] | PromiseLike<readonly import("@codemirror/lint").Diagnostic[]>;
+  map(
+    arg0: (error: any) => any
+  ): readonly import('@codemirror/lint').Diagnostic[] | PromiseLike<readonly import('@codemirror/lint').Diagnostic[]>;
   errors: CodeError[];
   diagnostics?: any;
   stats?: {
