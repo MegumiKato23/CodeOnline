@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, toRefs, onBeforeUnmount, nextTick } from 'vue';
 import { debounce } from 'lodash-es'; // 导入防抖函数
-import { EditorState, StateEffect } from '@codemirror/state';
+import { EditorState, StateEffect,EditorSelection  } from '@codemirror/state'
 import { EditorView, keymap } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { html } from '@codemirror/lang-html';
@@ -74,6 +74,122 @@ const myHighlightStyle = HighlightStyle.define([
   { tag: tags.attributeName, color: '#d19a66' },
   { tag: tags.className, color: '#61afef' },
 ]);
+const handleTab = (view: EditorView) => {
+  const selection = view.state.selection;
+  const changes = [];
+  const newRanges = [];
+  
+  // 处理多选区
+  for (const range of selection.ranges) {
+    if (range.empty) {
+      // 单光标插入4个空格
+      changes.push({
+        from: range.from,
+        insert: "    " // 4个空格
+      });
+      newRanges.push(EditorSelection.range(
+        range.from + 4,
+        range.from + 4
+      ));
+    } else {
+      // 多行缩进
+      const lines = [];
+      for (let pos = range.from; pos <= range.to;) {
+        const line = view.state.doc.lineAt(pos);
+        lines.push(line);
+        pos = line.to + 1;
+      }
+      
+      // 为每行添加缩进
+      let totalAdded = 0;
+      for (const line of lines) {
+        changes.push({
+          from: line.from,
+          insert: "    " // 4个空格
+        });
+        totalAdded += 4;
+      }
+      
+      newRanges.push(EditorSelection.range(
+        range.from + 4,
+        range.to + (lines.length * 4)
+      ));
+    }
+  }
+  
+  view.dispatch({
+    changes,
+    selection: EditorSelection.create(newRanges),
+    scrollIntoView: true
+  });
+  return true;
+};
+
+const handleShiftTab = (view: EditorView) => {
+  const selection = view.state.selection;
+  const changes = [];
+  const newRanges: {anchor: number, head: number}[] = [];
+  
+  // 处理每个选区
+  for (const range of selection.ranges) {
+    const lines = [];
+    let pos = range.from;
+    
+    // 收集所有受影响的行
+    while (pos <= range.to) {
+      const line = view.state.doc.lineAt(pos);
+      lines.push(line);
+      pos = line.to + 1;
+    }
+    
+    let anchorShift = 0;
+    let headShift = 0;
+    
+    // 处理每行的缩进
+    for (const line of lines) {
+      const lineText = view.state.sliceDoc(line.from, line.to);
+      const leadingSpaces = lineText.match(/^[ ]{1,4}/)?.[0] || '';
+      
+      if (leadingSpaces.length > 0) {
+        const removeCount = Math.min(leadingSpaces.length, 4);
+        changes.push({
+          from: line.from,
+          to: line.from + removeCount,
+          insert: ""
+        });
+        
+        // 计算光标偏移
+        if (range.anchor >= line.from && range.anchor <= line.to) {
+          anchorShift = removeCount;
+        }
+        if (range.head >= line.from && range.head <= line.to) {
+          headShift = removeCount;
+        }
+      }
+    }
+    
+    // 计算新的选区范围
+    const newAnchor = Math.max(0, range.anchor - anchorShift);
+    const newHead = Math.max(0, range.head - headShift);
+    
+    newRanges.push({
+      anchor: newAnchor,
+      head: newHead
+    });
+  }
+  
+  if (changes.length > 0) {
+    view.dispatch({
+      changes,
+      selection: EditorSelection.create(newRanges.map(r => 
+        EditorSelection.range(r.anchor, r.head)
+      )),
+      scrollIntoView: true
+    });
+    return true;
+  }
+  return false;
+};
 // 定义错误检查效果
 const setLintSource = StateEffect.define<(tab: 'html' | 'css' | 'js') => (view: EditorView) => any>();
 // 基础扩展
@@ -85,6 +201,8 @@ const baseExtensions = [
     { key: 'Mod-z', run: undo, preventDefault: true },
     { key: 'Mod-y', run: redo, preventDefault: true },
     { key: 'Mod-Shift-z', run: redo, preventDefault: true },
+    { key: "Tab", run: handleTab },
+    { key: "Shift-Tab", run: handleShiftTab },
   ]),
   syntaxHighlighting(myHighlightStyle),
   createCompletions(),
