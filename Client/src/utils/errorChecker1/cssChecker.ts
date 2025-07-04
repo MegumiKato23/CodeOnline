@@ -1,4 +1,4 @@
-import { CodeError, ErrorChecker, ErrorCheckerOptions } from './typescript'
+import { CodeError, ErrorChecker, ErrorCheckerOptions } from './typescript';
 
 export const cssChecker: ErrorChecker = async (code: string, options?: ErrorCheckerOptions) => {
   const errors: CodeError[] = [];
@@ -19,7 +19,7 @@ export const cssChecker: ErrorChecker = async (code: string, options?: ErrorChec
       severity: 'warning',
       from: code.lastIndexOf('/*'),
       to: code.length,
-      line: 0
+      line: 0,
     });
   }
 
@@ -34,39 +34,39 @@ export const cssChecker: ErrorChecker = async (code: string, options?: ErrorChec
         severity: 'warning',
         from: propMatch.index,
         to: propMatch.index + full.length,
-        line: 0
+        line: 0,
       });
     }
   }
 
   // 检查未闭合的花括号
-  let braceLevel = 0
+  let braceLevel = 0;
   for (let i = 0; i < code.length; i++) {
-    if (code[i] === '{') braceLevel++
-    if (code[i] === '}') braceLevel--
-    
+    if (code[i] === '{') braceLevel++;
+    if (code[i] === '}') braceLevel--;
+
     if (braceLevel < 0) {
       errors.push({
         message: 'Unexpected closing brace',
         severity: 'error',
         from: i,
         to: i + 1,
-        line: 0
-      })
-      braceLevel = 0
+        line: 0,
+      });
+      braceLevel = 0;
     }
   }
-  
+
   if (braceLevel > 0) {
     errors.push({
       message: 'Unclosed block',
       severity: 'error',
       from: code.length - 1,
       to: code.length,
-      line: 0
-    })
+      line: 0,
+    });
   }
-  
+
   // 3. 检测Sass/Less变量语法错误
   const variableRegex = /\$[a-zA-Z0-9_-]+/g;
   let varMatch;
@@ -77,7 +77,7 @@ export const cssChecker: ErrorChecker = async (code: string, options?: ErrorChec
         severity: 'warning',
         from: varMatch.index,
         to: varMatch.index + varMatch[0].length,
-        line: 0
+        line: 0,
       });
     }
   }
@@ -92,7 +92,7 @@ export const cssChecker: ErrorChecker = async (code: string, options?: ErrorChec
         severity: 'warning',
         from: nestingMatch.index,
         to: nestingMatch.index + nestingMatch[0].length,
-        line: 0
+        line: 0,
       });
     }
   }
@@ -107,24 +107,22 @@ export const cssChecker: ErrorChecker = async (code: string, options?: ErrorChec
         severity: 'error',
         from: mixinMatch.index,
         to: mixinMatch.index + mixinMatch[0].length,
-        line: 0
+        line: 0,
       });
     }
   }
 
   // 过滤掉用户指定忽略的错误模式
-  const filteredErrors = errors.filter(error => 
-    !ignorePatterns.some(pattern => error.message.includes(pattern))
-  );
-  
+  const filteredErrors = errors.filter((error) => !ignorePatterns.some((pattern) => error.message.includes(pattern)));
+
   return {
     errors: filteredErrors,
     diagnostics: filteredErrors,
     stats: {
-      errorCount: filteredErrors.filter(e => e.severity === 'error').length,
-      warningCount: filteredErrors.filter(e => e.severity === 'warning').length,
-      suggestionCount: filteredErrors.filter(e => e.severity === 'suggestion').length
+      errorCount: filteredErrors.filter((e) => e.severity === 'error').length,
+      warningCount: filteredErrors.filter((e) => e.severity === 'warning').length,
+      suggestionCount: filteredErrors.filter((e) => e.severity === 'suggestion').length,
     },
-    map: (fn: (error: any) => any) => filteredErrors.map(fn)
+    map: (fn: (error: any) => any) => filteredErrors.map(fn),
   };
-}
+};

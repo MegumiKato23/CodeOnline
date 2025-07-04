@@ -11,20 +11,19 @@
 
     <!-- 右侧部分：操作按钮 -->
     <div class="right">
-
-  <el-dropdown @command="handleCommand" class="custom-dropdown">
-  <span class="el-dropdown-link custom-dropdown-link">
-    Views
-    <el-icon  class="el-icon--right"><arrow-down /></el-icon>
-  </span>
-  <template #dropdown>
-    <el-dropdown-menu class="custom-dropdown-menu">
-      <el-dropdown-item command="left">Left</el-dropdown-item>
-      <el-dropdown-item command="right">Right</el-dropdown-item>
-      <el-dropdown-item command="top">Top</el-dropdown-item>
-    </el-dropdown-menu>
-  </template>
-</el-dropdown>
+      <el-dropdown @command="handleCommand" class="custom-dropdown">
+        <span class="el-dropdown-link custom-dropdown-link">
+          Views
+          <el-icon class="el-icon--right"><arrow-down /></el-icon>
+        </span>
+        <template #dropdown>
+          <el-dropdown-menu class="custom-dropdown-menu">
+            <el-dropdown-item command="left">Left</el-dropdown-item>
+            <el-dropdown-item command="right">Right</el-dropdown-item>
+            <el-dropdown-item command="top">Top</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
 
       <UnifiedButton
         type="primary"
@@ -70,7 +69,7 @@ const codeStore = useCodeStore();
 const { username, userid, account, avatar, isLoggedIn, status } = storeToRefs(userStore);
 const { saved } = storeToRefs(codeStore);
 
-const handleCommand = (command: string ) => {
+const handleCommand = (command: string) => {
   //console.log(command)
   userStore.toggleView(command);
 };
@@ -202,7 +201,7 @@ const login = () => {
   align-items: center;
   justify-content: center;
   padding: 10px 20px;
-  background-color: #444857;  /* 与primary按钮相同的背景色 */
+  background-color: #444857; /* 与primary按钮相同的背景色 */
   color: #fff; /* 白色文字 */
   font-size: 14px;
   border-radius: 4px;
@@ -235,5 +234,4 @@ const login = () => {
 .custom-dropdown-menu .el-dropdown-item:hover {
   background-color: #f2f6fc; /* 悬停时改变背景色 */
 }
-
 </style>

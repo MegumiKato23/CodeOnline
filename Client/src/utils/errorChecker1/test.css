@@ -8,13 +8,13 @@
   height: 123; /* 缺少单位 */
   color: red !important !important; /* 重复的!important */
   background-color: #xyz; /* 无效的颜色值 */
-  
+
   /* 未闭合的花括号 */
-  
+
   $undefined-var: 10px; /* 未定义的Sass变量 */
-  
+
   @include undefined-mixin; /* 未定义的mixin */
-  
+
   & .nested {
     /* 无效的嵌套语法 */
     display: block;
