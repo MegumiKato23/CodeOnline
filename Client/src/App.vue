@@ -427,10 +427,17 @@ const handleBeforeUnload = async (e) => {
     return msg;
   }
 };
-const handleGlobalShortcut = (e: KeyboardEvent) => {
+const handleGlobalShortcut = async (e: KeyboardEvent) => {
   if (e.ctrlKey && e.key === 's') {
     e.preventDefault();
-    codeStore.saveCode(userStore.account);
+    try {
+      // 先格式化当前标签页的代码
+      await codeStore.formatCurrentCode();
+      // 再保存到Redis
+      await codeStore.saveCode(userStore.account);
+    } catch (error) {
+      console.error('保存失败:', error);
+    }
   }
 };
 onMounted(async () => {
