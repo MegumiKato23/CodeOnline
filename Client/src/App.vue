@@ -1,24 +1,29 @@
 <template>
-  <div class="app" >
+  <div class="app">
     <Navbar @login="showLoginDialog = true" />
     <div class="left" ref="view">
-    <div class="main-content">
-      <div class="editor-panel" ref="editorPanel">
-        <CodeEditor :activeTab="activeTab" :isReadOnly="userStore.isReadOnlyMode" />
-      </div>
-      <div class="resize-handle" @mousedown="startResize" @dblclick="resetSize"></div>
-      <div class="preview-panel">
-        <iframe
-          sandbox="allow-scripts allow-same-origin allow-modals"
-          ref="previewFrame"
-          class="preview-frame"
-          :class="{ 'no-pointer-events': isResizing }"
-          csp="script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
-        ></iframe>
+      <div class="main-content">
+        <div class="editor-panel" ref="editorPanel">
+          <CodeEditor :activeTab="activeTab" :isReadOnly="userStore.isReadOnlyMode" />
+        </div>
+        <div class="resize-handle" @mousedown="startResize" @dblclick="resetSize"></div>
+        <div class="preview-panel">
+          <iframe
+            sandbox="allow-scripts allow-same-origin allow-modals"
+            ref="previewFrame"
+            class="preview-frame"
+            :class="{ 'no-pointer-events': isResizing }"
+            csp="script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+          ></iframe>
+        </div>
       </div>
     </div>
-    </div>
-    <Footer :isReadOnly="userStore.isReadOnlyMode" @login="showLoginDialog = true" />
+    <Footer
+      :isReadOnly="userStore.isReadOnlyMode"
+      @login="showLoginDialog = true"
+      @runtime-error="handleRuntimeError"
+      @goto-line="handleGotoLine"
+    />
     <SettingsDialog v-if="showSettings" @close="showSettings = false" />
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
@@ -27,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount, isReadonly } from 'vue';
 import { storeToRefs } from 'pinia';
 import { debounce } from 'lodash-es'; // 导入防抖函数
 import { useCodeStore } from '@/stores/codeStore';
@@ -51,7 +56,6 @@ const userStore = useUserStore();
 //用户访问权限
 const permissions = ref<ProjectPermissions | null>(null);
 
-
 const { htmlCode, cssCode, jsCode, activeTab } = storeToRefs(codeStore);
 const { status } = storeToRefs(userStore);
 const previewFrame = ref<HTMLIFrameElement | null>(null);
@@ -65,7 +69,7 @@ const startX = ref(0);
 const startWidth = ref(0);
 const editorPanel = ref<HTMLElement | null>(null);
 const view = ref<HTMLElement | null>(null);
-console .log(view);
+console.log(view);
 
 // 创建防抖的预览更新函数 (500ms)
 const debouncedUpdatePreview = debounce(async () => {
@@ -74,8 +78,7 @@ const debouncedUpdatePreview = debounce(async () => {
   const doc = previewFrame.value.contentDocument;
   if (!doc) return;
   // 检查内容安全性
-  if (SecurityService.hasXSS(htmlCode.value) || 
-      SecurityService.hasXSS(jsCode.value)) {
+  if (SecurityService.hasXSS(htmlCode.value) || SecurityService.hasXSS(jsCode.value)) {
     console.warn('检测到潜在XSS风险，已阻止执行');
     return;
   }
@@ -87,34 +90,136 @@ const debouncedUpdatePreview = debounce(async () => {
   // 设置sandbox属性
   previewFrame.value.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals');
   try {
-    const fullContent =`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta http-equiv="Content-Security-Policy" content="
+    // 安全地转义用户代码，避免模板字符串语法冲突
+    const escapeForTemplate = (code: string) => {
+      return code
+        .replace(/\\/g, '\\\\') // 转义反斜杠
+        .replace(/`/g, '\\`') // 转义反引号
+        .replace(/\$/g, '\\$') // 转义美元符号
+        .replace(/\r\n/g, '\\n') // 转义Windows换行符
+        .replace(/\n/g, '\\n') // 转义Unix换行符
+        .replace(/\r/g, '\\n'); // 转义Mac换行符
+    };
+
+    const safeJsCode = escapeForTemplate(jsCode.value);
+
+    const fullContent = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+       <meta http-equiv="Content-Security-Policy" content="
             default-src 'none';
             script-src 'self' 'unsafe-inline';
             style-src 'self' 'unsafe-inline';
           ">
-          <style>${safeCSS}</style>
-        </head>
-        <body>
-          ${safeHTML}
-          <script>
-            try {
-              ${safeJS}
-            } catch(e) {
-              console.error('执行错误:', e);
-            }
-          <\/script>
-        </body>
-      </html>
-    `;
+        <style>${safeCSS}</style>
+      </head>
+      <body>
+       ${safeHTML}
+        <script>
+        // 监听iframe内部的点击事件
+          document.addEventListener('click', function(e) {
+            // 向父页面发送消息
+            window.parent.postMessage({
+              type: 'iframe-click',
+              target: e.target.tagName,
+              timestamp: Date.now()
+            }, '*');
+          });
+          
+          // 重写console方法
+          if (typeof window._internalOriginalConsole === 'undefined') {
+            window._internalOriginalConsole = window.console;
+            window.console = {
+              log: function(...args) {
+                window.parent.postMessage({
+                  type: 'console-log',
+                  level: 'log',
+                  args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)),
+                  timestamp: Date.now()
+                }, '*');
+                window._internalOriginalConsole.log(...args);
+              },
+              error: (...args) => {
+                window.parent.postMessage({
+                  type: 'console-log',
+                  level: 'error',
+                  args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)),
+                  timestamp: Date.now()
+                }, '*');
+                window._internalOriginalConsole.error(...args);
+              },
+              warn: (...args) => {
+                window.parent.postMessage({
+                  type: 'console-log',
+                  level: 'warn',
+                  args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)),
+                  timestamp: Date.now()
+                }, '*');
+                window._internalOriginalConsole.warn(...args);
+              }
+            };
+          }
+          
+          // 在iframe中添加错误监听
+          window.onerror = function(message, source, lineno, colno, error) {
+            // 计算实际代码行号（需要减去HTML包装的行数）
+            const htmlWrapperLines = 8;
+            const actualLine = Math.max(1, lineno - htmlWrapperLines);
+            
+            window.parent.postMessage({
+              type: 'runtime-error',
+              message: message,
+              line: actualLine,
+              column: colno,
+              error: error ? error.stack : null,
+              timestamp: Date.now()
+            }, '*');
+          };
+
+          // 捕获Promise rejection错误
+          window.addEventListener('unhandledrejection', function(event) {
+            window.parent.postMessage({
+              type: 'runtime-error',
+              message: event.reason.message || 'Unhandled Promise Rejection',
+              error: event.reason.stack,
+              timestamp: Date.now()
+            }, '*');
+          });
+
+          // 语法错误检测（在代码执行前）
+          try {
+            new Function(\` ${safeJS}\`);
+          } catch (syntaxError) {
+            window.parent.postMessage({
+              type: 'runtime-error',
+              message: 'Syntax Error: ' + syntaxError.message,
+              error: syntaxError.stack,
+              timestamp: Date.now()
+            }, '*');
+          }
+          
+          // 执行用户代码
+          try {
+            ${safeJS}
+          } catch (runtimeError) {
+            window.parent.postMessage({
+              type: 'runtime-error',
+              message: 'Runtime Error: ' + runtimeError.message,
+              error: runtimeError.stack,
+              timestamp: Date.now()
+            }, '*');
+          }
+        <\/script>
+      </body>
+    </html>
+  `;
+
     // 使用分块注入函数
-  await streamInject(previewFrame.value, fullContent);
+    await streamInject(previewFrame.value, fullContent);
   } catch (error) {
     console.error('文档写入失败:', error);
-    const fullContent =`
+    const fullContent = `
       <!DOCTYPE html>
       <html>
         <body>
@@ -124,7 +229,7 @@ const debouncedUpdatePreview = debounce(async () => {
       </html>
     `;
     // 使用分块注入函数
-  await streamInject(previewFrame.value, fullContent);
+    await streamInject(previewFrame.value, fullContent);
   }
 }, 500);
 
@@ -154,9 +259,9 @@ const streamInject = (iframe: HTMLIFrameElement, htmlContent: string, chunkSize 
 };
 
 watch(status, () => {
-    view.value.className = '';
-    view.value.classList.add(status.value)
-    debouncedUpdatePreview();
+  view.value.className = '';
+  view.value.classList.add(status.value);
+  debouncedUpdatePreview();
 });
 
 // 切换到注册界面
@@ -169,6 +274,16 @@ const switchToRegister = () => {
 const switchToLogin = () => {
   showRegisterDialog.value = false;
   showLoginDialog.value = true;
+};
+
+// 处理运行时错误
+const handleRuntimeError = (errorData: { line: number; message: string }) => {
+  console.log('Runtime error:', errorData);
+};
+
+// 处理跳转到指定行
+const handleGotoLine = (line: number) => {
+  console.log('Goto line:', line);
 };
 
 // 在鼠标按下时触发
@@ -318,7 +433,7 @@ const handleGlobalShortcut = (e: KeyboardEvent) => {
     codeStore.saveCode(userStore.account);
   }
 };
-onMounted(() => {
+onMounted(async () => {
   debouncedUpdatePreview(); // 初始加载时调用防抖版本
   window.addEventListener('keydown', handleGlobalShortcut);
   window.addEventListener('beforeunload', handleBeforeUnload);
@@ -330,7 +445,8 @@ onMounted(() => {
     }
   });
   checkLoginStatus();
-  checkShareAccess();
+  await checkShareAccess();
+  console.log(userStore.isReadOnlyMode);
   debouncedUpdatePreview();
 });
 
@@ -339,58 +455,16 @@ const checkLoginStatus = async () => {
     const response = await api.refreshToken();
     if (response.code === 200) {
       const { user } = response.data;
-      userStore.login(
-        user.username,
-        user.account,
-        user.avatar,
-        user.status,
-        user.createAt
-      );
+      userStore.login(user.username, user.account, user.avatar, user.status, user.createAt);
 
-      api.getUserProjects().then(async (res) => {
-        console.log(res);
-        const { data: userProjectData } = res;
-        if (userProjectData['projects'].length == 0) {
-          const { data } = await api.createProject({ name: 'New Project' });
-          const projectData = data.project; // Assuming the first project is the new one created by the registration
-          console.log(projectData);
-          await codeStore.initProjectFiles(projectData.id);
-          userStore.currentProjectId = projectData.id;
-        } else {  // 有项目
-          userStore.currentProjectId = userProjectData['projects'][0]['id'];
-          try {
-            const { data } = await api.getProject(userStore.currentProjectId);
-            // console.log(projectRes);
-            const files = data.project['files'];
+      codeStore.initProject();
 
-            // 创建文件类型映射
-            const typeMapping = {
-              HTML: 'html',
-              CSS: 'css',
-              JS: 'js',
-            };
+      // 登录成功后，重新检查分享权限
+      const shareResult = await ShareService.checkShareAccess();
 
-            // 处理每个文件
-            files.forEach((file) => {
-              const mappedType = typeMapping[file.type];
-              if (mappedType) {
-                codeStore.updateCode(mappedType, file.content);
-              }
-            });
-
-          console.log('项目文件加载完成');
-        } catch (error) {
-          console.error('加载项目文件失败:', error);
-        }
+      if (shareResult.success) {
+        ShareService.applyShareAccess(shareResult);
       }
-    });
-
-    // 登录成功后，重新检查分享权限
-    const shareResult = await ShareService.checkShareAccess();
-
-    if (shareResult.success) {
-      ShareService.applyShareAccess(shareResult);
-    }
     } else {
       userStore.isLoggedIn = false;
     }

@@ -21,7 +21,7 @@ import { api } from '@/api';
 import { ShareService } from '@/services/shareService';
 
 const userStore = useUserStore();
-// const codeStore = useCodeStore();
+const codeStore = useCodeStore();
 const emit = defineEmits(['login']);
 
 // // 控制下拉框显示状态

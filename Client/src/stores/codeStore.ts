@@ -1,11 +1,12 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { api, CreateFileRequest, FileType } from '@/api';
+import { useUserStore } from './userStore';
 
 export const useCodeStore = defineStore('code', () => {
-  const htmlCode = ref('<h1>Hello World</h1>');
-  const cssCode = ref('body { font-family: Arial, sans-serif; color: #333; }');
-  const jsCode = ref('console.log("Hello from CodePen Clone")');
+  const htmlCode = ref('');
+  const cssCode = ref('');
+  const jsCode = ref('');
   const activeTab = ref<'html' | 'css' | 'js'>('html');
   const saved = ref(true);
 
@@ -49,6 +50,43 @@ export const useCodeStore = defineStore('code', () => {
 
   const setActiveTab = (tab: 'html' | 'css' | 'js') => {
     activeTab.value = tab;
+  };
+
+  const initProject = () => {
+    api.getUserProjects().then(async (res) => {
+      console.log(res);
+      const { data: userProjectData } = res;
+      if (userProjectData['projects'].length == 0) {
+        const { data } = await api.createProject({ name: 'New Project' });
+        const projectData = data.project; // Assuming the first project is the new one created by the registratio
+        console.log(projectData);
+        await initProjectFiles(projectData.id);
+        useUserStore().currentProjectId = projectData.id;
+      } else {
+        useUserStore().currentProjectId = userProjectData['projects'][0]['id'];
+        try {
+          const { data } = await api.getProject(useUserStore().currentProjectId);
+          // console.log(projectRes);
+          const files = data.project['files'];
+          // 创建文件类型映射
+          const typeMapping = {
+            HTML: 'html',
+            CSS: 'css',
+            JS: 'js',
+          };
+          // 处理每个文件
+          files.forEach((file) => {
+            const mappedType = typeMapping[file.type];
+            if (mappedType) {
+              updateCode(mappedType, file.content);
+            }
+          });
+          console.log('项目文件加载完成');
+        } catch (error) {
+          console.error('加载项目文件失败:', error);
+        }
+      }
+    });
   };
 
   //初始化项目文件
@@ -145,6 +183,7 @@ export const useCodeStore = defineStore('code', () => {
     updateCode,
     saveCode,
     setActiveTab,
+    initProject,
     initProjectFiles,
     loadProjectFromShare,
   };
