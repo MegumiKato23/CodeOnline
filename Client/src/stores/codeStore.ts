@@ -1,21 +1,40 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { api, CreateFileRequest, FileType } from '@/api';
-
+import { formatCode} from '@/utils/formatter';
 export const useCodeStore = defineStore('code', () => {
   const htmlCode = ref('<h1>Hello World</h1>');
   const cssCode = ref('body { font-family: Arial, sans-serif; color: #333; }');
   const jsCode = ref('console.log("Hello from CodePen Clone")');
   const activeTab = ref<'html' | 'css' | 'js'>('html');
   const saved = ref(true);
-
+  const showFormatPrompt = ref(false);
+  const formatTab = ref<'html' | 'css' | 'js' | null>(null);
   const updateCode = (type: 'html' | 'css' | 'js', code: string) => {
     if (type === 'html') htmlCode.value = code;
     else if (type === 'css') cssCode.value = code;
     else if (type === 'js') jsCode.value = code;
     saved.value = false;
   };
+  const promptFormat = (tab: 'html' | 'css' | 'js') => {
+    showFormatPrompt.value = true;
+    formatTab.value = tab;
+  };
 
+  const cancelFormat = () => {
+    showFormatPrompt.value = false;
+    formatTab.value = null;
+  };
+
+  const formatCurrentCode = async () => {
+    const tab = activeTab.value;
+    const currentCode = tab === 'html' ? htmlCode.value :
+                      tab === 'css' ? cssCode.value :
+                      jsCode.value;
+    
+    const formatted = await formatCode(currentCode, tab);
+    updateCode(tab, formatted);
+  };
   const saveCode = async (userId: string) => {
     try {
       await api.saveCode({
@@ -142,10 +161,15 @@ export const useCodeStore = defineStore('code', () => {
     jsCode,
     activeTab,
     saved,
+    showFormatPrompt,
+    formatTab,
     updateCode,
     saveCode,
     setActiveTab,
     initProjectFiles,
     loadProjectFromShare,
+    promptFormat,
+    cancelFormat,
+    formatCurrentCode,
   };
 });
