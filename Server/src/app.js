@@ -30,8 +30,8 @@ app.use(
     store: sessionStore,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: false, // 本地开发建议 false
+      sameSite: 'lax', // 或 'none'
       maxAge: 24 * 60 * 60 * 1000,
     },
   })
