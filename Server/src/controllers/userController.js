@@ -193,6 +193,7 @@ const updateProfile = async (req, res) => {
   try {
     const { user: userData } = req.body;
     const userId = userData.id;
+    console.log('session.userId:', req.session.userId, 'body.id:', userId);
 
     // 验证用户是否有权限更新此资料
     if (req.session.userId !== userId) {
