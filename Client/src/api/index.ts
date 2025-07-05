@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 
 // 类型定义
 export interface User {
@@ -90,6 +90,12 @@ export interface UpdateFileRequest {
 class ApiClient {
   private client: AxiosInstance;
   private baseURL: string;
+  private isRefreshing: boolean = false;
+  private failedRequests: {
+    resolve: (value: any) => void;
+    reject: (reason?: any) => void;
+    config: AxiosRequestConfig;
+  }[] = [];
 
   constructor() {
     this.baseURL = 'http://localhost:8080';
@@ -115,18 +121,32 @@ class ApiClient {
         return response;
       },
       async (error) => {
-        const originalRequest = error.config;
+        const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
         // 处理错误响应
         if (error.response) {
-          console.error('API错误:', error.response.data);
-
           if (error.response.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
             try {
+              if (this.isRefreshing) {
+                return new Promise((resolve, reject) => {
+                  this.failedRequests.push({ resolve, reject, config: originalRequest });
+                });
+              }
+              this.isRefreshing = true;
               await this.refreshToken();
+              this.isRefreshing = false;
+              // 重试原始请求
+              const retryResponse = await this.client(originalRequest);
+              // 处理等待队列中的请求
+              this.processFailedRequests();
+              return retryResponse;
             } catch (refreshError) {
-              // 刷新token失败，清除本地存储的用户信息
+              // 刷新token失败
+              this.failedRequests.forEach((request) => {
+                request.reject(refreshError);
+              });
+              this.failedRequests = [];
               return Promise.reject(refreshError);
             }
           }
@@ -140,6 +160,21 @@ class ApiClient {
         return Promise.reject(error);
       }
     );
+  }
+
+  private processFailedRequests() {
+    this.failedRequests.forEach((request) => {
+      request.resolve(
+        this.client(request.config)
+          .then((response) => {
+            request.resolve(response);
+          })
+          .catch((error) => {
+            request.reject(error);
+          })
+      );
+    });
+    this.failedRequests = [];
   }
 
   // 健康检查
