@@ -3,14 +3,25 @@
     <img :src="userStore.avatar || '../../public/avatar/doro.png'" class="img" alt="用户头像" />
     <ul class="droplist">
       <li class="change-avatar">更换头像</li>
-      <li @click="confirmLogout" class="log-out">退出登录</li>
+      <li @click="showLogoutConfirm = true" class="log-out">退出登录</li>
     </ul>
+
+    <div class="logout-confirm-dialog" v-if="showLogoutConfirm">
+      <div class="logout-confirm-content">
+        <h3>退出登录</h3>
+        <p>确定要退出登录吗？系统将保存您的最新代码</p>
+        <div class="dialog-actions">
+          <button class="cancel-btn" @click="close">取消</button>
+          <button class="logout-btn" @click="confirmLogout">退出登录</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 // import { storeToRefs } from 'pinia';
-// import { ref } from 'vue';
+import { ref } from 'vue';
 import { useUserStore } from '@/stores/userStore'; // 使用userStore
 import { useCodeStore } from '@/stores/codeStore'; // 使用codeStore
 // import CodePenLogo from './icons/CodePenLogo.vue';
@@ -21,8 +32,9 @@ import { api } from '@/api';
 import { ShareService } from '@/services/shareService';
 
 const userStore = useUserStore();
-// const codeStore = useCodeStore();
+const codeStore = useCodeStore();
 const emit = defineEmits(['login']);
+const showLogoutConfirm = ref(false);
 
 // // 控制下拉框显示状态
 // const isDropdownVisible = ref(false);
@@ -39,10 +51,102 @@ const emit = defineEmits(['login']);
 //   }, 1000);
 // };
 
-const confirmLogout = () => {
-  const confirmed = window.confirm('确定要退出登录吗？');
-  if (confirmed) {
-    logout();
+const confirmLogout = async () => {
+  try {
+    // 1. 保存Redis数据到数据库
+    await saveRedisToDatabase();
+
+    // 2. 执行退出登录
+    await logout();
+  } catch (error) {
+    console.error('退出登录过程中出错:', error);
+    alert('保存代码失败，请手动保存后再退出');
+  }
+};
+
+const close = () => {
+  showLogoutConfirm.value = false;
+};
+
+const saveRedisToDatabase = async () => {
+  if (!userStore.isLoggedIn) return;
+
+  try {
+    // 1. 获取当前项目ID
+    const currentProjectId = userStore.currentProjectId;
+    console.log('当前项目ID:', currentProjectId);
+    if (!currentProjectId) throw new Error('未设置当前项目');
+
+    // 2. 从Redis获取文件内容
+    const codeResponse = await api.getCode(userStore.account);
+    const filesToUpdate = codeResponse.data?.files || [];
+    console.log('待更新文件:', filesToUpdate);
+    if (filesToUpdate.length === 0) return;
+
+    // 3. 获取项目文件列表
+    const projectResponse = await api.getProject(currentProjectId);
+    const projectData = projectResponse.data?.project || projectResponse.data;
+    const existingFiles = projectData?.files || [];
+    console.log('现有文件列表:', existingFiles);
+
+    // 4. 创建文件名到ID的映射
+    const fileIdMap = new Map();
+    existingFiles.forEach((file) => {
+      fileIdMap.set(file.name, file.id);
+    });
+    console.log('文件ID映射表:', Object.fromEntries(fileIdMap));
+
+    // 5. 执行文件更新
+    const updateResults = await Promise.all(
+      filesToUpdate.map(async (file) => {
+        try {
+          const fileId = fileIdMap.get(file.name);
+          if (!fileId) {
+            console.warn(`未找到文件 ${file.name} 的ID，跳过更新`);
+            return { name: file.name, status: 'skipped' };
+          }
+
+          console.log(`正在更新 ${file.name} (ID: ${fileId})`);
+          const updateResponse = await api.updateFile(currentProjectId, fileId, {
+            name: file.name,
+            path: file.path,
+            content: file.content,
+            type: file.type,
+          });
+
+          if (updateResponse.code !== 200) {
+            throw new Error(updateResponse.message || '更新失败');
+          }
+          return { name: file.name, status: 'success' };
+        } catch (error) {
+          console.error(`文件 ${file.name} 更新失败:`, error);
+          return {
+            name: file.name,
+            status: 'failed',
+            error: error.message,
+          };
+        }
+      })
+    );
+
+    // 6. 检查更新结果
+    const failedUpdates = updateResults.filter((r) => r.status === 'failed');
+    if (failedUpdates.length > 0) {
+      console.error('以下文件更新失败:', failedUpdates);
+      throw new Error(`${failedUpdates.length}个文件更新失败`);
+    }
+
+    console.log('Redis数据保存完成:', {
+      success: updateResults.filter((r) => r.status === 'success').length,
+      skipped: updateResults.filter((r) => r.status === 'skipped').length,
+    });
+  } catch (error) {
+    console.error('保存Redis数据失败:', {
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString(),
+    });
+    throw error; // 抛出错误让上层处理
   }
 };
 
@@ -51,11 +155,7 @@ const logout = async () => {
     const response = await api.logout();
     if (response.code === 200) {
       userStore.logout();
-      // 退出登录后,检查权限
-      const shareResult = await ShareService.checkShareAccess();
-      if (shareResult.success) {
-        ShareService.applyShareAccess(shareResult);
-      }
+      window.location.reload(); // 退出登录后刷新页面
     }
   } catch (error) {
     console.error('退出登录失败:', error);
@@ -125,6 +225,54 @@ const logout = async () => {
 .droplist li:hover {
   cursor: pointer;
   background-color: hsl(227.37deg 12.26% 30.39%);
+}
+
+.logout-confirm-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1100;
+}
+
+.logout-confirm-content {
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  padding: 20px;
+  color: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cancel-btn {
+  background-color: #444;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.logout-btn {
+  background-color: #e53935;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 /* .droplist .change-avatar {

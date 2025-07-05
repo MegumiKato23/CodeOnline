@@ -11,24 +11,24 @@
 
     <!-- 右侧部分：操作按钮 -->
     <div class="right">
-
-  <el-dropdown @command="handleCommand" class="custom-dropdown">
-  <span class="el-dropdown-link custom-dropdown-link">
-    Views
-    <el-icon  class="el-icon--right"><arrow-down /></el-icon>
-  </span>
-  <template #dropdown>
-    <el-dropdown-menu class="custom-dropdown-menu">
-      <el-dropdown-item command="left">Left</el-dropdown-item>
-      <el-dropdown-item command="right">Right</el-dropdown-item>
-      <el-dropdown-item command="top">Top</el-dropdown-item>
-    </el-dropdown-menu>
-  </template>
-</el-dropdown>
+      <el-dropdown @command="handleCommand" class="custom-dropdown">
+        <span class="el-dropdown-link custom-dropdown-link">
+          Views
+          <el-icon class="el-icon--right"><arrow-down /></el-icon>
+        </span>
+        <template #dropdown>
+          <el-dropdown-menu class="custom-dropdown-menu">
+            <el-dropdown-item command="left">Left</el-dropdown-item>
+            <el-dropdown-item command="right">Right</el-dropdown-item>
+            <el-dropdown-item command="top">Top</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
 
       <UnifiedButton
         type="primary"
         size="large"
+        class="save-btn"
         :class="{ saved }"
         :icon="CloudIcon"
         :disabled="userStore.isReadOnlyMode"
@@ -69,23 +69,23 @@ const codeStore = useCodeStore();
 const { username, userid, account, avatar, isLoggedIn, status } = storeToRefs(userStore);
 const { saved } = storeToRefs(codeStore);
 
-const handleCommand = (command: string ) => {
+const handleCommand = (command: string) => {
   //console.log(command)
   userStore.toggleView(command);
 };
-const saveCode = () => {
+const saveCode = async () => {
   if (!userStore.isLoggedIn) {
     console.log('请先登录再保存');
     return;
   }
-  codeStore
-    .saveCode(userStore.account)
-    .then(() => {
-      console.log('代码保存成功');
-    })
-    .catch(() => {
-      console.log('代码保存失败');
-    });
+  try {
+    // 自动格式化当前标签页的代码
+    await codeStore.formatCurrentCode();
+    // 保存到Redis
+    await codeStore.saveCode(userStore.account);
+  } catch (error) {
+    console.error('保存过程中出错:', error);
+  }
 };
 
 const openSettings = () => {
@@ -164,10 +164,10 @@ const login = () => {
   color: white;
 } */
 
-/* .save-btn.saved {
+.save-btn.saved {
   background: rgba(0, 200, 0, 0.2);
   color: #0f0;
-} */
+}
 
 /* .settings-btn {
   background: #5a5f73;
@@ -201,7 +201,7 @@ const login = () => {
   align-items: center;
   justify-content: center;
   padding: 10px 20px;
-  background-color: #444857;  /* 与primary按钮相同的背景色 */
+  background-color: #444857; /* 与primary按钮相同的背景色 */
   color: #fff; /* 白色文字 */
   font-size: 14px;
   border-radius: 4px;
@@ -234,5 +234,4 @@ const login = () => {
 .custom-dropdown-menu .el-dropdown-item:hover {
   background-color: #f2f6fc; /* 悬停时改变背景色 */
 }
-
 </style>

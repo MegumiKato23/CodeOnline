@@ -19,9 +19,6 @@ export class ShareService {
 
   static async checkShareAccess(options?: { shareId?: string }): Promise<ShareAccessResult> {
     try {
-      const { data: userProfileData } = await api.getUserProfile();
-      const { id: userId } = userProfileData.user;
-      console.log('用户ID:', userId); // Log the user ID for diagnostic purpose
       let { shareId } = options || {};
 
       // 如果没有提供shareId，从URL解析
@@ -41,12 +38,26 @@ export class ShareService {
       const projectData = sharedProjectData.project;
       console.log('分享项目数据:', projectData.ownerId); // Log the project data for diagnostic purpose
 
-      console.log('用户ID:', userId);
-      // 确定权限
-      const permissions: ProjectPermissions = {
-        isOwner: projectData.ownerId === userId,
-        accessType: projectData.ownerId === userId ? 'owner' : 'readonly',
-      };
+      let userId: string | null = null;
+      let permissions: ProjectPermissions;
+
+      // try{
+      if (useUserStore().isLoggedIn) {
+        const { data: userProfileData } = await api.getUserProfile();
+        userId = userProfileData.user.id;
+        console.log('用户ID:', userId);
+
+        // 确定权限
+        permissions = {
+          isOwner: projectData.ownerId === userId,
+          accessType: projectData.ownerId === userId ? 'owner' : 'readonly',
+        };
+      } else {
+        permissions = {
+          isOwner: false,
+          accessType: 'readonly',
+        };
+      }
 
       console.log('权限检查结果:', permissions);
 

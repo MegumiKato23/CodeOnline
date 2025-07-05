@@ -1,7 +1,8 @@
 const bcrypt = require('bcryptjs');
 const { validationResult } = require('express-validator');
 const prisma = require('../utils/prisma');
-const { generateAccessToken, generateRefreshToken } = require('../utils/jwt');
+const { generateAccessToken, generateRefreshToken, ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } = require('../utils/jwt');
+const jwt = require('jsonwebtoken');
 
 // 用户注册
 const register = async (req, res) => {
@@ -11,7 +12,7 @@ const register = async (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({
         code: 400,
-        message: 'Validation failed',
+        message: '注册参数格式错误',
         errors: errors.array(),
       });
     }
@@ -22,7 +23,7 @@ const register = async (req, res) => {
     if (password !== confirmPassword) {
       return res.status(400).json({
         code: 400,
-        message: 'Passwords do not match',
+        message: '注册参数密码不一致',
       });
     }
 
@@ -36,7 +37,7 @@ const register = async (req, res) => {
     if (existingUser) {
       return res.status(200).json({
         code: 1001,
-        message: 'Account already exists',
+        message: '账户已存在',
       });
     }
 
@@ -55,13 +56,13 @@ const register = async (req, res) => {
 
     res.status(200).json({
       code: 200,
-      message: 'success',
+      message: '注册成功',
     });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({
       code: 500,
-      message: 'Registration failed',
+      message: '注册失败',
     });
   }
 };
@@ -73,7 +74,7 @@ const login = async (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({
         code: 400,
-        message: 'Validation failed',
+        message: '登录参数格式错误',
         errors: errors.array(),
       });
     }
@@ -90,7 +91,7 @@ const login = async (req, res) => {
     if (!user) {
       return res.status(400).json({
         code: 400,
-        message: 'Invalid account or password',
+        message: '用户不存在',
       });
     }
 
@@ -99,7 +100,7 @@ const login = async (req, res) => {
     if (!isValidPassword) {
       return res.status(400).json({
         code: 400,
-        message: 'Invalid account or password',
+        message: '密码错误',
       });
     }
 
@@ -144,7 +145,7 @@ const login = async (req, res) => {
 
     res.status(200).json({
       code: 200,
-      message: 'success',
+      message: '登录成功',
       data: {
         user: {
           id: user.id,
@@ -159,7 +160,7 @@ const login = async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({
       code: 500,
-      message: 'Login failed',
+      message: '登录失败',
       data: null,
     });
   }
@@ -177,13 +178,13 @@ const logout = async (req, res) => {
 
     res.json({
       code: 200,
-      message: 'success',
+      message: '登出成功',
     });
   } catch (error) {
     console.error('Logout error:', error);
     res.status(500).json({
       code: 500,
-      message: 'Logout failed',
+      message: '登出失败',
     });
   }
 };
@@ -196,7 +197,10 @@ const updateProfile = async (req, res) => {
 
     // 验证用户是否有权限更新此资料
     if (req.session.userId !== userId) {
-      return res.status(403).json({ error: 'Permission denied' });
+      return res.status(400).json({
+        code: 400,
+        message: '权限不足',
+      });
     }
 
     const updatedUser = await prisma.user.update({
@@ -211,7 +215,7 @@ const updateProfile = async (req, res) => {
 
     res.status(200).json({
       code: 200,
-      message: 'success',
+      message: '更新成功',
       data: {
         user: {
           id: updatedUser.id,
@@ -226,7 +230,7 @@ const updateProfile = async (req, res) => {
     console.error('Update profile error:', error);
     res.status(500).json({
       code: 500,
-      message: 'Update failed',
+      message: '更新失败',
       data: null,
     });
   }
@@ -254,13 +258,13 @@ const getProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         code: 404,
-        message: 'User not found',
+        message: '用户不存在',
       });
     }
 
     res.status(200).json({
       code: 200,
-      message: 'success',
+      message: '用户资料获取成功',
       data: {
         user: {
           id: user.id,
@@ -277,7 +281,7 @@ const getProfile = async (req, res) => {
     console.error('Get profile error:', error);
     res.status(500).json({
       code: 500,
-      message: 'Get profile failed',
+      message: '用户资料获取失败',
       data: null,
     });
   }
@@ -305,13 +309,13 @@ const getUserProjects = async (req, res) => {
     if (!userWithProjects) {
       return res.status(404).json({
         code: 404,
-        message: 'Projects not found',
+        message: '用户不存在',
       });
     }
 
     res.status(200).json({
       code: 200,
-      message: 'success',
+      message: '用户项目集获取成功',
       data: {
         projects: userWithProjects.projects.map((project) => ({
           id: project.id,
@@ -325,52 +329,105 @@ const getUserProjects = async (req, res) => {
     console.error('Get user projects error:', error);
     res.status(500).json({
       code: 500,
-      message: 'Get user projects failed',
+      message: '用户项目集获取失败',
       data: null,
     });
   }
 };
 
-// 更新token
+// 更新token，验证用户状态
 const refreshToken = async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.session.userId },
-    });
+    const token = req.cookies.access_token;
 
-    if (!user) {
-      return res.status(404).json({
-        code: 404,
-        message: 'User not found',
+    if (!token) {
+      return res.status(200).json({
+        code: 1002,
+        message: 'token不存在',
+        data: null,
       });
     }
 
-    // 生成新的访问令牌
-    const newAccessToken = generateAccessToken({
-      id: user.id,
-      username: user.name,
-      account: user.account,
+    // 验证token
+    const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET);
+    const user = await prisma.user.findUnique({
+      where: {
+        id: decoded.id,
+      },
     });
-
-    // 设置HttpOnly Cookie
-    res.cookie('access_token', newAccessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000, // 24小时
-      path: '/',
-    });
-
-    res.status(200).json({
+    return res.status(200).json({
       code: 200,
-      message: 'success',
+      message: 'token验证成功',
+      data: {
+        user: {
+          id: user.id,
+          username: user.name,
+          account: user.account,
+          avatar: user.avatar || null,
+          status: user.status,
+        },
+      },
     });
   } catch (error) {
-    console.error('Refresh token error:', error);
-    res.status(500).json({
-      code: 500,
-      message: 'Refresh token failed',
-    });
+    try {
+      const refreshToken = req.cookies.refresh_token;
+
+      if (!refreshToken) {
+        return res.status(200).json({
+          code: 1002,
+          message: 'refreshToken不存在',
+          data: null,
+        });
+      }
+
+      const decoded = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.id },
+      });
+
+      if (!user) {
+        return res.status(200).json({
+          code: 1002,
+          message: 'refreshToken验证失败',
+          data: null,
+        });
+      }
+
+      const newAccessToken = generateAccessToken({
+        id: user.id,
+        username: user.name,
+        account: user.account,
+      });
+
+      res.cookie('access_token', newAccessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 24 * 60 * 60 * 1000, // 24小时
+        path: '/',
+      });
+
+      return res.status(200).json({
+        code: 200,
+        message: '刷新token成功',
+        data: {
+          user: {
+            id: user.id,
+            username: user.name,
+            account: user.account,
+            avatar: user.avatar || null,
+            status: user.status,
+          },
+        }
+      });
+    } catch(refreshError) {
+      console.error('Refresh token error:', refreshError);
+      return res.status(200).json({
+        code: 1002,
+        message: '刷新token失败',
+        data: null,
+      });
+    }
   }
 };
 

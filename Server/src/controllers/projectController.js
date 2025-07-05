@@ -10,7 +10,7 @@ const createProject = async (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({
         code: 400,
-        message: 'Validation failed',
+        message: '项目创建参数验证失败',
         errors: errors.array(),
       });
     }
@@ -27,7 +27,7 @@ const createProject = async (req, res) => {
 
     res.status(200).json({
       code: 200,
-      message: 'success',
+      message: '项目创建成功',
       data: {
         project: {
           id: project.id,
@@ -42,7 +42,7 @@ const createProject = async (req, res) => {
     console.error('Create project error:', error);
     res.status(500).json({
       code: 500,
-      message: 'Create project failed',
+      message: '项目创建失败',
       data: null,
     });
   }
@@ -63,13 +63,13 @@ const getProject = async (req, res) => {
     if (!project) {
       return res.status(404).json({
         code: 404,
-        message: 'Project not found',
+        message: '项目不存在',
       });
     }
 
     res.status(200).json({
       code: 200,
-      message: 'success',
+      message: '项目获取成功',
       data: {
         project: {
           id: project.id,
@@ -84,7 +84,7 @@ const getProject = async (req, res) => {
     console.error('Get project error:', error);
     res.status(500).json({
       code: 500,
-      message: 'Get project failed',
+      message: '项目获取失败',
       data: null,
     });
   }
@@ -104,14 +104,14 @@ const updateProject = async (req, res) => {
     if (!existingProject) {
       return res.status(404).json({
         code: 404,
-        message: 'Project not found',
+        message: '项目不存在',
       });
     }
 
     if (existingProject.ownerId !== req.session.userId) {
       return res.status(400).json({
         code: 400,
-        message: 'Permission denied',
+        message: '项目更新权限不足',
       });
     }
 
@@ -122,7 +122,7 @@ const updateProject = async (req, res) => {
 
     res.status(200).json({
       code: 200,
-      message: 'success',
+      message: '项目更新成功',
       data: {
         project: {
           id: updatedProject.id,
@@ -136,7 +136,7 @@ const updateProject = async (req, res) => {
     console.error('Update project error:', error);
     res.status(500).json({
       code: 500,
-      message: 'Update project failed',
+      message: '项目更新失败',
       data: null,
     });
   }
@@ -155,14 +155,14 @@ const deleteProject = async (req, res) => {
     if (!existingProject) {
       return res.status(404).json({
         code: 404,
-        message: 'Project not found',
+        message: '项目不存在',
       });
     }
 
     if (existingProject.ownerId !== req.session.userId) {
       return res.status(400).json({
         code: 400,
-        message: 'Permission denied',
+        message: '项目删除权限不足',
       });
     }
 
@@ -173,13 +173,13 @@ const deleteProject = async (req, res) => {
 
     res.status(200).json({
       code: 200,
-      message: 'success',
+      message: '项目删除成功',
     });
   } catch (error) {
     console.error('Delete project error:', error);
     res.status(500).json({
       code: 500,
-      message: 'Failed to delete project',
+      message: '项目删除失败',
     });
   }
 };
@@ -197,7 +197,7 @@ const getShareLink = async (req, res) => {
     if (!project) {
       return res.status(404).json({
         code: 404,
-        message: 'Project not found',
+        message: '项目不存在',
       });
     }
 
@@ -220,7 +220,7 @@ const getShareLink = async (req, res) => {
 
     res.status(200).json({
       code: 200,
-      message: 'success',
+      message: '分享链接获取成功',
       data: {
         shareId: share.id,
         expiresAt: keeptime.toISOString(),
@@ -230,7 +230,7 @@ const getShareLink = async (req, res) => {
     console.error('Get share link error:', error);
     res.status(500).json({
       code: 500,
-      message: 'Failed to generate share link',
+      message: '分享链接获取失败',
       data: null,
     });
   }
@@ -248,7 +248,7 @@ const getShareProject = async (req, res) => {
     if (!share) {
       return res.status(404).json({
         code: 404,
-        message: 'Share not found',
+        message: '分享不存在',
       });
     }
 
@@ -262,13 +262,13 @@ const getShareProject = async (req, res) => {
     if (!project) {
       return res.status(404).json({
         code: 404,
-        message: 'Project not found',
+        message: '分享项目不存在',
       });
     }
 
     res.status(200).json({
       code: 200,
-      message: 'success',
+      message: '分享项目获取成功',
       data: {
         project: {
           id: project.id,
@@ -284,7 +284,7 @@ const getShareProject = async (req, res) => {
     console.error('Get share project error:', error);
     res.status(500).json({
       code: 500,
-      message: 'Get share project failed',
+      message: '分享项目获取失败',
       data: null,
     });
   }

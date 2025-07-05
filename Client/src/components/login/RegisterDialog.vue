@@ -67,8 +67,13 @@
         <div class="message" :class="isRegistered ? 'success' : ''" v-if="message">{{ message }}</div>
       </div>
       <div class="register-footer">
-        <button class="btn login-btn" @click="switchToLogin">返回登录</button>
-        <button class="btn register-submit-btn" @click="handleRegister">注册</button>
+        <button class="btn login-btn" @click="switchToLogin" :disabled="isLoading">返回登录</button>
+        <button class="btn register-submit-btn" @click="handleRegister" :disabled="isLoading">
+          <div class="button-content">
+            <span v-if="isLoading" class="loading-spinner"></span>
+            <span>{{ isLoading ? '注册中...' : '注册' }}</span>
+          </div>
+        </button>
       </div>
     </div>
   </div>
@@ -111,6 +116,7 @@ const confirmPasswordValid = ref(false);
 
 const message = ref('');
 const isRegistered = ref(false);
+const isLoading = ref(false); // 添加加载状态变量
 
 const registerForm = reactive({
   username: '',
@@ -162,6 +168,11 @@ const close = () => {
 };
 
 const handleRegister = async () => {
+  // 如果已经在加载中，则不执行
+  if (isLoading.value) return;
+
+  isLoading.value = true;
+
   // 清空之前的错误信息
   message.value = '';
   // 执行完整验证
@@ -179,24 +190,29 @@ const handleRegister = async () => {
   // 检查基本字段是否为空
   if (!registerForm.username.trim()) {
     message.value = '请输入用户名';
+    isLoading.value = false;
     return;
   }
   if (!registerForm.account.trim()) {
     message.value = '请输入手机号';
+    isLoading.value = false;
     return;
   }
   if (!registerForm.password.trim()) {
     message.value = '请输入密码';
+    isLoading.value = false;
     return;
   }
   if (!registerForm.confirmPassword.trim()) {
     message.value = '请确认密码';
+    isLoading.value = false;
     return;
   }
 
   // 检查验证状态
   if (!usernameValid.value || !phoneValid.value || !passwordValid.value || !confirmPasswordValid.value) {
     message.value = '请修正表单中的错误后再提交';
+    isLoading.value = false;
     return;
   }
 
@@ -210,13 +226,12 @@ const handleRegister = async () => {
 
     // 注册成功后切换到登录界面
     if (response.code === 200) {
-      // 显示成功提示
       message.value = '注册成功！';
       isRegistered.value = true;
       setTimeout(() => {
         resetForm();
         switchToLogin();
-      }, 1500);
+      }, 500);
     } else if (response.code === 1001) {
       message.value = '该手机号已被注册，请使用其他手机号';
     } else {
@@ -224,17 +239,20 @@ const handleRegister = async () => {
     }
   } catch (error: any) {
     console.error('注册错误:', error);
-    if (error.response?.status === 409) {
+    if (error.response?.status === 1001) {
       message.value = '该手机号已被注册，请使用其他手机号';
     } else if (error.response?.status === 400) {
       message.value = '请求参数错误，请检查输入信息';
     } else {
       message.value = error.response?.data?.message || '网络错误，请稍后重试';
     }
+  } finally {
+    isLoading.value = false;
   }
 };
 
 const switchToLogin = () => {
+  message.value = '';
   emit('login');
 };
 
@@ -512,6 +530,7 @@ input.error {
   font-size: 14px;
   cursor: pointer;
   border: none;
+  min-width: 80px;
 }
 
 .input-tip {
@@ -607,9 +626,43 @@ input.error {
 .register-submit-btn {
   background-color: #4a9eff;
   color: white;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .register-submit-btn:hover {
   background-color: #3a8eef;
+}
+
+.register-submit-btn:disabled,
+.login-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.button-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
