@@ -75,7 +75,8 @@ const handleLogin = async () => {
 
     const { user } = response.data;
 
-    // 更新用户信息
+    // 登录成功后
+    userStore.userid = user.id;
     userStore.setUsername(user.username);
     userStore.setAccount(user.account);
     userStore.setAvatar(user.avatar);
