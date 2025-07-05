@@ -5,7 +5,7 @@
         <UnifiedButton type="primary" size="small" :active="isConsoleExpanded" @click="toggleConsole">
           Console
         </UnifiedButton>
-        <UnifiedButton type="primary" size="small" @click="closeConsole">Assets</UnifiedButton>
+        <UnifiedButton type="primary" size="small" @click="toggleProjectList">Assets</UnifiedButton>
       </div>
       <div class="tabs_right">
         <UnifiedButton type="primary" size="small" :disabled="props.isReadOnly" @click.stop="openShareBox">
@@ -60,6 +60,8 @@
         <input v-model="command" type="text" @keyup.enter="executeCommand" placeholder="Type command here..." />
       </div>
     </div>
+    <!-- 项目列表对话框 -->
+    <ProjectListDialog v-if="isProjectListVisible" :visible="isProjectListVisible" @close="closeProjectList" />
   </footer>
 </template>
 
@@ -67,6 +69,7 @@
 import { ref, nextTick, onMounted, onUnmounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import { api } from '@/api/index';
+import ProjectListDialog from '@/components/project/ProjectListDialog.vue';
 
 const userStore = useUserStore();
 const props = defineProps<{
@@ -74,6 +77,7 @@ const props = defineProps<{
 }>();
 const isConsoleExpanded = ref(false);
 const isShareExpanded = ref(false);
+const isProjectListVisible = ref(false);
 const shareRef = ref(null);
 const shareLink = ref(window.location.origin);
 const shareTime = ref(null);
@@ -90,6 +94,19 @@ const startHeight = ref(0);
 
 const emit = defineEmits(['login', 'runtime-error', 'goto-line']);
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
+
+const toggleProjectList = () => {
+  if (!userStore.isLoggedIn) {
+    emit('login');
+    return;
+  }
+  isProjectListVisible.value = true;
+  isConsoleExpanded.value = false;
+};
+
+const closeProjectList = () => {
+  isProjectListVisible.value = false;
+};
 
 const toggleConsole = () => {
   isConsoleExpanded.value = !isConsoleExpanded.value;

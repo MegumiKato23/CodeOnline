@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { api, CreateFileRequest, FileType } from '@/api';
-import { formatCode} from '@/utils/formatter';
+import { formatCode } from '@/utils/formatter';
 import { useUserStore } from './userStore';
 
 export const useCodeStore = defineStore('code', () => {
@@ -30,10 +30,8 @@ export const useCodeStore = defineStore('code', () => {
 
   const formatCurrentCode = async () => {
     const tab = activeTab.value;
-    const currentCode = tab === 'html' ? htmlCode.value :
-                      tab === 'css' ? cssCode.value :
-                      jsCode.value;
-    
+    const currentCode = tab === 'html' ? htmlCode.value : tab === 'css' ? cssCode.value : jsCode.value;
+
     const formatted = await formatCode(currentCode, tab);
     updateCode(tab, formatted);
   };

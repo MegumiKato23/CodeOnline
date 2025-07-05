@@ -167,7 +167,7 @@ const login = () => {
 .save-btn.saved {
   background: rgba(0, 200, 0, 0.2);
   color: #0f0;
-} 
+}
 
 /* .settings-btn {
   background: #5a5f73;
