@@ -19,7 +19,7 @@ model User {
   account   String   @unique
   name    String
   password String
-  avatar  String?
+  avatar  String?  @db.LongText
   createdAt DateTime  @default(now())
   lastLogin DateTime  @updatedAt
   projects   Project[]
