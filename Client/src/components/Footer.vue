@@ -98,7 +98,7 @@ const consoleOutput = ref<HTMLElement | null>(null);
 // 添加复制提示状态
 const showCopyToast = ref(false);
 
-const emit = defineEmits(['login', 'runtime-error', 'goto-line', 'performance-test', 'syntax-error']);
+const emit = defineEmits(['login', 'runtime-error', 'goto-line', 'syntax-error']);
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
 const toggleProjectList = () => {
