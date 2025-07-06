@@ -214,10 +214,6 @@ const debouncedUpdatePreview = debounce(async () => {
             };
           }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> f97b9178feb07a4bb57d3a6150b115b354c808a1
           // 重写window.onerror来捕获更详细的错误信息
          window.onerror = function(message, source, lineno, colno, error) {
             // 只处理用户代码错误
