@@ -8,7 +8,7 @@ const createFile = async (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({
         code: 400,
-        message: 'Validation failed',
+        message: '文件创建参数验证失败',
         errors: errors.array(),
       });
     }
@@ -24,14 +24,14 @@ const createFile = async (req, res) => {
     if (!project) {
       return res.status(404).json({
         code: 404,
-        message: 'Project not found',
+        message: '项目不存在',
       });
     }
 
     if (project.ownerId !== req.session.userId) {
       return res.status(400).json({
         code: 400,
-        message: 'Permission denied',
+        message: '文件创建权限不足',
       });
     }
 
@@ -57,7 +57,7 @@ const createFile = async (req, res) => {
 
     res.status(200).json({
       code: 200,
-      message: 'success',
+      message: '文件创建成功',
       data: {
         file: {
           id: file.id,
@@ -75,7 +75,7 @@ const createFile = async (req, res) => {
     console.error('Create file error:', error);
     res.status(500).json({
       code: 500,
-      message: 'Create file failed',
+      message: '文件创建失败',
       data: null,
     });
   }
@@ -88,7 +88,7 @@ const updateFile = async (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({
         code: 400,
-        message: 'Validation failed',
+        message: '文件更新参数验证失败',
         errors: errors.array(),
       });
     }
@@ -105,14 +105,14 @@ const updateFile = async (req, res) => {
     if (!project) {
       return res.status(404).json({
         code: 404,
-        message: 'Project not found',
+        message: '项目不存在',
       });
     }
 
     if (project.ownerId !== req.session.userId) {
       return res.status(400).json({
         code: 400,
-        message: 'Permission denied',
+        message: '文件更新权限不足',
       });
     }
 
@@ -127,7 +127,7 @@ const updateFile = async (req, res) => {
     if (!existingFile) {
       return res.status(404).json({
         code: 404,
-        message: 'File not found',
+        message: '文件不存在',
       });
     }
 
@@ -143,7 +143,7 @@ const updateFile = async (req, res) => {
 
     res.status(200).json({
       code: 200,
-      message: 'success',
+      message: '文件更新成功',
       data: {
         file: {
           id: updatedFile.id,
@@ -161,7 +161,7 @@ const updateFile = async (req, res) => {
     console.error('Update file error:', error);
     res.status(500).json({
       code: 500,
-      message: 'Update file failed',
+      message: '文件更新失败',
       data: null,
     });
   }
@@ -181,14 +181,14 @@ const deleteFile = async (req, res) => {
     if (!project) {
       return res.status(404).json({
         code: 404,
-        message: 'Project not found',
+        message: '项目不存在',
       });
     }
 
     if (project.ownerId !== req.session.userId) {
       return res.status(400).json({
         code: 400,
-        message: 'Permission denied',
+        message: '文件删除权限不足',
       });
     }
 
@@ -203,7 +203,7 @@ const deleteFile = async (req, res) => {
     if (!existingFile) {
       return res.status(404).json({
         code: 404,
-        message: 'File not found',
+        message: '文件不存在',
       });
     }
 
@@ -213,13 +213,13 @@ const deleteFile = async (req, res) => {
 
     res.status(200).json({
       code: 200,
-      message: 'Delete file success',
+      message: '文件删除成功',
     });
   } catch (error) {
     console.error('Delete file error:', error);
     res.status(500).json({
       code: 500,
-      message: 'Delete file failed',
+      message: '文件删除失败',
     });
   }
 };
@@ -238,7 +238,7 @@ const getFile = async (req, res) => {
     if (!project) {
       return res.status(404).json({
         code: 404,
-        message: 'Project not found',
+        message: '项目不存在',
       });
     }
 
@@ -253,13 +253,13 @@ const getFile = async (req, res) => {
     if (!file) {
       return res.status(404).json({
         code: 404,
-        message: 'File not found',
+        message: '文件不存在',
       });
     }
 
     res.status(200).json({
       code: 200,
-      message: 'success',
+      message: '文件获取成功',
       data: {
         file: {
           id: file.id,
@@ -277,7 +277,7 @@ const getFile = async (req, res) => {
     console.error('Get file error:', error);
     res.status(500).json({
       code: 500,
-      message: 'Get file failed',
+      message: '文件获取失败',
       data: null,
     });
   }

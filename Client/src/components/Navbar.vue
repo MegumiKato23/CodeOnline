@@ -28,6 +28,7 @@
       <UnifiedButton
         type="primary"
         size="large"
+        class="save-btn"
         :class="{ saved }"
         :icon="CloudIcon"
         :disabled="userStore.isReadOnlyMode"
@@ -72,19 +73,19 @@ const handleCommand = (command: string) => {
   //console.log(command)
   userStore.toggleView(command);
 };
-const saveCode = () => {
+const saveCode = async () => {
   if (!userStore.isLoggedIn) {
     console.log('请先登录再保存');
     return;
   }
-  codeStore
-    .saveCode(userStore.account)
-    .then(() => {
-      console.log('代码保存成功');
-    })
-    .catch(() => {
-      console.log('代码保存失败');
-    });
+  try {
+    // 自动格式化当前标签页的代码
+    await codeStore.formatCurrentCode();
+    // 保存到Redis
+    await codeStore.saveCode(userStore.account);
+  } catch (error) {
+    console.error('保存过程中出错:', error);
+  }
 };
 
 const openSettings = () => {
@@ -163,10 +164,10 @@ const login = () => {
   color: white;
 } */
 
-/* .save-btn.saved {
+.save-btn.saved {
   background: rgba(0, 200, 0, 0.2);
   color: #0f0;
-} */
+}
 
 /* .settings-btn {
   background: #5a5f73;

@@ -3,14 +3,25 @@
     <img :src="userStore.avatar || '../../public/avatar/doro.png'" class="img" alt="用户头像" />
     <ul class="droplist">
       <li class="change-avatar">更换头像</li>
-      <li @click="confirmLogout" class="log-out">退出登录</li>
+      <li @click="showLogoutConfirm = true" class="log-out">退出登录</li>
     </ul>
+
+    <div class="logout-confirm-dialog" v-if="showLogoutConfirm">
+      <div class="logout-confirm-content">
+        <h3>退出登录</h3>
+        <p>确定要退出登录吗？系统将保存您的最新代码</p>
+        <div class="dialog-actions">
+          <button class="cancel-btn" @click="close">取消</button>
+          <button class="logout-btn" @click="confirmLogout">退出登录</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 // import { storeToRefs } from 'pinia';
-// import { ref } from 'vue';
+import { ref } from 'vue';
 import { useUserStore } from '@/stores/userStore'; // 使用userStore
 import { useCodeStore } from '@/stores/codeStore'; // 使用codeStore
 // import CodePenLogo from './icons/CodePenLogo.vue';
@@ -23,6 +34,7 @@ import { ShareService } from '@/services/shareService';
 const userStore = useUserStore();
 const codeStore = useCodeStore();
 const emit = defineEmits(['login']);
+const showLogoutConfirm = ref(false);
 
 // // 控制下拉框显示状态
 // const isDropdownVisible = ref(false);
@@ -40,20 +52,22 @@ const emit = defineEmits(['login']);
 // };
 
 const confirmLogout = async () => {
-  const confirmed = window.confirm('确定要退出登录吗？系统将保存您的最新代码');
-  if (confirmed) {
-    try {
-      // 1. 保存Redis数据到数据库
-      await saveRedisToDatabase();
+  try {
+    // 1. 保存Redis数据到数据库
+    await saveRedisToDatabase();
 
-      // 2. 执行退出登录
-      await logout();
-    } catch (error) {
-      console.error('退出登录过程中出错:', error);
-      alert('保存代码失败，请手动保存后再退出');
-    }
+    // 2. 执行退出登录
+    await logout();
+  } catch (error) {
+    console.error('退出登录过程中出错:', error);
+    alert('保存代码失败，请手动保存后再退出');
   }
 };
+
+const close = () => {
+  showLogoutConfirm.value = false;
+};
+
 const saveRedisToDatabase = async () => {
   if (!userStore.isLoggedIn) return;
 
@@ -211,6 +225,54 @@ const logout = async () => {
 .droplist li:hover {
   cursor: pointer;
   background-color: hsl(227.37deg 12.26% 30.39%);
+}
+
+.logout-confirm-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1100;
+}
+
+.logout-confirm-content {
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  padding: 20px;
+  color: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cancel-btn {
+  background-color: #444;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.logout-btn {
+  background-color: #e53935;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 /* .droplist .change-avatar {
