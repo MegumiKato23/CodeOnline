@@ -4,7 +4,12 @@
     <div class="left" ref="view">
       <div class="main-content">
         <div class="editor-panel" ref="editorPanel">
-          <CodeEditor :activeTab="activeTab" :isReadOnly="userStore.isReadOnlyMode" :cssSyntax="cssSyntax" :framework="framework"/>
+          <CodeEditor
+            :activeTab="activeTab"
+            :isReadOnly="userStore.isReadOnlyMode"
+            :cssSyntax="cssSyntax"
+            :framework="framework"
+          />
         </div>
         <div class="resize-handle" @mousedown="startResize" @dblclick="resetSize"></div>
         <div class="preview-panel">
@@ -76,11 +81,11 @@ const startWidth = ref(0);
 const editorPanel = ref<HTMLElement | null>(null);
 const view = ref<HTMLElement | null>(null);
 const cssSyntax = ref<'css' | 'sass' | 'less'>('css');
-const framework = ref<''|'vue' | 'react'>('');
+const framework = ref<'' | 'vue' | 'react'>('');
 
-const handleSettingsUpdate = (frameworkVal: ''|'vue' | 'react', syntax: 'css' | 'sass' | 'less') => {
+const handleSettingsUpdate = (frameworkVal: '' | 'vue' | 'react', syntax: 'css' | 'sass' | 'less') => {
   cssSyntax.value = syntax;
-  framework.value = frameworkVal; 
+  framework.value = frameworkVal;
 };
 // 创建防抖的预览更新函数 (500ms)
 const debouncedUpdatePreview = debounce(async () => {
@@ -95,9 +100,10 @@ const debouncedUpdatePreview = debounce(async () => {
   }
 
   // 使用不同的净化方法
-   let safeHTML = SecurityService.sanitizeForWrite(htmlCode.value);
-   let safeJS = SecurityService.sanitizeForWrite(jsCode.value);
-  if (framework.value === 'vue') { 
+  let safeHTML = SecurityService.sanitizeForWrite(htmlCode.value);
+  let safeJS = SecurityService.sanitizeForWrite(jsCode.value);
+  console.log(safeHTML);
+  if (framework.value === 'vue') {
     const result = `
       <div id="app"><\/div>
       <script src="https://unpkg.com/vue@3/dist/vue.global.js"><\/script>
@@ -109,9 +115,10 @@ const debouncedUpdatePreview = debounce(async () => {
         const app = createApp(appConfig);
         app.mount('#app');
       <\/script>
-    `; 
+    `;
     safeHTML = result;
-  } else if (framework.value === 'react') { 
+    console.log(safeHTML)
+  } else if (framework.value === 'react') {
     const result = `
       <div id="root"></div>
       <script src="https://unpkg.com/react@18/umd/react.development.js"><\/script>
@@ -127,7 +134,7 @@ const debouncedUpdatePreview = debounce(async () => {
         const renderContent = ReactDOM.createRoot(tempDiv)._internalRoot.current.child;
         root.render(<React.StrictMode>{renderContent}<\/React.StrictMode>);
       <\/script>
-    `; 
+    `;
     safeHTML = result;
   }
   let safeCSS = cssCode.value; // CSS不需要特殊处理
