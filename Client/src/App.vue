@@ -36,12 +36,11 @@
     />
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
-    <!-- <head_portrait @login="showLoginDialog = true" /> -->
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount, isReadonly } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount, isReadonly, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
 import { debounce } from 'lodash-es'; // 导入防抖函数
 import { useCodeStore } from '@/stores/codeStore';
@@ -70,6 +69,7 @@ const permissions = ref<ProjectPermissions | null>(null);
 const { htmlCode, cssCode, jsCode, activeTab } = storeToRefs(codeStore);
 const { status } = storeToRefs(userStore);
 const previewFrame = ref<HTMLIFrameElement | null>(null);
+const codeEditorRef = ref<any>(null);
 const showSettings = ref(false);
 const showLoginDialog = ref(false);
 const showRegisterDialog = ref(false);
@@ -101,7 +101,7 @@ const debouncedUpdatePreview = debounce(async () => {
 
   // 使用不同的净化方法
   let safeHTML = SecurityService.sanitizeForWrite(htmlCode.value);
-  let safeJS = SecurityService.sanitizeForWrite(jsCode.value);
+  let safeJS = jsCode.value;
   console.log(safeHTML);
   if (framework.value === 'vue') {
     const result = `
@@ -157,29 +157,24 @@ const debouncedUpdatePreview = debounce(async () => {
   // 设置sandbox属性
   previewFrame.value.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals');
   try {
-    // 安全地转义用户代码，避免模板字符串语法冲突
-    const escapeForTemplate = (code: string) => {
-      return code
-        .replace(/\\/g, '\\\\') // 转义反斜杠
-        .replace(/`/g, '\\`') // 转义反引号
-        .replace(/\$/g, '\\$') // 转义美元符号
-        .replace(/\r\n/g, '\\n') // 转义Windows换行符
-        .replace(/\n/g, '\\n') // 转义Unix换行符
-        .replace(/\r/g, '\\n'); // 转义Mac换行符
-    };
-
-    const safeJsCode = escapeForTemplate(jsCode.value);
-
     const fullContent = `
     <!DOCTYPE html>
     <html>
       <head>
+<<<<<<< HEAD
        <meta http-equiv="Content-Security-Policy" content="
 >>>>>>> 145273174db8d22ffea69dbd364be0660969268d
             default-src 'none';
             script-src 'self' 'unsafe-inline';
             style-src 'self' 'unsafe-inline';
           ">
+=======
+      <meta http-equiv="Content-Security-Policy" content="
+        default-src 'none';
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' *;
+        style-src 'self' 'unsafe-inline';
+      ">
+>>>>>>> 615ced219e23d3b44271dc001dfc5a14c76e890e
         <style>${safeCSS}</style>
       </head>
       <body>
@@ -195,96 +190,201 @@ const debouncedUpdatePreview = debounce(async () => {
             }, '*');
           });
           
+          // 监听来自父页面的命令执行请求
+          window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'execute-command') {
+              try {
+                // 在当前iframe上下文中执行命令
+                const result = eval(event.data.command);
+                
+                // 发送执行结果
+                window.parent.postMessage({
+                  type: 'console-log',
+                  level: 'log',
+                  args: [result !== undefined ? String(result) : 'undefined'],
+                  timestamp: Date.now()
+                }, '*');
+              } catch (error) {
+                // 发送执行错误
+                window.parent.postMessage({
+                  type: 'console-log',
+                  level: 'error',
+                  args: [error.message],
+                  timestamp: Date.now()
+                }, '*');
+              }
+            }
+          });
+
           // 重写console方法
           if (typeof window._internalOriginalConsole === 'undefined') {
             window._internalOriginalConsole = window.console;
+            
+            // 获取调用栈信息的辅助函数
+             function getCallerInfo() {
+              try {
+                const stack = new Error().stack;
+                if (stack) {
+                  const stackLines = stack.split('\\n');
+                  // 查找第一个包含用户代码的行
+                  for (let i = 3; i < stackLines.length; i++) {
+                    const line = stackLines[i];
+                    if (line.includes('user-code.js')) {
+                      const match = line.match(/:(\d+):(\d+)/);
+                      if (match) {
+                        let lineNum = parseInt(match[1]);
+                        const colNum = parseInt(match[2]);
+                        // 映射行号：减去包装函数的偏移（第1行是函数开始）
+                        const actualLine = lineNum > 1 ? lineNum - 1 : 1;
+                        return {
+                          line: actualLine,
+                          column: colNum,
+                        };
+                      }
+                    }
+                  }
+                }
+              } catch (e) {
+                console.error('解析调用栈错误:', e);
+              }
+              return { line: null, column: null };
+            }
+            
             window.console = {
               log: function(...args) {
+                const callerInfo = getCallerInfo();
                 window.parent.postMessage({
                   type: 'console-log',
                   level: 'log',
                   args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)),
+                  line: callerInfo.line,
+                  column: callerInfo.column,
                   timestamp: Date.now()
                 }, '*');
                 window._internalOriginalConsole.log(...args);
               },
               error: (...args) => {
+                const callerInfo = getCallerInfo();
                 window.parent.postMessage({
                   type: 'console-log',
                   level: 'error',
                   args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)),
+                  line: callerInfo.line,
+                  column: callerInfo.column,
                   timestamp: Date.now()
                 }, '*');
                 window._internalOriginalConsole.error(...args);
               },
               warn: (...args) => {
+                const callerInfo = getCallerInfo();
                 window.parent.postMessage({
                   type: 'console-log',
                   level: 'warn',
                   args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)),
+                  line: callerInfo.line,
+                  column: callerInfo.column,
                   timestamp: Date.now()
                 }, '*');
                 window._internalOriginalConsole.warn(...args);
               }
             };
           }
-          
-          // 在iframe中添加错误监听
-          window.onerror = function(message, source, lineno, colno, error) {
-            // 计算实际代码行号（需要减去HTML包装的行数）
-            const htmlWrapperLines = 8;
-            const actualLine = Math.max(1, lineno - htmlWrapperLines);
-            
-            window.parent.postMessage({
-              type: 'runtime-error',
-              message: message,
-              line: actualLine,
-              column: colno,
-              error: error ? error.stack : null,
-              timestamp: Date.now()
-            }, '*');
+
+
+          // 重写window.onerror来捕获更详细的错误信息
+         window.onerror = function(message, source, lineno, colno, error) {
+            // 只处理用户代码错误
+            if (source === 'user-code.js') {
+              // 映射行号：减去包装函数的偏移（第1行是函数开始）
+              const actualLine = lineno > 1 ? lineno - 1 : 1;
+              
+              const errorType = source.includes('.js') ? 'js' : 
+                     source.includes('.html') ? 'html' : 'css';
+              window.parent.postMessage({
+                type: 'runtime-error',
+                message: message,
+                line: actualLine,
+                column: colno,
+                errorType: errorType  // 添加错误类型
+              }, '*');
+            }
+            return true;
           };
 
           // 捕获Promise rejection错误
           window.addEventListener('unhandledrejection', function(event) {
             window.parent.postMessage({
               type: 'runtime-error',
-              message: event.reason.message || 'Unhandled Promise Rejection',
-              error: event.reason.stack,
+              message: 'Uncaught (in promise) ' + event.reason,
+              error: event.reason && event.reason.stack ? event.reason.stack : '',
               timestamp: Date.now()
             }, '*');
           });
 
-          // 语法错误检测（在代码执行前）
-          try {
-            new Function(\` ${safeJS}\`);
-          } catch (syntaxError) {
+          // 捕获安全策略错误
+          window.addEventListener('securitypolicyviolation', function(event) {
             window.parent.postMessage({
               type: 'runtime-error',
-              message: 'Syntax Error: ' + syntaxError.message,
-              error: syntaxError.stack,
+              message: 'Content Security Policy violation: ' + event.violatedDirective + ' - ' + event.blockedURI,
+              error: event.originalPolicy,
               timestamp: Date.now()
             }, '*');
-          }
-          
-          // 执行用户代码
-          try {
-            ${safeJS}
-          } catch (runtimeError) {
-            window.parent.postMessage({
-              type: 'runtime-error',
-              message: 'Runtime Error: ' + runtimeError.message,
-              error: runtimeError.stack,
-              timestamp: Date.now()
-            }, '*');
-          }
+          });
+
+          // 捕获资源加载错误
+           window.addEventListener('error', function(event) {
+             if (event.target !== window) {
+               window.parent.postMessage({
+                 type: 'runtime-error',
+                 message: 'Resource loading error: ' + (event.target.src || event.target.href || 'unknown resource'),
+                 error: event.message || 'Failed to load resource',
+                 timestamp: Date.now()
+               }, '*');
+             }
+           }, true);
+
+           // HTML错误处理
+          document.addEventListener('DOMContentLoaded', () => {
+               const errors = [];
+  
+              // 检查HTML有效性
+              if (!document.doctype) {
+                errors.push({message: "Missing DOCTYPE declaration", line: 1});
+              }
+  
+              // 发送HTML错误
+              if (errors.length) {
+                window.parent.postMessage({
+                  type: 'html-errors',
+                  errors: errors
+              }, '*');
+              }
+           });
+
+            // CSS错误处理
+          (function() {
+              const styleSheets = document.styleSheets;
+              for (let i = 0; i < styleSheets.length; i++) {
+                  try {
+                    styleSheets[i].cssRules;
+                  } catch (e) {
+                    const line = parseInt(e.message.match(/line (\d+)/i)?.[1]) || 0;
+                    window.parent.postMessage({
+                        type: 'css-error',
+                        message: e.message,
+                        line: line,
+                        errorType: 'css'
+                      }, '*');
+                    }
+                }
+            })();
         <\/script>
       </body>
     </html>
   `;
 
     // 使用分块注入函数
-    await streamInject(previewFrame.value, fullContent);
+    await streamInject(previewFrame.value, fullContent, safeJS);
   } catch (error) {
     console.error('文档写入失败:', error);
     const fullContent = `
@@ -296,35 +396,198 @@ const debouncedUpdatePreview = debounce(async () => {
         </body>
       </html>
     `;
-    // 使用分块注入函数
-    await streamInject(previewFrame.value, fullContent);
   }
 }, 500);
 
-// 分块与流式注入函数
-const streamInject = (iframe: HTMLIFrameElement, htmlContent: string, chunkSize = 8192) => {
+// 按标签层级分块渲染函数
+const streamInject = (iframe: HTMLIFrameElement, htmlContent: string, jsContent: string, chunkSize = 8192) => {
   return new Promise<void>((resolve) => {
     const doc = iframe.contentDocument;
     if (!doc) return resolve();
 
     doc.open();
 
-    let i = 0;
-    function writeChunk() {
-      if (i < htmlContent.length) {
-        const chunk = htmlContent.substring(i, i + chunkSize);
-        doc.write(chunk);
-        i += chunkSize;
-        // 使用 requestAnimationFrame 来调度下一次写入，避免阻塞UI
-        requestAnimationFrame(writeChunk);
-      } else {
+    // 解析HTML内容，分离head和body
+    const htmlMatch = htmlContent.match(/<html[^>]*>([\s\S]*)<\/html>/i);
+    if (!htmlMatch) {
+      // 如果不是完整HTML，使用原来的分块方式
+      return chunkRender(doc, htmlContent, chunkSize, resolve, true);
+    }
+
+    const headMatch = htmlMatch[1].match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+    const bodyMatch = htmlMatch[1].match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+
+    if (!bodyMatch) {
+      return chunkRender(doc, htmlContent, chunkSize, resolve, true);
+    }
+
+    // 先写入HTML开始标签和head部分
+    const htmlStart = htmlContent.substring(0, htmlContent.indexOf('<body'));
+    const bodyStart = htmlContent.substring(htmlContent.indexOf('<body'), htmlContent.indexOf('>') + 1);
+    const bodyEnd = '</body></html>';
+
+    doc.write(htmlStart + bodyStart);
+
+    // 解析body内容，按一级标签分组
+    const bodyContent = bodyMatch[1];
+    const topLevelElements = parseTopLevelElements(bodyContent);
+
+    let currentIndex = 0;
+
+    function renderNextElement() {
+      if (currentIndex >= topLevelElements.length) {
+        // 在所有元素渲染完成后，在body结束标签前执行用户代码
+        doc.write(`
+          <script>
+            try {
+                  // 移除之前添加的用户脚本
+                  const existingScripts = document.querySelectorAll('script[data-user-script]');
+                  existingScripts.forEach(script => script.remove());
+      
+                  // 创建独立的script标签执行用户代码
+                  const userScript = document.createElement('script');
+                  // 标记为用户脚本
+                  userScript.setAttribute('data-user-script', 'true');
+                  // 添加sourceURL以便调试
+                  userScript.textContent = \`(function() {
+                          ${jsContent}
+                  })();//# sourceURL=user-code.js\`;
+              
+                      // 捕获语法错误
+                  userScript.onerror = function(error) {
+                      window.parent.postMessage({
+                          type: 'syntax-error',
+                          message: 'SyntaxError: ' + error.message,
+                          timestamp: Date.now(),
+                          isSyntaxError: true
+                        }, '*');
+                    };
+                  document.body.appendChild(userScript);
+                } catch (error) {
+                      // 处理其他错误
+                    window.parent.postMessage({
+                        type: 'runtime-error',
+                        message: error.message,
+                        error: error.stack,
+                        timestamp: Date.now()
+                      }, '*');
+                  }
+          <\/script>
+        `);
+        doc.write(bodyEnd);
         doc.close();
         resolve();
+        return;
+      }
+
+      const element = topLevelElements[currentIndex];
+      currentIndex++;
+
+      // 添加渲染节流，避免过度占用主线程
+      const shouldThrottle = element.length > chunkSize * 2;
+
+      const delay = shouldThrottle ? 16 : 0; // 60fps vs immediate
+
+      // 如果元素内容超过8KB，进行分块渲染
+      if (element.length > chunkSize) {
+        chunkRender(
+          doc,
+          element,
+          chunkSize,
+          () => {
+            setTimeout(renderNextElement, delay);
+          },
+          false
+        );
+      } else {
+        doc.write(element);
+        setTimeout(renderNextElement, delay);
       }
     }
-    writeChunk();
+
+    renderNextElement();
   });
 };
+
+// 解析body下的一级标签
+function parseTopLevelElements(bodyContent: string): string[] {
+  const elements: string[] = [];
+  let depth = 0;
+  let elementStart = 0;
+
+  const tagRegex = /<\/?([a-zA-Z][a-zA-Z0-9]*)[^>]*>/g;
+  const commentRegex = /<!--[\s\S]*?-->/g;
+
+  // 先移除注释
+  bodyContent = bodyContent.replace(commentRegex, '');
+  let match;
+
+  while ((match = tagRegex.exec(bodyContent)) !== null) {
+    const tag = match[0];
+    const tagName = match[1];
+    const isClosingTag = tag.startsWith('</');
+    const isSelfClosing =
+      tag.endsWith('/>') || ['img', 'br', 'hr', 'input', 'meta', 'link'].includes(tagName.toLowerCase());
+
+    if (!isClosingTag && !isSelfClosing) {
+      if (depth === 0) {
+        // 如果之前有内容，先保存
+        if (match.index > elementStart) {
+          const textContent = bodyContent.substring(elementStart, match.index).trim();
+          if (textContent) {
+            elements.push(textContent);
+          }
+        }
+        elementStart = match.index;
+      }
+      depth++;
+    } else if (isClosingTag) {
+      depth--;
+      if (depth === 0) {
+        // 一级标签结束，保存整个元素
+        const element = bodyContent.substring(elementStart, tagRegex.lastIndex);
+        elements.push(element);
+        elementStart = tagRegex.lastIndex;
+      }
+    }
+  }
+
+  // 处理剩余内容
+  if (elementStart < bodyContent.length) {
+    const remaining = bodyContent.substring(elementStart).trim();
+    if (remaining) {
+      elements.push(remaining);
+    }
+  }
+
+  return elements;
+}
+
+// 通用分块渲染函数
+function chunkRender(
+  doc: Document,
+  content: string,
+  chunkSize: number,
+  callback: () => void,
+  shouldCloseDoc: boolean = false
+) {
+  let i = 0;
+
+  function writeChunk() {
+    if (i < content.length) {
+      const chunk = content.substring(i, i + chunkSize);
+      doc.write(chunk);
+      i += chunkSize;
+      requestAnimationFrame(writeChunk);
+    } else {
+      if (shouldCloseDoc) {
+        doc.close();
+      }
+      callback();
+    }
+  }
+  writeChunk();
+}
 
 watch(status, () => {
   view.value.className = '';
@@ -350,8 +613,35 @@ const handleRuntimeError = (errorData: { line: number; message: string }) => {
 };
 
 // 处理跳转到指定行
-const handleGotoLine = (line: number) => {
-  console.log('Goto line:', line);
+const handleGotoLine = async (data: { line: number; type?: string }) => {
+  console.log('跳转到行:', data);
+
+  // 确保行号有效
+  if (typeof data.line !== 'number' || isNaN(data.line) || data.line < 1) {
+    console.error('[App] 无效的行号:', data.line);
+    return;
+  }
+
+  // 确保类型是有效的标签值
+  const validTypes = ['html', 'css', 'js'] as const;
+  const tabType = validTypes.includes(data.type as any) ? (data.type as 'html' | 'css' | 'js') : 'js';
+
+  codeStore.setActiveTab(tabType);
+
+  // 等待下一个tick确保编辑器已切换
+  await nextTick();
+
+  if (codeEditorRef.value?.gotoLine) {
+    try {
+      await codeEditorRef.value.gotoLine(data.line, tabType);
+      return true;
+    } catch (error) {
+      console.error('跳转失败:', error);
+      return false;
+    }
+  }
+
+  return false;
 };
 
 // 在鼠标按下时触发
@@ -509,7 +799,7 @@ const handleGlobalShortcut = async (e: KeyboardEvent) => {
   }
 };
 onMounted(async () => {
-  debouncedUpdatePreview(); // 初始加载时调用防抖版本
+  // debouncedUpdatePreview(); // 初始加载时调用防抖版本
   window.addEventListener('keydown', handleGlobalShortcut);
   window.addEventListener('beforeunload', handleBeforeUnload);
   // 仅在调整大小时禁用 iframe 事件
@@ -590,5 +880,62 @@ body,
 }
 .editor {
   font-family: inherit;
+}
+
+/* 性能测试弹窗样式
+.performance-test-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+} */
+
+.modal-content {
+  background: #2a2a2a;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 1200px;
+  max-height: 90%;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #444;
+}
+
+.modal-header h2 {
+  color: white;
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.close-btn:hover {
+  background: #444;
 }
 </style>

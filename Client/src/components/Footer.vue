@@ -7,11 +7,11 @@
         </UnifiedButton>
         <UnifiedButton type="primary" size="small" @click="toggleProjectList">Assets</UnifiedButton>
       </div>
-      <div class="tabs_right">
+      <div class="tabs_right" ref="tabsRightRef">
         <UnifiedButton type="primary" size="small" :disabled="props.isReadOnly" @click.stop="openShareBox">
           share
         </UnifiedButton>
-        <div v-if="isShareExpanded" class="share" ref="shareRef">
+        <div v-if="isShareExpanded" class="share" ref="shareRef" :style="shareBoxStyle">
           <h2>Share</h2>
           <span class="share_link">{{ shareLink }}</span>
           <UnifiedButton type="primary" size="large" class="copy_link" @click="copyLink">Copy Link</UnifiedButton>
@@ -31,9 +31,7 @@
     </div>
 
     <!-- 只有点击Console时才显示的内容区域 -->
-    <div v-if="isConsoleExpanded" class="console-expanded" :style="{ height: consoleHeight + 'px' }">
-      <!-- 拖拽调整大小的条 -->
-      <div class="resize-handle" @mousedown="startResize"></div>
+    <div v-if="isConsoleExpanded" class="console-expanded">
       <div class="console-header">
         <span>Console</span>
         <div class="console-actions">
@@ -46,12 +44,15 @@
           v-for="(log, index) in consoleLogs"
           :key="index"
           class="log-entry"
-          :class="`log-${log.type}`"
+          :class="[`log-${log.type}`, { clickable: log.clickable }]"
           @click="handleLogClick(log)"
         >
           <span class="timestamp">{{ formatTime(log.timestamp) }}</span>
           <span class="log-level">[{{ log.type.toUpperCase() }}]</span>
           <span class="log-message">{{ log.message }}</span>
+          <span v-if="log.line" class="line-info">
+            at line {{ log.line }}{{ log.column ? `:${log.column}` : '' }}
+          </span>
         </div>
         <div v-if="consoleLogs.length === 0" class="log-entry"><span class="prompt">></span> Ready</div>
       </div>
@@ -66,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onMounted, onUnmounted } from 'vue';
+import { ref, nextTick, onMounted, onUnmounted, computed } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import { api } from '@/api/index';
 import ProjectListDialog from '@/components/project/ProjectListDialog.vue';
@@ -81,18 +82,23 @@ const isProjectListVisible = ref(false);
 const shareRef = ref(null);
 const shareLink = ref(window.location.origin);
 const shareTime = ref(null);
-const consoleLogs = ref<Array<{ type: string; message: string; timestamp: number; line?: number }>>([]);
+const consoleLogs = ref<
+  Array<{
+    type: string;
+    message: string;
+    timestamp: number;
+    line?: number;
+    column?: number;
+    clickable?: boolean;
+    isSyntaxError?: boolean;
+  }>
+>([]);
 const command = ref('');
 const consoleOutput = ref<HTMLElement | null>(null);
 // 添加复制提示状态
 const showCopyToast = ref(false);
-// 控制台高度相关
-const consoleHeight = ref(300); // 默认高度
-const isResizing = ref(false);
-const startY = ref(0);
-const startHeight = ref(0);
 
-const emit = defineEmits(['login', 'runtime-error', 'goto-line']);
+const emit = defineEmits(['login', 'runtime-error', 'goto-line', 'syntax-error']);
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
 
 const toggleProjectList = () => {
@@ -144,9 +150,15 @@ const formatTime = (timestamp: number) => {
 };
 
 // 处理日志点击事件（用于错误跳转）
-const handleLogClick = (log: any) => {
-  if (log.type === 'error' && log.line) {
-    emit('goto-line', log.line);
+const handleLogClick = (logItem) => {
+  // 确保传递有效的行号
+  if (logItem.line !== undefined && !isNaN(logItem.line)) {
+    emit('goto-line', {
+      line: logItem.line,
+      type: logItem.errorType || 'js',
+    });
+  } else {
+    console.error('无效的行号:', logItem.line);
   }
 };
 
@@ -158,41 +170,17 @@ const scrollToBottom = () => {
   });
 };
 
-// 开始拖拽调整大小
-const startResize = (e: MouseEvent) => {
-  e.preventDefault();
-  isResizing.value = true;
-  startY.value = e.clientY;
-  startHeight.value = consoleHeight.value;
+const tabsRightRef = ref<HTMLElement | null>(null);
+const shareBoxStyle = computed(() => {
+  if (!tabsRightRef.value) return {};
 
-  document.addEventListener('mousemove', handleResize);
-  document.addEventListener('mouseup', stopResize);
-  document.body.style.cursor = 'ns-resize';
-  document.body.style.userSelect = 'none';
-};
+  const bottomValue = isConsoleExpanded.value ? `${tabsRightRef.value.offsetHeight}px` : '2rem';
 
-// 处理拖拽过程
-const handleResize = (e: MouseEvent) => {
-  if (!isResizing.value) return;
-
-  const deltaY = startY.value - e.clientY; // 向上拖拽为正值
-  const newHeight = startHeight.value + deltaY;
-
-  // 限制最小和最大高度
-  const minHeight = 150;
-  const maxHeight = window.innerHeight * 0.8;
-
-  consoleHeight.value = Math.max(minHeight, Math.min(maxHeight, newHeight));
-};
-
-// 停止拖拽
-const stopResize = () => {
-  isResizing.value = false;
-  document.removeEventListener('mousemove', handleResize);
-  document.removeEventListener('mouseup', stopResize);
-  document.body.style.cursor = '';
-  document.body.style.userSelect = '';
-};
+  return {
+    bottom: bottomValue,
+    right: '-0.7rem',
+  };
+});
 
 // 获取分享链接
 const getProjectShareLink = async () => {
@@ -244,6 +232,7 @@ const openShareBox = async () => {
     alert('准备分享链接失败，请稍后再试');
   }
 };
+
 const saveRedisToDatabase = async () => {
   try {
     // 1. 获取当前项目ID
@@ -354,28 +343,61 @@ function handleIframeMessage(event: MessageEvent) {
     }
   } else if (event.data && event.data.type === 'console-log') {
     // 处理console日志
+    const lineNumber = event.data.line;
+    const columnNumber = event.data.column;
+
     consoleLogs.value.push({
       type: event.data.level,
       message: event.data.args.join(' '),
       timestamp: event.data.timestamp,
+      line: lineNumber,
+      column: columnNumber,
+      clickable: !!lineNumber, // 只有有行号的日志才可点击
     });
+
     scrollToBottom();
   } else if (event.data && event.data.type === 'runtime-error') {
     // 处理运行时错误
-    const errorMessage = event.data.line ? `Line ${event.data.line}: ${event.data.message}` : event.data.message;
+    let errorMessage = event.data.message;
+    let lineNumber = event.data.line;
+    let columnNumber = event.data.column;
+    const errorType = event.data.errorType || 'js';
 
     consoleLogs.value.push({
       type: 'error',
       message: errorMessage,
       timestamp: event.data.timestamp,
-      line: event.data.line,
+      line: lineNumber,
+      column: columnNumber,
+      clickable: !!lineNumber, // 只有有行号的错误才可点击
     });
 
     // 触发编辑器错误高亮
-    emit('runtime-error', {
-      line: event.data.line,
+    if (lineNumber) {
+      emit('runtime-error', {
+        line: lineNumber,
+        column: columnNumber,
+        message: errorMessage,
+        type: errorType, // 添加错误类型
+      });
+    }
+    scrollToBottom();
+  }
+  // 处理语法错误
+  else if (event.data && event.data.type === 'syntax-error') {
+    consoleLogs.value.push({
+      type: 'error',
+      message: event.data.message,
+      timestamp: event.data.timestamp,
+      clickable: false,
+      isSyntaxError: true,
+    });
+
+    // 触发语法错误事件
+    emit('syntax-error', {
       message: event.data.message,
     });
+
     scrollToBottom();
   }
 }
@@ -390,34 +412,33 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
   // 移除postMessage监听
   window.removeEventListener('message', handleIframeMessage);
-  // 清理拖拽事件监听器
-  if (isResizing.value) {
-    document.removeEventListener('mousemove', handleResize);
-    document.removeEventListener('mouseup', stopResize);
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-  }
 });
 </script>
 
 <style scoped>
 /* 初始状态只有选项卡按钮 */
 .footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   height: 40px;
   background: #1a1a1a;
   border-top: 1px solid #333;
+  transition: all 0.3s;
 }
 
 /* 展开状态 */
 .footer.expanded {
-  height: 45%;
+  height: 320px;
+  z-index: 1000;
+  border-top: 2px solid #333;
 }
 
 .tabs {
-  height: 40px;
+  height: 10vh;
   padding: 0 10px;
   display: flex;
   justify-content: space-between;
@@ -429,18 +450,14 @@ onUnmounted(() => {
   background: #1a1a1a;
   padding: 0.25rem;
   gap: 0.5rem;
-  border-bottom: 1px solid #333;
 }
 
 .tabs_right {
-  display: flex;
+  position: relative;
 }
 
 .share {
   position: absolute;
-  /* bottom: 35px; */
-  right: 0;
-  /* align-items: center; */
   border: 1px solid #333;
   width: 245px;
   height: 140px;
@@ -468,11 +485,10 @@ onUnmounted(() => {
 @keyframes shareBox {
   from {
     opacity: 0;
-    bottom: 0;
   }
   to {
     opacity: 1;
-    bottom: 2.15rem;
+    /* bottom: 2.15rem; */
   }
 }
 
@@ -522,24 +538,6 @@ onUnmounted(() => {
     opacity: 1;
   }
 }
-/* .tabs button {
-  padding: 0.4rem 1rem;
-  background: #2a2a2a;
-  color: #ccc;
-  border: none;
-  border-radius: 4px 4px 0 0;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.tabs button.active {
-  background: #333;
-  color: white;
-}
-
-.tabs button:hover {
-  background: #333;
-} */
 
 /* 控制台展开后的样式 */
 .console-expanded {
@@ -547,28 +545,7 @@ onUnmounted(() => {
   flex-direction: column;
   background: #0a0a0a;
   font-family: 'Courier New', monospace;
-  position: relative;
-}
-
-/* 拖拽调整大小的条 */
-.resize-handle {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: #333;
-  cursor: ns-resize;
-  z-index: 10;
-  transition: background-color 0.2s;
-}
-
-.resize-handle:hover {
-  background: #555;
-}
-
-.resize-handle:active {
-  background: #777;
+  /* height: 400px; */
 }
 
 .console-header {
@@ -586,31 +563,8 @@ onUnmounted(() => {
   gap: 0.5rem;
 }
 
-/* .clear-btn,
-.close-btn {
-  background: transparent;
-  color: #ccc;
-  border: none;
-  cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.8rem;
-}
-
-.clear-btn:hover {
-  color: white;
-}
-
-.close-btn {
-  font-size: 1.1rem;
-  line-height: 1;
-}
-
-.close-btn:hover {
-  color: #ff5555;
-} */
-
 .console-output {
-  flex: 1;
+  height: 200px;
   padding: 0.5rem 1rem;
   overflow-y: auto;
   white-space: pre-wrap;
@@ -631,6 +585,19 @@ onUnmounted(() => {
 
 .log-entry:hover {
   background-color: rgba(255, 255, 255, 0.05);
+}
+
+.log-entry.clickable {
+  cursor: pointer;
+}
+
+.log-entry.clickable:hover {
+  background: #3a3a3a;
+}
+
+.log-entry.clickable .line-info {
+  color: #61dafb;
+  text-decoration: underline;
 }
 
 .log-entry.log-error {
@@ -689,6 +656,21 @@ onUnmounted(() => {
   flex: 1;
   word-break: break-word;
 }
+
+.line-info {
+  color: #888;
+  font-size: 11px;
+  font-style: italic;
+}
+
+/* .line-number {
+  color: #888;
+  font-size: 11px;
+  margin-left: auto;
+  padding-left: 8px;
+  font-weight: bold;
+  min-width: fit-content;
+} */
 
 .prompt {
   color: #4caf50;
