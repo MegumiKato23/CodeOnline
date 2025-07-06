@@ -31,6 +31,7 @@ declare module 'vue' {
     JsIcon: typeof import('./src/components/icons/JsIcon.vue')['default']
     LoginDialog: typeof import('./src/components/login/LoginDialog.vue')['default']
     Navbar: typeof import('./src/components/Navbar.vue')['default']
+    ProjectListDialog: typeof import('./src/components/project/ProjectListDialog.vue')['default']
     RegisterDialog: typeof import('./src/components/login/RegisterDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
