@@ -176,6 +176,10 @@ const loadProjects = async () => {
     const response = await api.getUserProjects();
     const { data } = response;
 
+    codeStore.updateCode('html', '');
+    codeStore.updateCode('css', '');
+    codeStore.updateCode('js', '');
+
     if (data && data.projects) {
       projects.value = data.projects.sort((a, b) => {
         return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
@@ -188,6 +192,7 @@ const loadProjects = async () => {
     errorMessage.value = '获取项目列表失败，请稍后重试';
   } finally {
     isLoading.value = false;
+    close();
   }
 };
 
@@ -400,7 +405,7 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 10000;
 }
 
 .project-list-dialog {
