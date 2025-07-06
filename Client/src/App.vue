@@ -102,41 +102,6 @@ const debouncedUpdatePreview = debounce(async () => {
   // 使用不同的净化方法
   let safeHTML = SecurityService.sanitizeForWrite(htmlCode.value);
   let safeJS = jsCode.value;
-  console.log(safeHTML);
-  if (framework.value === 'vue') {
-    const result = `
-      <div id="app"><\/div>
-      <script src="https://unpkg.com/vue@3/dist/vue.global.js"><\/script>
-      <script>
-        const { createApp } = Vue;
-        const appConfig = { template: \`${safeHTML}\` };
-        const userConfig = (function() { ${safeJS} })();
-        Object.assign(appConfig, userConfig);
-        const app = createApp(appConfig);
-        app.mount('#app');
-      <\/script>
-    `;
-    safeHTML = result;
-    console.log(safeHTML)
-  } else if (framework.value === 'react') {
-    const result = `
-      <div id="root"></div>
-      <script src="https://unpkg.com/react@18/umd/react.development.js"><\/script>
-      <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"><\/script>
-      <script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>
-      <script type="text/babel">
-        ${safeJS};
-        const { createRoot } = ReactDOM;
-        const root = createRoot(document.getElementById('root'));
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = \`${safeHTML}\`;
-        // 转换为 React 元素
-        const renderContent = ReactDOM.createRoot(tempDiv)._internalRoot.current.child;
-        root.render(<React.StrictMode>{renderContent}<\/React.StrictMode>);
-      <\/script>
-    `;
-    safeHTML = result;
-  }
   let safeCSS = cssCode.value; // CSS不需要特殊处理
   if (cssSyntax.value === 'less') {
     try {
@@ -161,20 +126,11 @@ const debouncedUpdatePreview = debounce(async () => {
     <!DOCTYPE html>
     <html>
       <head>
-<<<<<<< HEAD
-       <meta http-equiv="Content-Security-Policy" content="
->>>>>>> 145273174db8d22ffea69dbd364be0660969268d
-            default-src 'none';
-            script-src 'self' 'unsafe-inline';
-            style-src 'self' 'unsafe-inline';
-          ">
-=======
       <meta http-equiv="Content-Security-Policy" content="
         default-src 'none';
         script-src 'self' 'unsafe-inline' 'unsafe-eval' *;
         style-src 'self' 'unsafe-inline';
       ">
->>>>>>> 615ced219e23d3b44271dc001dfc5a14c76e890e
         <style>${safeCSS}</style>
       </head>
       <body>
