@@ -214,7 +214,6 @@ const debouncedUpdatePreview = debounce(async () => {
             };
           }
 
-
           // 重写window.onerror来捕获更详细的错误信息
          window.onerror = function(message, source, lineno, colno, error) {
             // 只处理用户代码错误
@@ -307,8 +306,64 @@ const debouncedUpdatePreview = debounce(async () => {
     </html>
   `;
 
-    // 使用分块注入函数
-    await streamInject(previewFrame.value, fullContent, safeJS);
+    // 计算总内容大小（HTML + CSS + JS）
+    const totalSize = new Blob([fullContent]).size;
+    const SIZE_THRESHOLD = 100 * 1024; // 100KB
+
+    // 根据文件大小选择渲染策略
+    if (totalSize < SIZE_THRESHOLD) {
+      // 小于100KB，使用传统一次性渲染
+      doc.open();
+      doc.write(fullContent);
+
+      // 添加用户JS代码
+      if (safeJS.trim()) {
+        doc.write(`
+          <script>
+            try {
+              // 移除之前添加的用户脚本
+              const existingScripts = document.querySelectorAll('script[data-user-script]');
+              existingScripts.forEach(script => script.remove());
+    
+              // 创建独立的script标签执行用户代码
+              const userScript = document.createElement('script');
+              // 标记为用户脚本
+              userScript.setAttribute('data-user-script', 'true');
+              // 添加sourceURL以便调试
+              userScript.textContent = \`(function() {
+                      ${safeJS}
+              })();//# sourceURL=user-code.js\`;
+          
+                  // 捕获语法错误
+              userScript.onerror = function(error) {
+                  window.parent.postMessage({
+                      type: 'syntax-error',
+                      message: 'SyntaxError: ' + error.message,
+                      timestamp: Date.now(),
+                      isSyntaxError: true
+                    }, '*');
+                };
+              document.body.appendChild(userScript);
+            } catch (error) {
+                  // 处理其他错误
+                window.parent.postMessage({
+                    type: 'runtime-error',
+                    message: error.message,
+                    error: error.stack,
+                    timestamp: Date.now()
+                  }, '*');
+              }
+          <\/script>
+        `);
+      }
+
+      doc.close();
+      console.log('使用一次性渲染');
+    } else {
+      // 大于100KB，使用分块流式加载
+      await streamInject(previewFrame.value, fullContent, safeJS);
+      console.log('使用分块流式渲染');
+    }
   } catch (error) {
     console.error('文档写入失败:', error);
     const fullContent = `
