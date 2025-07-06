@@ -25,7 +25,10 @@ interface CachedData {
 }
 
 function sortCompletions(context: CompletionContext, options: Completion[]) {
-  const prefix = context.state.doc.sliceString(Math.max(0, context.pos - 10), context.pos).replace(/.*\W/, '');
+  const prefix = context.state.doc.sliceString(
+    Math.max(0, context.pos - 10),
+    context.pos
+  ).replace(/.*\W/, '');
 
   return options.sort((a, b) => {
     const aMatch = a.label.toLowerCase().startsWith(prefix.toLowerCase()) ? 0 : 1;
@@ -47,7 +50,7 @@ export const createCompletions = (projectContext?: any): Extension => {
     if (lang === 'html') {
       completions = htmlCompletions(context, projectContext);
     } else if (lang === 'css') {
-      completions = cssCompletions(context, projectContext); // 确保传入 projectContext
+      completions = cssCompletions(context, projectContext);  // 确保传入 projectContext
     } else {
       completions = jsCompletions(context, projectContext);
     }
@@ -63,6 +66,7 @@ export const createCompletions = (projectContext?: any): Extension => {
   return autocompletion({ override: [completionSource] });
 };
 
+
 // 递归向上查找语法树节点，判断语言类型
 function getActiveLang(context: CompletionContext): 'html' | 'css' | 'js' {
   const tree = syntaxTree(context.state);
@@ -73,12 +77,7 @@ function getActiveLang(context: CompletionContext): 'html' | 'css' | 'js' {
   if (lang) {
     const langName = (lang as any).name?.toLowerCase(); // 类型断言，防止 unknown 报错
     if (langName) {
-      if (
-        langName.includes('javascript') ||
-        langName.includes('typescript') ||
-        langName.includes('jsx') ||
-        langName.includes('tsx')
-      ) {
+      if (langName.includes('javascript') || langName.includes('typescript') || langName.includes('jsx') || langName.includes('tsx')) {
         return 'js';
       }
       if (langName.includes('css') || langName.includes('scss') || langName.includes('less')) {
@@ -94,32 +93,13 @@ function getActiveLang(context: CompletionContext): 'html' | 'css' | 'js' {
   while (node) {
     const type = node.type;
 
-    if (
-      type.name === 'Script' ||
-      type.name === 'ScriptElement' ||
-      type.name === 'JavaScript' ||
-      type.name === 'TS' ||
-      type.name === 'JSXElement'
-    ) {
+    if (type.name === 'Script' || type.name === 'ScriptElement' || type.name === 'JavaScript' || type.name === 'TS' || type.name === 'JSXElement') {
       return 'js';
     }
-    if (
-      type.name === 'Style' ||
-      type.name === 'CSS' ||
-      type.name === 'RuleSet' ||
-      type.name === 'Declaration' ||
-      type.name === 'PropertyName' ||
-      type.name === 'PropertyValue'
-    ) {
+    if (type.name === 'Style' || type.name === 'CSS' || type.name === 'RuleSet' || type.name === 'Declaration' || type.name === 'PropertyName' || type.name === 'PropertyValue') {
       return 'css';
     }
-    if (
-      type.name === 'HTML' ||
-      type.name === 'HTMLElement' ||
-      type.name === 'Tag' ||
-      type.name === 'Attribute' ||
-      type.name === 'Text'
-    ) {
+    if (type.name === 'HTML' || type.name === 'HTMLElement' || type.name === 'Tag' || type.name === 'Attribute' || type.name === 'Text') {
       return 'html';
     }
 
