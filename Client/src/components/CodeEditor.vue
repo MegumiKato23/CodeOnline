@@ -2,15 +2,12 @@
   <div class="editor-container">
     <div class="tabs">
       <UnifiedButton type="tab" :active="activeTab === 'html'" :icon="HtmlIcon" @click="setActiveTab('html')">
-        <!-- <HtmlIcon class="icon" /> -->
         HTML
       </UnifiedButton>
       <UnifiedButton type="tab" :active="activeTab === 'css'" :icon="CssIcon" @click="setActiveTab('css')">
-        <!-- <CssIcon class="icon" /> -->
         CSS
       </UnifiedButton>
       <UnifiedButton type="tab" :active="activeTab === 'js'" :icon="JsIcon" @click="setActiveTab('js')">
-        <!-- <JsIcon class="icon" /> -->
         JS
       </UnifiedButton>
     </div>
@@ -22,7 +19,8 @@
 import { ref, onMounted, watch, toRefs, onBeforeUnmount, nextTick } from 'vue';
 import { debounce } from 'lodash-es'; // 导入防抖函数
 import { EditorState, StateEffect, EditorSelection } from '@codemirror/state';
-import { EditorView, keymap } from '@codemirror/view';
+import { EditorView, keymap, Decoration, DecorationSet } from '@codemirror/view';
+import { StateField } from '@codemirror/state';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
@@ -58,6 +56,7 @@ const editorViews = ref({
 });
 
 const currentView = ref<EditorView | null>(null);
+const errorLineDecorations = ref<any>(null);
 
 // 创建防抖的代码更新函数 (300ms)
 const debouncedUpdateCode = debounce((code: string) => {
@@ -184,6 +183,40 @@ const handleShiftTab = (view: EditorView) => {
 };
 // 定义错误检查效果
 const setLintSource = StateEffect.define<(tab: 'html' | 'css' | 'js') => (view: EditorView) => any>();
+
+// 定义错误行高亮效果
+const addErrorHighlight = StateEffect.define<{ line: number }>();
+const clearErrorHighlight = StateEffect.define();
+
+// 错误行装饰器
+const errorLineDecoration = Decoration.line({
+  attributes: { class: 'cm-error-line' },
+});
+
+// 错误行高亮状态字段
+const errorHighlightField = StateField.define<DecorationSet>({
+  create() {
+    return Decoration.none;
+  },
+  update(decorations, tr) {
+    decorations = decorations.map(tr.changes);
+
+    for (let effect of tr.effects) {
+      if (effect.is(addErrorHighlight)) {
+        const line = tr.state.doc.line(effect.value.line);
+        decorations = decorations.update({
+          add: [errorLineDecoration.range(line.from)],
+        });
+      } else if (effect.is(clearErrorHighlight)) {
+        decorations = Decoration.none;
+      }
+    }
+
+    return decorations;
+  },
+  provide: (f) => EditorView.decorations.from(f),
+});
+
 // 基础扩展
 const baseExtensions = [
   history(), // 历史记录必须放在前面
@@ -200,6 +233,7 @@ const baseExtensions = [
   createCompletions(),
   //报错提示
   lintGutter(),
+  errorHighlightField, // 添加错误行高亮字段
   EditorView.theme({
     '&': {
       height: '100%',
@@ -214,6 +248,10 @@ const baseExtensions = [
       minHeight: '100%', // 确保内容区域至少填满容器
     },
     '.cm-gutters': { backgroundColor: '#282c34', color: '#abb2bf' },
+    '.cm-error-line': {
+      backgroundColor: 'rgba(255, 0, 0, 0.1)',
+      borderLeft: '3px solid #ff6b6b',
+    },
   }),
   EditorView.updateListener.of((update) => {
     if (update.docChanged) {
@@ -222,6 +260,76 @@ const baseExtensions = [
     }
   }),
 ];
+
+// 跳转到指定行并高亮
+const gotoLine = (lineNumber: number, errorType?: string) => {
+  return new Promise<void>((resolve) => {
+    // 如果错误类型存在且与当前激活标签不同，则切换标签
+    if (errorType && errorType !== activeTab.value) {
+      setActiveTab(errorType as 'html' | 'css' | 'js');
+      // 等待下一个tick再跳转
+      nextTick(() => gotoLine(lineNumber, errorType).then(resolve));
+      return;
+    }
+
+    if (typeof lineNumber !== 'number' || isNaN(lineNumber)) {
+      console.error(`[CodeEditor] 无效行号: ${lineNumber}`);
+      return;
+    }
+
+    // 确保行号在有效范围内
+    const view = currentView.value;
+    if (!view) return;
+
+    const lineCount = view.state.doc.lines;
+    if (lineNumber < 1 || lineNumber > lineCount) {
+      console.error(`[CodeEditor] 行号超出范围: ${lineNumber} (总行数: ${lineCount})`);
+      return;
+    }
+
+    try {
+      // 清除之前的高亮
+      view.dispatch({
+        effects: clearErrorHighlight.of(null),
+      });
+
+      // 确保行号在有效范围内
+      const maxLine = view.state.doc.lines;
+      const targetLine = Math.min(lineNumber, maxLine);
+
+      // 获取目标行的位置
+      const line = view.state.doc.line(targetLine);
+
+      // 跳转到指定行
+      view.dispatch({
+        selection: EditorSelection.single(line.from),
+        effects: addErrorHighlight.of({ line: targetLine }),
+        scrollIntoView: true,
+      });
+
+      // 聚焦编辑器
+      view.focus();
+
+      // 3秒后清除高亮
+      setTimeout(() => {
+        if (view) {
+          view.dispatch({
+            effects: clearErrorHighlight.of(null),
+          });
+        }
+        resolve();
+      }, 3000);
+    } catch (error) {
+      console.error('跳转到行失败:', error);
+      resolve();
+    }
+  });
+};
+
+// 暴露方法给父组件
+defineExpose({
+  gotoLine,
+});
 
 const getLanguageExtension = () => {
   switch (activeTab.value) {
@@ -304,6 +412,7 @@ const initializeEditor = () => {
   editorViews.value[activeTab.value] = view;
   currentView.value = view;
 };
+
 const destroyAllEditors = () => {
   Object.values(editorViews.value).forEach((view) => {
     if (view) {
@@ -376,28 +485,6 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
 }
 
-/* .tabs button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: #2a2a2a;
-  color: #ccc;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-} */
-
-/* .tabs button.active {
-  background: #333;
-  color: white;
-} */
-
-/* .tabs button:hover {
-  background: #333;
-} */
-
 .editor {
   flex: 1;
   overflow: hidden;
@@ -415,9 +502,4 @@ onBeforeUnmount(() => {
   max-height: 100%;
   overflow-y: auto;
 }
-
-/* .icon {
-  width: 16px;
-  height: 16px;
-} */
 </style>
