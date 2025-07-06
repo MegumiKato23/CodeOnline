@@ -10,7 +10,7 @@ export interface ProjectPermissions {
 
 export const useUserStore = defineStore('user', () => {
   // 用户信息
-  const userid = ref('');
+  // const userid = ref('');
   const username = ref('');
   const account = ref('');
   const avatar = ref('');
@@ -103,7 +103,7 @@ export const useUserStore = defineStore('user', () => {
         // 调用 updateUserProfile 方法更新后台的用户资料
         await api.updateUserProfile({
           user: {
-            id: userId.value,
+            id: userId,
             username: username.value,
             account: account.value,
             status: status.value,
@@ -117,7 +117,6 @@ export const useUserStore = defineStore('user', () => {
   };
   return {
     username,
-    userid,
     account,
     avatar,
     status,
