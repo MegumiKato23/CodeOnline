@@ -623,22 +623,31 @@ const handleGotoLine = async (data: { line: number; type?: string }) => {
   return false;
 };
 
-// 在鼠标按下时触发
 const startResize = (e: MouseEvent) => {
-  // 阻止默认事件，避免选中文本
   e.preventDefault();
   isResizing.value = true;
-  startX.value = e.clientX;
-  if (editorPanel.value) {
-    startWidth.value = editorPanel.value.offsetWidth;
+  
+  // 根据当前视图模式设置不同的起始值
+  if (userStore.status === 'top') {
+    startY.value = e.clientY;
+    if (editorPanel.value) {
+      startHeight.value = editorPanel.value.offsetHeight;
+    }
+  } else {
+    startX.value = e.clientX;
+    if (editorPanel.value) {
+      // 对于right模式，我们需要计算从右侧开始的宽度
+      const rect = editorPanel.value.getBoundingClientRect();
+      startWidth.value = userStore.status === 'right' 
+        ? document.documentElement.clientWidth - rect.left
+        : rect.width;
+    }
   }
 
-  // 禁用文本选择和鼠标事件
   document.body.style.userSelect = 'none';
-  document.body.style.cursor = 'col-resize';
+  document.body.style.cursor = userStore.status === 'top' ? 'row-resize' : 'col-resize';
   document.body.style.pointerEvents = 'none';
 
-  // 使用更高效的事件监听
   window.addEventListener('mousemove', handleResize, { passive: false });
   window.addEventListener('mouseup', stopResize, { once: true });
 };
@@ -647,16 +656,50 @@ const handleResize = (e: MouseEvent) => {
   e.preventDefault();
   if (!isResizing.value || !editorPanel.value) return;
 
-  const dx = e.clientX - startX.value;
-  const containerWidth = document.querySelector('.main-content')?.clientWidth || 0;
-  const minWidth = 300;
-  const maxWidth = containerWidth - 300;
+  if (userStore.status === 'top') {
+    const dy = e.clientY - startY.value;
+    const containerHeight = document.querySelector('.main-content')?.clientHeight || 0;
+    const minHeight = 300;
+    const maxHeight = containerHeight - 300;
 
-  // 直接计算并应用新宽度，不使用requestAnimationFrame以获得即时响应
-  const newWidth = Math.max(minWidth, Math.min(maxWidth, startWidth.value + dx));
-  editorPanel.value.style.width = `${newWidth}px`;
+    const newHeight = Math.max(minHeight, Math.min(maxHeight, startHeight.value + dy));
+    editorPanel.value.style.height = `${newHeight}px`;
+  } else {
+    const dx = e.clientX - startX.value;
+    const containerWidth = document.querySelector('.main-content')?.clientWidth || 0;
+    const minWidth = 300;
+    const maxWidth = containerWidth - 300;
+
+    let newWidth;
+    if (userStore.status === 'right') {
+      // 对于right模式，从右侧计算宽度
+      newWidth = Math.max(minWidth, Math.min(maxWidth, startWidth.value - dx));
+    } else {
+      // left模式正常计算
+      newWidth = Math.max(minWidth, Math.min(maxWidth, startWidth.value + dx));
+    }
+    editorPanel.value.style.width = `${newWidth}px`;
+  }
 };
 
+
+// 添加新的ref
+const startY = ref(0);
+const startHeight = ref(0);
+// 添加样式观察器，确保视图切换时布局正确
+watch(() => userStore.status, (newVal) => {
+  nextTick(() => {
+    if (editorPanel.value) {
+      if (newVal === 'top') {
+        editorPanel.value.style.width = '100%';
+        editorPanel.value.style.height = '50%';
+      } else {
+        editorPanel.value.style.height = '100%';
+        editorPanel.value.style.width = '50%';
+      }
+    }
+  });
+}, { immediate: true });
 const stopResize = () => {
   if (!isResizing.value) return;
 
@@ -919,5 +962,96 @@ body,
 
 .close-btn:hover {
   background: #444;
+}
+
+.view-container {
+  height: calc(100vh - 100px);
+  width: 100%;
+  background: #1e1e1e; /* 编辑器背景色 */
+}
+
+.main-content {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+/* 默认布局 (left) */
+.left .main-content {
+  flex-direction: row;
+}
+
+/* right布局 */
+.right .main-content {
+  flex-direction: row-reverse;
+}
+
+/* top布局 */
+.top .main-content {
+  flex-direction: column;
+}
+
+.editor-panel {
+  background: #1e1e1e;
+  overflow: hidden;
+}
+
+/* left/right模式下的编辑器面板 */
+.left .editor-panel,
+.right .editor-panel {
+  width: 50%;
+  min-width: 300px;
+  max-width: calc(100% - 300px);
+  height: 100%;
+}
+
+/* top模式下的编辑器面板 */
+.top .editor-panel {
+  height: 50%;
+  min-height: 300px;
+  max-height: calc(100% - 300px);
+  width: 100%;
+}
+
+/* left/right模式下的拖动条 */
+.left .resize-handle,
+.right .resize-handle {
+  width: 8px;
+  background: #1a1a1a;
+  cursor: col-resize;
+  position: relative;
+  z-index: 10;
+}
+
+/* top模式下的拖动条 */
+.top .resize-handle {
+  height: 8px;
+  background: #1a1a1a;
+  cursor: row-resize;
+  position: relative;
+  z-index: 10;
+}
+
+.resize-handle:hover {
+  background: #555;
+}
+
+.preview-panel {
+  flex: 1;
+  min-width: 300px;
+  min-height: 300px;
+  overflow: auto;
+}
+
+.preview-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: white;
+}
+
+.no-pointer-events {
+  pointer-events: none;
 }
 </style>
