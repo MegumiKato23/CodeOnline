@@ -1,10 +1,15 @@
 <template>
   <div class="app">
-    <Navbar @login="showLoginDialog = true" />
+    <Navbar @login="showLoginDialog = true" @openSettings="showSettings = true" />
     <div class="left" ref="view">
       <div class="main-content">
         <div class="editor-panel" ref="editorPanel">
-          <CodeEditor ref="codeEditorRef" :activeTab="activeTab" :isReadOnly="userStore.isReadOnlyMode" />
+          <CodeEditor
+            :activeTab="activeTab"
+            :isReadOnly="userStore.isReadOnlyMode"
+            :cssSyntax="cssSyntax"
+            :framework="framework"
+          />
         </div>
         <div class="resize-handle" @mousedown="startResize" @dblclick="resetSize"></div>
         <div class="preview-panel">
@@ -24,7 +29,11 @@
       @runtime-error="handleRuntimeError"
       @goto-line="handleGotoLine"
     />
-    <SettingsDialog v-if="showSettings" @close="showSettings = false" />
+    <SettingDialog
+      :dialogFormVisible="showSettings"
+      @closeDialog="showSettings = false"
+      @updateSettings="handleSettingsUpdate"
+    />
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
   </div>
@@ -40,13 +49,15 @@ import type { ProjectPermissions } from '@/stores/userStore';
 import Navbar from '@/components/Navbar.vue';
 import CodeEditor from '@/components/CodeEditor.vue';
 import Footer from '@/components/Footer.vue';
-import SettingsDialog from '@/components/icons/SettingsIcon.vue';
+import SettingDialog from '@/components/dialogs/SettingDialog.vue';
 import LoginDialog from '@/components/login/LoginDialog.vue';
 import RegisterDialog from '@/components/login/RegisterDialog.vue';
 import head_portrait from './components/head_portrait.vue';
 import { api } from '@/api/index';
 import { Users } from 'lucide-vue-next';
 import { ShareService } from '@/services/shareService';
+import less from 'less';
+import * as sass from 'sass';
 import { SecurityService } from '@/services/security';
 
 const codeStore = useCodeStore();
@@ -69,8 +80,13 @@ const startX = ref(0);
 const startWidth = ref(0);
 const editorPanel = ref<HTMLElement | null>(null);
 const view = ref<HTMLElement | null>(null);
-console.log(view);
+const cssSyntax = ref<'css' | 'sass' | 'less'>('css');
+const framework = ref<'' | 'vue' | 'react'>('');
 
+const handleSettingsUpdate = (frameworkVal: '' | 'vue' | 'react', syntax: 'css' | 'sass' | 'less') => {
+  cssSyntax.value = syntax;
+  framework.value = frameworkVal;
+};
 // 创建防抖的预览更新函数 (500ms)
 const debouncedUpdatePreview = debounce(async () => {
   if (!previewFrame.value) return;
@@ -84,142 +100,87 @@ const debouncedUpdatePreview = debounce(async () => {
   }
 
   // 使用不同的净化方法
-  const safeHTML = SecurityService.sanitizeForWrite(htmlCode.value);
-  const safeCSS = cssCode.value; // CSS不需要特殊处理
-  const safeJS = jsCode.value;
-  // 框架检测
-  const isVue = safeJS.includes('createApp') || safeJS.includes('Vue.createApp');
-  const isReact = safeJS.includes('React.createElement') || 
-                 safeJS.includes('ReactDOM.render') ||
-                 /<[A-Z][^>]*>/.test(safeJS);
+  let safeHTML = SecurityService.sanitizeForWrite(htmlCode.value);
+  let safeJS = jsCode.value;
+  console.log(safeHTML);
+  if (framework.value === 'vue') {
+    const result = `
+      <div id="app"><\/div>
+      <script src="https://unpkg.com/vue@3/dist/vue.global.js"><\/script>
+      <script>
+        const { createApp } = Vue;
+        const appConfig = { template: \`${safeHTML}\` };
+        const userConfig = (function() { ${safeJS} })();
+        Object.assign(appConfig, userConfig);
+        const app = createApp(appConfig);
+        app.mount('#app');
+      <\/script>
+    `;
+    safeHTML = result;
+    console.log(safeHTML)
+  } else if (framework.value === 'react') {
+    const result = `
+      <div id="root"></div>
+      <script src="https://unpkg.com/react@18/umd/react.development.js"><\/script>
+      <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"><\/script>
+      <script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>
+      <script type="text/babel">
+        ${safeJS};
+        const { createRoot } = ReactDOM;
+        const root = createRoot(document.getElementById('root'));
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = \`${safeHTML}\`;
+        // 转换为 React 元素
+        const renderContent = ReactDOM.createRoot(tempDiv)._internalRoot.current.child;
+        root.render(<React.StrictMode>{renderContent}<\/React.StrictMode>);
+      <\/script>
+    `;
+    safeHTML = result;
+  }
+  let safeCSS = cssCode.value; // CSS不需要特殊处理
+  if (cssSyntax.value === 'less') {
+    try {
+      const result = await less.render(cssCode.value);
+      safeCSS = result.css;
+    } catch (error) {
+      console.error('Less 编译失败:', error);
+    }
+  }
+  if (cssSyntax.value === 'sass') {
+    try {
+      const result = sass.compileString(cssCode.value);
+      safeCSS = result.css;
+    } catch (error) {
+      console.error('Sass 编译失败:', error);
+    }
+  }
   // 设置sandbox属性
   previewFrame.value.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals');
   try {
-    let frameworkScripts = '';
-    if (isVue) {
-      frameworkScripts += `
-        <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.min.js"><\/script>
-        <script>
-          // Vue加载状态检测
-          window.__vueLoaded = new Promise(resolve => {
-            if (typeof Vue !== 'undefined') {
-              console.log('Vue已加载');
-              resolve();
-            } else {
-              const checkInterval = setInterval(() => {
-                if (typeof Vue !== 'undefined') {
-                  clearInterval(checkInterval);
-                  console.log('Vue延迟加载完成');
-                  resolve();
-                }
-              }, 100);
-              
-              // 5秒超时处理
-              setTimeout(() => {
-                if (typeof Vue === 'undefined') {
-                  clearInterval(checkInterval);
-                  console.error('Vue加载超时');
-                  window.parent.postMessage({
-                    type: 'framework-error',
-                    message: 'Vue加载超时',
-                    timestamp: Date.now()
-                  }, '*');
-                }
-              }, 5000);
-            }
-          });
-        <\/script>
-      `;
-    }
-    if (isReact) {
-      frameworkScripts += `
-        <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"><\/script>
-        <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"><\/script>
-        <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.21.4/babel.min.js"><\/script>
-      `;
-    }
-
-    // 构建挂载点
-    let mountPoints = '';
-    if (isVue && !safeHTML.includes('id="app"')) {
-      mountPoints += '<div id="app"></div>\n';
-    }
-    if (isReact && !safeHTML.includes('id="root"')) {
-      mountPoints += '<div id="root"></div>\n';
-    }
-
-    // 构建用户代码执行部分
-    let userJSCode = '';
-    if (isReact) {
-      userJSCode = `
-        // React代码需要Babel转译
-        if (typeof Babel !== 'undefined') {
-          try {
-            const transpiledCode = Babel.transform(\`${safeJS.replace(/`/g, '\\`')}\`, {
-              presets: ['react']
-            }).code;
-            eval(transpiledCode);
-          } catch (e) {
-            console.error('Babel转译错误:', e);
-          }
-        } else {
-          console.error('Babel未加载，无法转译React代码');
-        }
-      `;
-    } else if (isVue) {
-      userJSCode = `
-        // Vue代码执行
-        (async function() {
-          try {
-            await window.__vueLoaded;
-            
-            if (typeof Vue === 'undefined') {
-              throw new Error('Vue未加载');
-            }
-            
-            // 修复console.info问题
-            if (typeof console.info !== 'function') {
-              console.info = console.log;
-            }
-            
-            const app = Vue.createApp({
-              template: \`${safeHTML.replace(/`/g, '\\`')}\`,
-              setup() {
-                ${safeJS}
-              }
-            });
-            app.mount('#app');
-          } catch (error) {
-            console.error('Vue初始化错误:', error);
-            window.parent.postMessage({
-              type: 'runtime-error',
-              message: error.message,
-              error: error.stack,
-              timestamp: Date.now()
-            }, '*');
-          }
-        })();
-      `;
-    } else {
-      userJSCode = safeJS;
-    }
     const fullContent = `
     <!DOCTYPE html>
     <html>
       <head>
-          <meta http-equiv="Content-Security-Policy" content="
+<<<<<<< HEAD
+       <meta http-equiv="Content-Security-Policy" content="
+>>>>>>> 145273174db8d22ffea69dbd364be0660969268d
             default-src 'none';
-            script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net;
+            script-src 'self' 'unsafe-inline';
             style-src 'self' 'unsafe-inline';
           ">
-          ${frameworkScripts}
+=======
+      <meta http-equiv="Content-Security-Policy" content="
+        default-src 'none';
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' *;
+        style-src 'self' 'unsafe-inline';
+      ">
+>>>>>>> 615ced219e23d3b44271dc001dfc5a14c76e890e
         <style>${safeCSS}</style>
       </head>
       <body>
        ${safeHTML}
-       ${mountPoints}
         <script>
-          // 监听iframe内部的点击事件
+        // 监听iframe内部的点击事件
           document.addEventListener('click', function(e) {
             // 向父页面发送消息
             window.parent.postMessage({
@@ -254,45 +215,83 @@ const debouncedUpdatePreview = debounce(async () => {
               }
             }
           });
-            // 修复console.info问题
-            if (typeof console.info !== 'function') {
-              console.info = console.log;
+
+          // 重写console方法
+          if (typeof window._internalOriginalConsole === 'undefined') {
+            window._internalOriginalConsole = window.console;
+            
+            // 获取调用栈信息的辅助函数
+             function getCallerInfo() {
+              try {
+                const stack = new Error().stack;
+                if (stack) {
+                  const stackLines = stack.split('\\n');
+                  // 查找第一个包含用户代码的行
+                  for (let i = 3; i < stackLines.length; i++) {
+                    const line = stackLines[i];
+                    if (line.includes('user-code.js')) {
+                      const match = line.match(/:(\d+):(\d+)/);
+                      if (match) {
+                        let lineNum = parseInt(match[1]);
+                        const colNum = parseInt(match[2]);
+                        // 映射行号：减去包装函数的偏移（第1行是函数开始）
+                        const actualLine = lineNum > 1 ? lineNum - 1 : 1;
+                        return {
+                          line: actualLine,
+                          column: colNum,
+                        };
+                      }
+                    }
+                  }
+                }
+              } catch (e) {
+                console.error('解析调用栈错误:', e);
+              }
+              return { line: null, column: null };
             }
             
-            // 完整的console重写
-            if (typeof window._internalOriginalConsole === 'undefined') {
-              window._internalOriginalConsole = window.console;
-              
-              const consoleMethods = ['log', 'info', 'warn', 'error', 'debug'];
-              consoleMethods.forEach(method => {
-                if (typeof console[method] !== 'function') {
-                  console[method] = console.log;
-                }
-              });
-              
-              window.console = {
-                log: function(...args) {
-                  sendConsoleMessage('log', args);
-                  window._internalOriginalConsole.log(...args);
-                },
-                info: function(...args) {
-                  sendConsoleMessage('info', args);
-                  window._internalOriginalConsole.info(...args);
-                },
-                warn: function(...args) {
-                  sendConsoleMessage('warn', args);
-                  window._internalOriginalConsole.warn(...args);
-                },
-                error: function(...args) {
-                  sendConsoleMessage('error', args);
-                  window._internalOriginalConsole.error(...args);
-                },
-                debug: function(...args) {
-                  sendConsoleMessage('debug', args);
-                  window._internalOriginalConsole.debug(...args);
-                }
-              };
-              // 重写window.onerror来捕获更详细的错误信息
+            window.console = {
+              log: function(...args) {
+                const callerInfo = getCallerInfo();
+                window.parent.postMessage({
+                  type: 'console-log',
+                  level: 'log',
+                  args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)),
+                  line: callerInfo.line,
+                  column: callerInfo.column,
+                  timestamp: Date.now()
+                }, '*');
+                window._internalOriginalConsole.log(...args);
+              },
+              error: (...args) => {
+                const callerInfo = getCallerInfo();
+                window.parent.postMessage({
+                  type: 'console-log',
+                  level: 'error',
+                  args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)),
+                  line: callerInfo.line,
+                  column: callerInfo.column,
+                  timestamp: Date.now()
+                }, '*');
+                window._internalOriginalConsole.error(...args);
+              },
+              warn: (...args) => {
+                const callerInfo = getCallerInfo();
+                window.parent.postMessage({
+                  type: 'console-log',
+                  level: 'warn',
+                  args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)),
+                  line: callerInfo.line,
+                  column: callerInfo.column,
+                  timestamp: Date.now()
+                }, '*');
+                window._internalOriginalConsole.warn(...args);
+              }
+            };
+          }
+
+
+          // 重写window.onerror来捕获更详细的错误信息
          window.onerror = function(message, source, lineno, colno, error) {
             // 只处理用户代码错误
             if (source === 'user-code.js') {
@@ -379,114 +378,13 @@ const debouncedUpdatePreview = debounce(async () => {
                     }
                 }
             })();
-              function sendConsoleMessage(level, args) {
-                const callerInfo = getCallerInfo();
-                window.parent.postMessage({
-                  type: 'console-log',
-                  level: level,
-                  args: args.map(arg => 
-                    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-                  ),
-                  line: callerInfo.line,
-                  column: callerInfo.column,
-                  timestamp: Date.now()
-                }, '*');
-              }
-              
-              function getCallerInfo() {
-                try {
-                  const stack = new Error().stack;
-                  if (stack) {
-                    const stackLines = stack.split('\\n');
-                    for (let i = 3; i < stackLines.length; i++) {
-                      const line = stackLines[i];
-                      if (line.includes('user-code.js')) {
-                        const match = line.match(/:(\d+):(\d+)/);
-                        if (match) {
-                          let lineNum = parseInt(match[1]);
-                          const colNum = parseInt(match[2]);
-                          const actualLine = lineNum > 1 ? lineNum - 1 : 1;
-                          return { line: actualLine, column: colNum };
-                        }
-                      }
-                    }
-                  }
-                } catch (e) {
-                  console.error('解析调用栈错误:', e);
-                }
-                return { line: null, column: null };
-              }
-            }
-            
-            // 执行用户代码
-            try {
-              ${userJSCode}
-            } catch (e) {
-              console.error('用户代码执行错误:', e);
-            }
-          <\/script>
+        <\/script>
       </body>
     </html>
   `;
 
-    // 计算总内容大小（HTML + CSS + JS）
-    const totalSize = new Blob([fullContent]).size;
-    const SIZE_THRESHOLD = 100 * 1024; // 100KB
-
-    // 根据文件大小选择渲染策略
-    if (totalSize < SIZE_THRESHOLD) {
-      // 小于100KB，使用传统一次性渲染
-      doc.open();
-      doc.write(fullContent);
-
-      // 添加用户JS代码
-      if (safeJS.trim()) {
-        doc.write(`
-          <script>
-            try {
-              // 移除之前添加的用户脚本
-              const existingScripts = document.querySelectorAll('script[data-user-script]');
-              existingScripts.forEach(script => script.remove());
-    
-              // 创建独立的script标签执行用户代码
-              const userScript = document.createElement('script');
-              // 标记为用户脚本
-              userScript.setAttribute('data-user-script', 'true');
-              // 添加sourceURL以便调试
-              userScript.textContent = \`(function() {
-                      ${safeJS}
-              })();//# sourceURL=user-code.js\`;
-          
-                  // 捕获语法错误
-              userScript.onerror = function(error) {
-                  window.parent.postMessage({
-                      type: 'syntax-error',
-                      message: 'SyntaxError: ' + error.message,
-                      timestamp: Date.now(),
-                      isSyntaxError: true
-                    }, '*');
-                };
-              document.body.appendChild(userScript);
-            } catch (error) {
-                  // 处理其他错误
-                window.parent.postMessage({
-                    type: 'runtime-error',
-                    message: error.message,
-                    error: error.stack,
-                    timestamp: Date.now()
-                  }, '*');
-              }
-          <\/script>
-        `);
-      }
-
-      doc.close();
-      console.log('使用一次性渲染');
-    } else {
-      // 大于100KB，使用分块流式加载
-      await streamInject(previewFrame.value, fullContent, safeJS);
-      console.log('使用分块流式渲染');
-    }
+    // 使用分块注入函数
+    await streamInject(previewFrame.value, fullContent, safeJS);
   } catch (error) {
     console.error('文档写入失败:', error);
     const fullContent = `
@@ -746,31 +644,22 @@ const handleGotoLine = async (data: { line: number; type?: string }) => {
   return false;
 };
 
+// 在鼠标按下时触发
 const startResize = (e: MouseEvent) => {
+  // 阻止默认事件，避免选中文本
   e.preventDefault();
   isResizing.value = true;
-  
-  // 根据当前视图模式设置不同的起始值
-  if (userStore.status === 'top') {
-    startY.value = e.clientY;
-    if (editorPanel.value) {
-      startHeight.value = editorPanel.value.offsetHeight;
-    }
-  } else {
-    startX.value = e.clientX;
-    if (editorPanel.value) {
-      // 对于right模式，我们需要计算从右侧开始的宽度
-      const rect = editorPanel.value.getBoundingClientRect();
-      startWidth.value = userStore.status === 'right' 
-        ? document.documentElement.clientWidth - rect.left
-        : rect.width;
-    }
+  startX.value = e.clientX;
+  if (editorPanel.value) {
+    startWidth.value = editorPanel.value.offsetWidth;
   }
 
+  // 禁用文本选择和鼠标事件
   document.body.style.userSelect = 'none';
-  document.body.style.cursor = userStore.status === 'top' ? 'row-resize' : 'col-resize';
+  document.body.style.cursor = 'col-resize';
   document.body.style.pointerEvents = 'none';
 
+  // 使用更高效的事件监听
   window.addEventListener('mousemove', handleResize, { passive: false });
   window.addEventListener('mouseup', stopResize, { once: true });
 };
@@ -779,50 +668,16 @@ const handleResize = (e: MouseEvent) => {
   e.preventDefault();
   if (!isResizing.value || !editorPanel.value) return;
 
-  if (userStore.status === 'top') {
-    const dy = e.clientY - startY.value;
-    const containerHeight = document.querySelector('.main-content')?.clientHeight || 0;
-    const minHeight = 300;
-    const maxHeight = containerHeight - 300;
+  const dx = e.clientX - startX.value;
+  const containerWidth = document.querySelector('.main-content')?.clientWidth || 0;
+  const minWidth = 300;
+  const maxWidth = containerWidth - 300;
 
-    const newHeight = Math.max(minHeight, Math.min(maxHeight, startHeight.value + dy));
-    editorPanel.value.style.height = `${newHeight}px`;
-  } else {
-    const dx = e.clientX - startX.value;
-    const containerWidth = document.querySelector('.main-content')?.clientWidth || 0;
-    const minWidth = 300;
-    const maxWidth = containerWidth - 300;
-
-    let newWidth;
-    if (userStore.status === 'right') {
-      // 对于right模式，从右侧计算宽度
-      newWidth = Math.max(minWidth, Math.min(maxWidth, startWidth.value - dx));
-    } else {
-      // left模式正常计算
-      newWidth = Math.max(minWidth, Math.min(maxWidth, startWidth.value + dx));
-    }
-    editorPanel.value.style.width = `${newWidth}px`;
-  }
+  // 直接计算并应用新宽度，不使用requestAnimationFrame以获得即时响应
+  const newWidth = Math.max(minWidth, Math.min(maxWidth, startWidth.value + dx));
+  editorPanel.value.style.width = `${newWidth}px`;
 };
 
-
-// 添加新的ref
-const startY = ref(0);
-const startHeight = ref(0);
-// 添加样式观察器，确保视图切换时布局正确
-watch(() => userStore.status, (newVal) => {
-  nextTick(() => {
-    if (editorPanel.value) {
-      if (newVal === 'top') {
-        editorPanel.value.style.width = '100%';
-        editorPanel.value.style.height = '50%';
-      } else {
-        editorPanel.value.style.height = '100%';
-        editorPanel.value.style.width = '50%';
-      }
-    }
-  });
-}, { immediate: true });
 const stopResize = () => {
   if (!isResizing.value) return;
 
@@ -966,12 +821,10 @@ const checkLoginStatus = async () => {
     if (response.code === 200) {
       const { user } = response.data;
       userStore.login(user.username, user.account, user.avatar, user.status, user.createAt);
-
       codeStore.initProject();
 
       // 登录成功后，重新检查分享权限
       const shareResult = await ShareService.checkShareAccess();
-
       if (shareResult.success) {
         ShareService.applyShareAccess(shareResult);
       }
@@ -1018,7 +871,6 @@ onBeforeUnmount(() => {
   background: #1a1a1a;
   color: white;
 }
-
 body,
 .cm-content,
 .cm-line {
@@ -1085,96 +937,5 @@ body,
 
 .close-btn:hover {
   background: #444;
-}
-
-.view-container {
-  height: calc(100vh - 100px);
-  width: 100%;
-  background: #1e1e1e; /* 编辑器背景色 */
-}
-
-.main-content {
-  display: flex;
-  height: 100%;
-  width: 100%;
-  position: relative;
-}
-
-/* 默认布局 (left) */
-.left .main-content {
-  flex-direction: row;
-}
-
-/* right布局 */
-.right .main-content {
-  flex-direction: row-reverse;
-}
-
-/* top布局 */
-.top .main-content {
-  flex-direction: column;
-}
-
-.editor-panel {
-  background: #1e1e1e;
-  overflow: hidden;
-}
-
-/* left/right模式下的编辑器面板 */
-.left .editor-panel,
-.right .editor-panel {
-  width: 50%;
-  min-width: 300px;
-  max-width: calc(100% - 300px);
-  height: 100%;
-}
-
-/* top模式下的编辑器面板 */
-.top .editor-panel {
-  height: 50%;
-  min-height: 300px;
-  max-height: calc(100% - 300px);
-  width: 100%;
-}
-
-/* left/right模式下的拖动条 */
-.left .resize-handle,
-.right .resize-handle {
-  width: 8px;
-  background: #1a1a1a;
-  cursor: col-resize;
-  position: relative;
-  z-index: 10;
-}
-
-/* top模式下的拖动条 */
-.top .resize-handle {
-  height: 8px;
-  background: #1a1a1a;
-  cursor: row-resize;
-  position: relative;
-  z-index: 10;
-}
-
-.resize-handle:hover {
-  background: #555;
-}
-
-.preview-panel {
-  flex: 1;
-  min-width: 300px;
-  min-height: 300px;
-  overflow: auto;
-}
-
-.preview-frame {
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: white;
-}
-
-.no-pointer-events {
-  pointer-events: none;
 }
 </style>
