@@ -31,8 +31,8 @@ export const jsChecker: ErrorChecker = async (code: string, options?: ErrorCheck
   }
 
   const scopeStack: Array<Set<string>> = [new Set()];
-  const declaredVars = new Set<string>();
-  const usedVars = new Set<string>();
+  const declaredVars = new Map<string, any>(); // 变量名 -> 声明节点
+  const usedVars = new Map<string, any>(); // 变量名 -> 使用节点
 
   function enterScope() {
     scopeStack.push(new Set());
@@ -53,7 +53,7 @@ export const jsChecker: ErrorChecker = async (code: string, options?: ErrorCheck
       });
     } else {
       currentScope.add(name);
-      declaredVars.add(name);
+      declaredVars.set(name, node);
     }
   }
 
@@ -69,6 +69,9 @@ export const jsChecker: ErrorChecker = async (code: string, options?: ErrorCheck
       });
       for (const decl of node.declarations) {
         c(decl, state);
+      }
+      if (node.kind === 'let' || node.kind === 'const') {
+        exitScope();
       }
     },
     FunctionDeclaration(node: any, state: any, c: any) {
@@ -93,7 +96,10 @@ export const jsChecker: ErrorChecker = async (code: string, options?: ErrorCheck
       exitScope();
     },
     Identifier(node: any, state: any, c: any) {
-      usedVars.add(node.name);
+      // 过滤掉声明时的 Identifier，避免重复计数
+      if (state !== 'declaration') {
+        usedVars.set(node.name, node);
+      }
     },
     DebuggerStatement(node: any, state: any, c: any) {
       errors.push({
@@ -108,28 +114,35 @@ export const jsChecker: ErrorChecker = async (code: string, options?: ErrorCheck
     ...base,
   });
 
-  usedVars.forEach((name) => {
-    if (!declaredVars.has(name) && name !== 'console' && name !== 'window' && name !== 'document') {
+  // 检测未定义变量
+  usedVars.forEach((node, name) => {
+    if (
+      !declaredVars.has(name) &&
+      name !== 'console' &&
+      name !== 'window' &&
+      name !== 'document'
+    ) {
       errors.push({
         message: `Variable '${name}' is not defined.`,
         severity: 'error',
-        from: 0,
-        to: 0,
-        line: 0,
-        column: 0,
+        from: node.start,
+        to: node.end,
+        line: node.loc.start.line - 1,
+        column: node.loc.start.column,
       });
     }
   });
 
-  declaredVars.forEach((name) => {
+  // 检测未使用变量
+  declaredVars.forEach((node, name) => {
     if (!usedVars.has(name)) {
       errors.push({
         message: `Variable '${name}' is declared but its value is never read.`,
         severity: 'warning',
-        from: 0,
-        to: 0,
-        line: 0,
-        column: 0,
+        from: node.start,
+        to: node.end,
+        line: node.loc.start.line - 1,
+        column: node.loc.start.column,
       });
     }
   });

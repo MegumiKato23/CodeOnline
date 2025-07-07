@@ -1,6 +1,14 @@
 import { Completion, CompletionContext, snippetCompletion } from '@codemirror/autocomplete'
 
 const HTML_TAGS: Completion[] = [
+  snippetCompletion("html></html>", { label: "html", type: "tag", boost: 10 }),
+  snippetCompletion("head></head>", { label: "head", type: "tag", boost: 10 }),
+  snippetCompletion("body></body>", { label: "body", type: "tag", boost: 10 }),
+  snippetCompletion("title></title>", { label: "title", type: "tag", boost: 9 }),
+  snippetCompletion("meta charset=\"UTF-8\">", { label: "meta", type: "tag", boost: 9 }),
+  snippetCompletion("link rel=\"stylesheet\" href=\"\">", { label: "link", type: "tag", boost: 9 }),
+  snippetCompletion("script src=\"\"></script>", { label: "script", type: "tag", boost: 9 }),
+
   snippetCompletion("div></div>", { label: "div", type: "tag", boost: 10 }),
   snippetCompletion("span></span>", { label: "span", type: "tag", boost: 9 }),
   snippetCompletion("section></section>",  { label: "section", type: "tag", boost: 9 }),
@@ -25,7 +33,6 @@ const HTML_TAGS: Completion[] = [
   snippetCompletion("code></code>", { label: "code", type: "tag", boost: 8 }),
   snippetCompletion("pre></pre>", { label: "pre", type: "tag", boost: 8 }),
   snippetCompletion("blockquote></blockquote>", { label: "blockquote", type: "tag", boost: 7 }),
-  snippetCompletion("q></q>", { label: "q", type: "tag", boost: 7 }),
 
   snippetCompletion("form action=\"\" method=\"\">\n\t\n</form>", { label: "form", type: "tag", boost: 9 }),
   snippetCompletion("input type=\"\" name=\"\">", { label: "input", type: "tag", boost: 9 }),
@@ -33,28 +40,15 @@ const HTML_TAGS: Completion[] = [
   snippetCompletion("select name=\"\">\n\t<option value=\"\"></option>\n</select>", { label: "select", type: "tag", boost: 8 }),
   snippetCompletion("textarea name=\"\"></textarea>", { label: "textarea", type: "tag", boost: 8 }),
   snippetCompletion("label for=\"\"></label>", { label: "label", type: "tag", boost: 8 }),
-  snippetCompletion("fieldset>\n\t<legend></legend>\n\t\n</fieldset>", { label: "fieldset", type: "tag", boost: 7 }),
-  snippetCompletion("legend></legend>", { label: "legend", type: "tag", boost: 7 }),
-  snippetCompletion("datalist id=\"\">\n\t<option value=\"\">\n</datalist>", { label: "datalist", type: "tag", boost: 7 }),
-  snippetCompletion("output name=\"\"></output>", { label: "output", type: "tag", boost: 7 }),
-  snippetCompletion("progress value=\"\" max=\"\">\n</progress>", { label: "progress", type: "tag", boost: 7 }),
-  snippetCompletion("meter value=\"\" min=\"\" max=\"\"></meter>", { label: "meter", type: "tag", boost: 6 }),
 
   snippetCompletion("img src=\"\" alt=\"\">", { label: "img", type: "tag", boost: 9 }),
   snippetCompletion("video controls>\n\t<source src=\"\" type=\"video/mp4\">\n\t\n</video>", { label: "video", type: "tag", boost: 8 }),
   snippetCompletion("audio controls>\n\t<source src=\"\" type=\"audio/mpeg\">\n\t\n</audio>", { label: "audio", type: "tag", boost: 8 }),
-  snippetCompletion("picture>\n\t<source srcset=\"\" media=\"\">\n\t<img src=\"\" alt=\"\">\n</picture>", { label: "picture", type: "tag", boost: 7 }),
-  snippetCompletion("source src=\"\" type=\"\">", { label: "source", type: "tag", boost: 7 }),
-  snippetCompletion("track kind=\"\" src=\"\" srclang=\"\" label=\"\">", { label: "track", type: "tag", boost: 6 }),
-  snippetCompletion("map name=\"\">\n\t<area shape=\"\" coords=\"\" href=\"\" alt=\"\">\n</map>", { label: "map", type: "tag", boost: 6 }),
-  snippetCompletion("area shape=\"\" coords=\"\" href=\"\" alt=\"\">", { label: "area", type: "tag", boost: 6 }),
 
   snippetCompletion("ul>\n\t<li></li>\n</ul>", { label: "ul", type: "tag", boost: 9 }),
   snippetCompletion("ol>\n\t<li></li>\n</ol>", { label: "ol", type: "tag", boost: 9 }),
   snippetCompletion("li></li>", { label: "li", type: "tag", boost: 8 }),
-  snippetCompletion("dl>\n\t<dt></dt>\n\t<dd></dd>\n</dl>", { label: "dl", type: "tag", boost: 7 }),
-  snippetCompletion("dt></dt>", { label: "dt", type: "tag", boost: 7 }),
-  snippetCompletion("dd></dd>", { label: "dd", type: "tag", boost: 7 }),
+
   snippetCompletion("table>\n\t<tr>\n\t\t<th></th>\n\t</tr>\n</table>", { label: "table", type: "tag", boost: 8 }),
   snippetCompletion("tr>\n\t<td></td>\n</tr>", { label: "tr", type: "tag", boost: 7 }),
   snippetCompletion("th></th>", { label: "th", type: "tag", boost: 7 }),
@@ -62,13 +56,6 @@ const HTML_TAGS: Completion[] = [
   snippetCompletion("thead>\n\t<tr>\n\t\t<th></th>\n\t</tr>\n</thead>", { label: "thead", type: "tag", boost: 7 }),
   snippetCompletion("tbody>\n\t<tr>\n\t\t<td></td>\n\t</tr>\n</tbody>", { label: "tbody", type: "tag", boost: 7 }),
   snippetCompletion("tfoot>\n\t<tr>\n\t\t<td></td>\n\t</tr>\n</tfoot>", { label: "tfoot", type: "tag", boost: 7 }),
-  snippetCompletion("caption></caption>", { label: "caption", type: "tag", boost: 6 }),
-  snippetCompletion("colgroup>\n\t<col span=\"\"> \n</colgroup>", { label: "colgroup", type: "tag", boost: 6 }),
-  snippetCompletion("col span=\"\">", { label: "col", type: "tag", boost: 6 }),
-
-  snippetCompletion("meta name=\"\" content=\"\">", { label: "meta", type: "tag", boost: 7 }),
-  snippetCompletion("link rel=\"\" href=\"\">", { label: "link", type: "tag", boost: 7 }),
-  snippetCompletion("script src=\"\"></script>", { label: "script", type: "tag", boost: 8 }),
 ]
 const HTML_ATTRIBUTES: Completion[] = [
   snippetCompletion('class=""', { label: "class", type: "property", boost: 10 }),
