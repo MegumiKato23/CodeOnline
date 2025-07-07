@@ -25,9 +25,34 @@ export const cssChecker: ErrorChecker = async (code: string, options?: ErrorChec
 
   // 2. 增强属性值验证
   const propValueRegex = /([a-z-]+)\s*:\s*([^;]+);?/g;
+
+  // 定义属性校验函数映射
+  const validators: Record<string, (value: string) => string | null> = {
+    color: (value) => {
+      const v = value.trim();
+      const colorRegex =
+        /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$|^rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)$|^rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*(0|1|0?\.\d+)\s*\)$|^(transparent|inherit|initial|unset|black|white|red|green|blue|yellow|gray|grey)$/i;
+      return colorRegex.test(v) ? null : `Invalid color value: ${v}`;
+    },
+    height: (value) => {
+      const v = value.trim();
+      if (v === '0') return null;
+      if (/^\d+(\.\d+)?(px|em|rem|%)$/.test(v)) return null;
+      return `Invalid length value for height: ${v}`;
+    },
+    width: (value) => {
+      const v = value.trim();
+      if (v === '0') return null;
+      if (/^\d+(\.\d+)?(px|em|rem|%)$/.test(v)) return null;
+      return `Invalid length value for width: ${v}`;
+    },
+    // 你可以继续添加更多属性的校验函数
+  };
+
   let propMatch: RegExpExecArray | null;
   while ((propMatch = propValueRegex.exec(code)) !== null) {
     const [full, prop, value] = propMatch;
+
     if (value.includes('!important') && value.match(/!important/g)!.length > 1) {
       errors.push({
         message: `Multiple !important in property: ${prop}`,
@@ -36,6 +61,33 @@ export const cssChecker: ErrorChecker = async (code: string, options?: ErrorChec
         to: propMatch.index + full.length,
         line: 0,
       });
+    }
+
+    // 先做简单非法字符检测
+    const illegalCharMatch = value.match(/[^a-zA-Z0-9\s#\-\.%(),!@\/]/);
+    if (illegalCharMatch) {
+      errors.push({
+        message: `Invalid character '${illegalCharMatch[0]}' in value of property: ${prop}`,
+        severity: 'error',
+        from: propMatch.index + full.indexOf(illegalCharMatch[0]),
+        to: propMatch.index + full.indexOf(illegalCharMatch[0]) + 1,
+        line: 0,
+      });
+    }
+
+    // 调用对应属性的校验函数
+    const validator = validators[prop];
+    if (validator) {
+      const errMsg = validator(value);
+      if (errMsg) {
+        errors.push({
+          message: errMsg,
+          severity: 'error',
+          from: propMatch.index + full.indexOf(value),
+          to: propMatch.index + full.indexOf(value) + value.length,
+          line: 0,
+        });
+      }
     }
   }
 
