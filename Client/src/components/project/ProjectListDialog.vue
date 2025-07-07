@@ -64,7 +64,7 @@
       <div class="project-list-footer">
         <UnifiedButton type="primary" size="small" @click="showCreateProjectDialog" :disabled="isCreating">
           <div class="button-content">
-            <span>New</span>
+            <span>创建项目</span>
           </div>
         </UnifiedButton>
       </div>
@@ -168,6 +168,7 @@ const close = () => {
   emit('close');
 };
 
+// 获取用户项目集
 const loadProjects = async () => {
   isLoading.value = true;
   errorMessage.value = '';
@@ -206,7 +207,9 @@ const selectProject = async (projectId: string) => {
     currentProjectId.value = projectId;
 
     // 加载项目文件
-    codeStore.loadProjectFromShare(projectData);
+    codeStore.htmlCode = projectData.htmlCode;
+    codeStore.cssCode = projectData.cssCode;
+    codeStore.jsCode = projectData.jsCode;
 
     // 关闭对话框
     close();
@@ -242,17 +245,13 @@ const createNewProject = async () => {
   isCreating.value = true;
 
   try {
-    // 清空编辑器状态值
-    codeStore.loadProjectFromShare({ files: [] });
     const { data } = await api.createProject({ name: newProjectName.value.trim() });
     const projectData = data.project;
 
     // 初始化项目文件
     await codeStore.initProjectFiles(projectData.id);
 
-    // 更新当前项目ID
-    userStore.currentProjectId = projectData.id;
-    currentProjectId.value = projectData.id;
+    selectProject(projectData.id);
 
     // 重新加载项目列表
     await loadProjects();
