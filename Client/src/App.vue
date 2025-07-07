@@ -87,24 +87,139 @@ const debouncedUpdatePreview = debounce(async () => {
   const safeHTML = SecurityService.sanitizeForWrite(htmlCode.value);
   const safeCSS = cssCode.value; // CSS不需要特殊处理
   const safeJS = jsCode.value;
+  // 框架检测
+  const isVue = safeJS.includes('createApp') || safeJS.includes('Vue.createApp');
+  const isReact = safeJS.includes('React.createElement') || 
+                 safeJS.includes('ReactDOM.render') ||
+                 /<[A-Z][^>]*>/.test(safeJS);
   // 设置sandbox属性
   previewFrame.value.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals');
   try {
+    let frameworkScripts = '';
+    if (isVue) {
+      frameworkScripts += `
+        <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.min.js"><\/script>
+        <script>
+          // Vue加载状态检测
+          window.__vueLoaded = new Promise(resolve => {
+            if (typeof Vue !== 'undefined') {
+              console.log('Vue已加载');
+              resolve();
+            } else {
+              const checkInterval = setInterval(() => {
+                if (typeof Vue !== 'undefined') {
+                  clearInterval(checkInterval);
+                  console.log('Vue延迟加载完成');
+                  resolve();
+                }
+              }, 100);
+              
+              // 5秒超时处理
+              setTimeout(() => {
+                if (typeof Vue === 'undefined') {
+                  clearInterval(checkInterval);
+                  console.error('Vue加载超时');
+                  window.parent.postMessage({
+                    type: 'framework-error',
+                    message: 'Vue加载超时',
+                    timestamp: Date.now()
+                  }, '*');
+                }
+              }, 5000);
+            }
+          });
+        <\/script>
+      `;
+    }
+    if (isReact) {
+      frameworkScripts += `
+        <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"><\/script>
+        <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"><\/script>
+        <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.21.4/babel.min.js"><\/script>
+      `;
+    }
+
+    // 构建挂载点
+    let mountPoints = '';
+    if (isVue && !safeHTML.includes('id="app"')) {
+      mountPoints += '<div id="app"></div>\n';
+    }
+    if (isReact && !safeHTML.includes('id="root"')) {
+      mountPoints += '<div id="root"></div>\n';
+    }
+
+    // 构建用户代码执行部分
+    let userJSCode = '';
+    if (isReact) {
+      userJSCode = `
+        // React代码需要Babel转译
+        if (typeof Babel !== 'undefined') {
+          try {
+            const transpiledCode = Babel.transform(\`${safeJS.replace(/`/g, '\\`')}\`, {
+              presets: ['react']
+            }).code;
+            eval(transpiledCode);
+          } catch (e) {
+            console.error('Babel转译错误:', e);
+          }
+        } else {
+          console.error('Babel未加载，无法转译React代码');
+        }
+      `;
+    } else if (isVue) {
+      userJSCode = `
+        // Vue代码执行
+        (async function() {
+          try {
+            await window.__vueLoaded;
+            
+            if (typeof Vue === 'undefined') {
+              throw new Error('Vue未加载');
+            }
+            
+            // 修复console.info问题
+            if (typeof console.info !== 'function') {
+              console.info = console.log;
+            }
+            
+            const app = Vue.createApp({
+              template: \`${safeHTML.replace(/`/g, '\\`')}\`,
+              setup() {
+                ${safeJS}
+              }
+            });
+            app.mount('#app');
+          } catch (error) {
+            console.error('Vue初始化错误:', error);
+            window.parent.postMessage({
+              type: 'runtime-error',
+              message: error.message,
+              error: error.stack,
+              timestamp: Date.now()
+            }, '*');
+          }
+        })();
+      `;
+    } else {
+      userJSCode = safeJS;
+    }
     const fullContent = `
     <!DOCTYPE html>
     <html>
       <head>
-      <meta http-equiv="Content-Security-Policy" content="
-        default-src 'none';
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' *;
-        style-src 'self' 'unsafe-inline';
-      ">
+          <meta http-equiv="Content-Security-Policy" content="
+            default-src 'none';
+            script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net;
+            style-src 'self' 'unsafe-inline';
+          ">
+          ${frameworkScripts}
         <style>${safeCSS}</style>
       </head>
       <body>
        ${safeHTML}
+       ${mountPoints}
         <script>
-        // 监听iframe内部的点击事件
+          // 监听iframe内部的点击事件
           document.addEventListener('click', function(e) {
             // 向父页面发送消息
             window.parent.postMessage({
@@ -139,82 +254,45 @@ const debouncedUpdatePreview = debounce(async () => {
               }
             }
           });
-
-          // 重写console方法
-          if (typeof window._internalOriginalConsole === 'undefined') {
-            window._internalOriginalConsole = window.console;
-            
-            // 获取调用栈信息的辅助函数
-             function getCallerInfo() {
-              try {
-                const stack = new Error().stack;
-                if (stack) {
-                  const stackLines = stack.split('\\n');
-                  // 查找第一个包含用户代码的行
-                  for (let i = 3; i < stackLines.length; i++) {
-                    const line = stackLines[i];
-                    if (line.includes('user-code.js')) {
-                      const match = line.match(/:(\d+):(\d+)/);
-                      if (match) {
-                        let lineNum = parseInt(match[1]);
-                        const colNum = parseInt(match[2]);
-                        // 映射行号：减去包装函数的偏移（第1行是函数开始）
-                        const actualLine = lineNum > 1 ? lineNum - 1 : 1;
-                        return {
-                          line: actualLine,
-                          column: colNum,
-                        };
-                      }
-                    }
-                  }
-                }
-              } catch (e) {
-                console.error('解析调用栈错误:', e);
-              }
-              return { line: null, column: null };
+            // 修复console.info问题
+            if (typeof console.info !== 'function') {
+              console.info = console.log;
             }
             
-            window.console = {
-              log: function(...args) {
-                const callerInfo = getCallerInfo();
-                window.parent.postMessage({
-                  type: 'console-log',
-                  level: 'log',
-                  args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)),
-                  line: callerInfo.line,
-                  column: callerInfo.column,
-                  timestamp: Date.now()
-                }, '*');
-                window._internalOriginalConsole.log(...args);
-              },
-              error: (...args) => {
-                const callerInfo = getCallerInfo();
-                window.parent.postMessage({
-                  type: 'console-log',
-                  level: 'error',
-                  args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)),
-                  line: callerInfo.line,
-                  column: callerInfo.column,
-                  timestamp: Date.now()
-                }, '*');
-                window._internalOriginalConsole.error(...args);
-              },
-              warn: (...args) => {
-                const callerInfo = getCallerInfo();
-                window.parent.postMessage({
-                  type: 'console-log',
-                  level: 'warn',
-                  args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)),
-                  line: callerInfo.line,
-                  column: callerInfo.column,
-                  timestamp: Date.now()
-                }, '*');
-                window._internalOriginalConsole.warn(...args);
-              }
-            };
-          }
-
-          // 重写window.onerror来捕获更详细的错误信息
+            // 完整的console重写
+            if (typeof window._internalOriginalConsole === 'undefined') {
+              window._internalOriginalConsole = window.console;
+              
+              const consoleMethods = ['log', 'info', 'warn', 'error', 'debug'];
+              consoleMethods.forEach(method => {
+                if (typeof console[method] !== 'function') {
+                  console[method] = console.log;
+                }
+              });
+              
+              window.console = {
+                log: function(...args) {
+                  sendConsoleMessage('log', args);
+                  window._internalOriginalConsole.log(...args);
+                },
+                info: function(...args) {
+                  sendConsoleMessage('info', args);
+                  window._internalOriginalConsole.info(...args);
+                },
+                warn: function(...args) {
+                  sendConsoleMessage('warn', args);
+                  window._internalOriginalConsole.warn(...args);
+                },
+                error: function(...args) {
+                  sendConsoleMessage('error', args);
+                  window._internalOriginalConsole.error(...args);
+                },
+                debug: function(...args) {
+                  sendConsoleMessage('debug', args);
+                  window._internalOriginalConsole.debug(...args);
+                }
+              };
+              // 重写window.onerror来捕获更详细的错误信息
          window.onerror = function(message, source, lineno, colno, error) {
             // 只处理用户代码错误
             if (source === 'user-code.js') {
@@ -301,7 +379,52 @@ const debouncedUpdatePreview = debounce(async () => {
                     }
                 }
             })();
-        <\/script>
+              function sendConsoleMessage(level, args) {
+                const callerInfo = getCallerInfo();
+                window.parent.postMessage({
+                  type: 'console-log',
+                  level: level,
+                  args: args.map(arg => 
+                    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+                  ),
+                  line: callerInfo.line,
+                  column: callerInfo.column,
+                  timestamp: Date.now()
+                }, '*');
+              }
+              
+              function getCallerInfo() {
+                try {
+                  const stack = new Error().stack;
+                  if (stack) {
+                    const stackLines = stack.split('\\n');
+                    for (let i = 3; i < stackLines.length; i++) {
+                      const line = stackLines[i];
+                      if (line.includes('user-code.js')) {
+                        const match = line.match(/:(\d+):(\d+)/);
+                        if (match) {
+                          let lineNum = parseInt(match[1]);
+                          const colNum = parseInt(match[2]);
+                          const actualLine = lineNum > 1 ? lineNum - 1 : 1;
+                          return { line: actualLine, column: colNum };
+                        }
+                      }
+                    }
+                  }
+                } catch (e) {
+                  console.error('解析调用栈错误:', e);
+                }
+                return { line: null, column: null };
+              }
+            }
+            
+            // 执行用户代码
+            try {
+              ${userJSCode}
+            } catch (e) {
+              console.error('用户代码执行错误:', e);
+            }
+          <\/script>
       </body>
     </html>
   `;
