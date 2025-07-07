@@ -227,8 +227,9 @@ const login = () => {
 
 /* 下拉菜单项样式 */
 .custom-dropdown-menu .el-dropdown-item {
-  font-size: 14px;
+  font-size: 16px;
   color: white;
+
 }
 
 .custom-dropdown-menu .el-dropdown-item:hover {
