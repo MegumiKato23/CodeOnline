@@ -22,6 +22,14 @@
       </div>
     </div>
   </div>
+  <!-- 登录成功弹窗 -->
+  <div v-if="showLoginToast" class="login-toast" :class="loginToastType">
+    <div class="toast-content" :class="loginToastType">
+      <span class="toast-icon">{{ loginToastType === 'success' ? '✓' : '' }}</span>
+      <span class="toast-text">{{ loginToastMessage }}</span>
+      <span class="toast-close" @click="showLoginToast = false">×</span>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -47,6 +55,10 @@ const loginForm = reactive({
   account: '',
   password: '',
 });
+
+const showLoginToast = ref(false);
+const loginToastType = ref('success'); // 'success' 或 'error'
+const loginToastMessage = ref('');
 
 const close = () => {
   emit('close');
@@ -93,6 +105,15 @@ const handleLogin = async () => {
     if (shareResult.success) {
       ShareService.applyShareAccess(shareResult);
     }
+
+    loginToastType.value = 'success';
+    loginToastMessage.value = `Successfully logged in`;
+    showLoginToast.value = true;
+    // 3秒后自动隐藏提示
+    setTimeout(() => {
+      showLoginToast.value = false;
+    }, 3000);
+
     // 关闭登录框
     resetForm();
     close();
@@ -220,5 +241,100 @@ input:focus {
 
 .login-submit-btn:hover {
   background-color: #3a8eef;
+}
+
+/* 登录提示弹窗样式 */
+.login-toast {
+  position: fixed;
+  top: 20px;
+  right: 50%;
+  transform: translateX(50%);
+  z-index: 9999;
+  animation:
+    slideInDown 0.3s ease-out,
+    slideOutUp 0.3s ease-in 2.7s forwards;
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  min-height: 40px;
+  color: white;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 14px;
+  font-weight: 500;
+  position: relative;
+  max-width: 500px;
+}
+
+/* 成功样式 */
+.toast-content.success {
+  border: 2px solid #45a049;
+}
+
+.login-toast.success .toast-icon {
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+}
+
+/* 失败样式 */
+.toast-content.error {
+  background: #f44336;
+  border: 2px solid #d32f2f;
+}
+
+.login-toast.error .toast-icon {
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+}
+
+.toast-text {
+  flex: 1;
+  word-wrap: break-word;
+}
+
+.toast-close {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  padding: 2px;
+  border-radius: 2px;
+  transition: background-color 0.2s;
+}
+
+.toast-close:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateX(50%) translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutUp {
+  from {
+    transform: translateX(50%) translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(50%) translateY(-100%);
+    opacity: 0;
+  }
 }
 </style>

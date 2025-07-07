@@ -1,10 +1,16 @@
 <template>
   <div class="app">
-    <Navbar @login="showLoginDialog = true" />
+    <Navbar @login="showLoginDialog = true" @openSettings="showSettings = true" />
     <div class="left" ref="view">
       <div class="main-content">
         <div class="editor-panel" ref="editorPanel">
-          <CodeEditor ref="codeEditorRef" :activeTab="activeTab" :isReadOnly="userStore.isReadOnlyMode" />
+          <CodeEditor
+            ref="codeEditorRef"
+            :activeTab="activeTab"
+            :isReadOnly="userStore.isReadOnlyMode"
+            :cssSyntax="cssSyntax"
+            :framework="framework"
+          />
         </div>
         <div class="resize-handle" @mousedown="startResize" @dblclick="resetSize"></div>
         <div class="preview-panel">
@@ -25,7 +31,11 @@
       @goto-line="handleGotoLine"
       @performance-test="showPerformanceTest = true"
     />
-    <SettingsDialog v-if="showSettings" @close="showSettings = false" />
+    <SettingDialog
+      :dialogFormVisible="showSettings"
+      @closeDialog="showSettings = false"
+      @updateSettings="handleSettingsUpdate"
+    />
     <LoginDialog :visible="showLoginDialog" @close="showLoginDialog = false" @register="switchToRegister()" />
     <RegisterDialog :visible="showRegisterDialog" @close="showRegisterDialog = false" @login="switchToLogin()" />
   </div>
@@ -41,13 +51,15 @@ import type { ProjectPermissions } from '@/stores/userStore';
 import Navbar from '@/components/Navbar.vue';
 import CodeEditor from '@/components/CodeEditor.vue';
 import Footer from '@/components/Footer.vue';
-import SettingsDialog from '@/components/icons/SettingsIcon.vue';
+import SettingDialog from '@/components/dialogs/SettingDialog.vue';
 import LoginDialog from '@/components/login/LoginDialog.vue';
 import RegisterDialog from '@/components/login/RegisterDialog.vue';
 import head_portrait from './components/head_portrait.vue';
 import { api } from '@/api/index';
 import { Users } from 'lucide-vue-next';
 import { ShareService } from '@/services/shareService';
+import less from 'less';
+import * as sass from 'sass';
 import { SecurityService } from '@/services/security';
 
 const codeStore = useCodeStore();
@@ -71,8 +83,13 @@ const startX = ref(0);
 const startWidth = ref(0);
 const editorPanel = ref<HTMLElement | null>(null);
 const view = ref<HTMLElement | null>(null);
-console.log(view);
+const cssSyntax = ref<'css' | 'sass' | 'less'>('css');
+const framework = ref<'' | 'vue' | 'react'>('');
 
+const handleSettingsUpdate = (frameworkVal: '' | 'vue' | 'react', syntax: 'css' | 'sass' | 'less') => {
+  cssSyntax.value = syntax;
+  framework.value = frameworkVal;
+};
 // 创建防抖的预览更新函数 (500ms)
 const debouncedUpdatePreview = debounce(async () => {
   if (!previewFrame.value) return;
@@ -86,9 +103,60 @@ const debouncedUpdatePreview = debounce(async () => {
   }
 
   // 使用不同的净化方法
-  const safeHTML = SecurityService.sanitizeForWrite(htmlCode.value);
-  const safeCSS = cssCode.value; // CSS不需要特殊处理
-  const safeJS = jsCode.value;
+  let safeHTML = SecurityService.sanitizeForWrite(htmlCode.value);
+  let safeJS = jsCode.value;
+  console.log(safeHTML);
+  if (framework.value === 'vue') {
+    const result = `
+      <div id="app"><\/div>
+      <script src="https://unpkg.com/vue@3/dist/vue.global.js"><\/script>
+      <script>
+        const { createApp } = Vue;
+        const appConfig = { template: \`${safeHTML}\` };
+        const userConfig = (function() { ${safeJS} })();
+        Object.assign(appConfig, userConfig);
+        const app = createApp(appConfig);
+        app.mount('#app');
+      <\/script>
+    `;
+    safeHTML = result;
+    console.log(safeHTML);
+  } else if (framework.value === 'react') {
+    const result = `
+      <div id="root"></div>
+      <script src="https://unpkg.com/react@18/umd/react.development.js"><\/script>
+      <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"><\/script>
+      <script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>
+      <script type="text/babel">
+        ${safeJS};
+        const { createRoot } = ReactDOM;
+        const root = createRoot(document.getElementById('root'));
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = \`${safeHTML}\`;
+        // 转换为 React 元素
+        const renderContent = ReactDOM.createRoot(tempDiv)._internalRoot.current.child;
+        root.render(<React.StrictMode>{renderContent}<\/React.StrictMode>);
+      <\/script>
+    `;
+    safeHTML = result;
+  }
+  let safeCSS = cssCode.value; // CSS不需要特殊处理
+  if (cssSyntax.value === 'less') {
+    try {
+      const result = await less.render(cssCode.value);
+      safeCSS = result.css;
+    } catch (error) {
+      console.error('Less 编译失败:', error);
+    }
+  }
+  if (cssSyntax.value === 'sass') {
+    try {
+      const result = sass.compileString(cssCode.value);
+      safeCSS = result.css;
+    } catch (error) {
+      console.error('Sass 编译失败:', error);
+    }
+  }
   // 设置sandbox属性
   previewFrame.value.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals');
   try {
@@ -215,7 +283,6 @@ const debouncedUpdatePreview = debounce(async () => {
               }
             };
           }
-
 
           // 重写window.onerror来捕获更详细的错误信息
          window.onerror = function(message, source, lineno, colno, error) {
@@ -747,12 +814,10 @@ const checkLoginStatus = async () => {
     if (response.code === 200) {
       const { user } = response.data;
       userStore.login(user.username, user.account, user.avatar, user.status, user.createAt);
-
       codeStore.initProject();
 
       // 登录成功后，重新检查分享权限
       const shareResult = await ShareService.checkShareAccess();
-
       if (shareResult.success) {
         ShareService.applyShareAccess(shareResult);
       }
@@ -799,7 +864,6 @@ onBeforeUnmount(() => {
   background: #1a1a1a;
   color: white;
 }
-
 body,
 .cm-content,
 .cm-line {

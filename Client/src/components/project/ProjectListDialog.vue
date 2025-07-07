@@ -64,7 +64,7 @@
       <div class="project-list-footer">
         <UnifiedButton type="primary" size="small" @click="showCreateProjectDialog" :disabled="isCreating">
           <div class="button-content">
-            <span>New</span>
+            <span>创建项目</span>
           </div>
         </UnifiedButton>
       </div>
@@ -119,6 +119,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useCodeStore } from '@/stores/codeStore';
 import { api } from '@/api';
 import UnifiedButton from '@/components/ui/UnifiedButton.vue';
+import { LockIcon } from 'lucide-vue-next';
 
 const props = defineProps<{
   visible: boolean;
@@ -206,7 +207,17 @@ const selectProject = async (projectId: string) => {
     currentProjectId.value = projectId;
 
     // 加载项目文件
-    codeStore.loadProjectFromShare(projectData);
+      const fileMap = new Map();
+      projectData.files.forEach((file: any) => {
+        if (file && file.type && file.content !== undefined) {
+          fileMap.set(file.type.toUpperCase(), file.content);
+        }
+      });
+
+      // 批量更新代码内容
+      codeStore.htmlCode = fileMap.get('HTML') || '';
+      codeStore.cssCode = fileMap.get('CSS') || '';
+      codeStore.jsCode = fileMap.get('JS') || fileMap.get('JAVASCRIPT') || '';
 
     // 关闭对话框
     close();
@@ -248,9 +259,7 @@ const createNewProject = async () => {
     // 初始化项目文件
     await codeStore.initProjectFiles(projectData.id);
 
-    // 更新当前项目ID
-    userStore.currentProjectId = projectData.id;
-    currentProjectId.value = projectData.id;
+    selectProject(projectData.id); 
 
     // 重新加载项目列表
     await loadProjects();
@@ -263,6 +272,9 @@ const createNewProject = async () => {
     alert('创建项目失败，请稍后重试');
   } finally {
     isCreating.value = false;
+// 在页面刷新前清除beforeunload事件监听器
+window.onbeforeunload = null;
+window.location.reload();
   }
 };
 
@@ -400,7 +412,7 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 10000;
 }
 
 .project-list-dialog {
