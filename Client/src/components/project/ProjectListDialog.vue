@@ -176,10 +176,6 @@ const loadProjects = async () => {
     const response = await api.getUserProjects();
     const { data } = response;
 
-    codeStore.updateCode('html', '');
-    codeStore.updateCode('css', '');
-    codeStore.updateCode('js', '');
-
     if (data && data.projects) {
       projects.value = data.projects.sort((a, b) => {
         return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
@@ -192,7 +188,6 @@ const loadProjects = async () => {
     errorMessage.value = '获取项目列表失败，请稍后重试';
   } finally {
     isLoading.value = false;
-    close();
   }
 };
 
@@ -247,6 +242,8 @@ const createNewProject = async () => {
   isCreating.value = true;
 
   try {
+    // 清空编辑器状态值
+    codeStore.loadProjectFromShare({ files: [] });
     const { data } = await api.createProject({ name: newProjectName.value.trim() });
     const projectData = data.project;
 
@@ -268,6 +265,7 @@ const createNewProject = async () => {
     alert('创建项目失败，请稍后重试');
   } finally {
     isCreating.value = false;
+    close();
   }
 };
 
@@ -418,6 +416,7 @@ onMounted(() => {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
+  z-index: 10000;
 }
 
 .project-list-header {
