@@ -25,6 +25,9 @@ import { oneDark } from '@codemirror/theme-one-dark';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
 import { javascript } from '@codemirror/lang-javascript';
+import { sass } from '@codemirror/lang-sass';
+import { less } from '@codemirror/lang-less';
+import { vue } from '@codemirror/lang-vue';
 import { defaultKeymap, undo, redo, history } from '@codemirror/commands';
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
@@ -42,9 +45,11 @@ import { storeToRefs } from 'pinia';
 const props = defineProps<{
   activeTab: 'html' | 'css' | 'js';
   isReadOnly?: boolean;
+  cssSyntax?: 'css' | 'sass' | 'less';
+  framework: '' | 'vue' | 'react';
 }>();
 
-const { activeTab, isReadOnly } = toRefs(props);
+const { activeTab, isReadOnly, cssSyntax, framework } = toRefs(props);
 const userStore = useUserStore();
 const codeStore = useCodeStore();
 const { htmlCode, cssCode, jsCode } = storeToRefs(codeStore);
@@ -334,10 +339,27 @@ defineExpose({
 const getLanguageExtension = () => {
   switch (activeTab.value) {
     case 'html':
+      if (framework.value === 'vue') {
+        return vue();
+      } else if (framework.value === 'react') {
+        return javascript({ jsx: true });
+      }
       return html();
     case 'css':
-      return css();
+      switch (cssSyntax?.value) {
+        case 'sass':
+          return sass();
+        case 'less':
+          return less();
+        default:
+          return css();
+      }
     case 'js':
+      if (framework.value === 'vue') {
+        return vue();
+      } else if (framework.value === 'react') {
+        return javascript({ jsx: true });
+      }
       return javascript();
     default:
       return javascript();

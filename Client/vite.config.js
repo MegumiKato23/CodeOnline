@@ -34,6 +34,8 @@ export default defineConfig({
       '@codemirror/lang-html',
       '@codemirror/lang-css',
       '@codemirror/lang-javascript',
+      '@codemirror/lang-less',
+      '@codemirror/lang-sass',
       '@codemirror/theme-one-dark',
       'prettier/standalone',
       'prettier/plugins/html',

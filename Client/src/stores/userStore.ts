@@ -10,6 +10,7 @@ export interface ProjectPermissions {
 
 export const useUserStore = defineStore('user', () => {
   // 用户信息
+  const userid = ref('');
   const username = ref('');
   const account = ref('');
   const avatar = ref('');
@@ -93,9 +94,7 @@ export const useUserStore = defineStore('user', () => {
     setStatus(newStatus);
     if (isLoggedIn.value) {
       try {
-        const { data: userProfileData } = await api.getUserProfile();
-        const userId = userProfileData.user.id;
-        console.log('当前用户 ID:', userId);
+        const userId = sessionStorage.getItem('userid');
         if (!userId) {
           console.error('未找到 userid，请检查登录状态');
           return;
@@ -103,7 +102,7 @@ export const useUserStore = defineStore('user', () => {
         // 调用 updateUserProfile 方法更新后台的用户资料
         await api.updateUserProfile({
           user: {
-            id: userId,
+            id: JSON.parse(userId),
             username: username.value,
             account: account.value,
             status: status.value,
@@ -117,6 +116,7 @@ export const useUserStore = defineStore('user', () => {
   };
   return {
     username,
+    userid,
     account,
     avatar,
     status,
