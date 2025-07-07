@@ -1,10 +1,18 @@
 <template>
   <div id="box">
-    <img :src="userStore.avatar || '../../public/avatar/doro.png'" class="img" alt="用户头像" />
-    <ul class="droplist">
-      <li class="change-avatar">更换头像</li>
+    <img
+      :src="userStore.avatar || '../../public/avatar/doro.png'"
+      class="img"
+      alt="用户头像"
+      @error="handleImageError"
+      @mouseenter="handleAvatarEnter"
+      @mouseleave="handleAvatarLeave"
+    />
+    <ul class="droplist" v-show="isDropdownVisible" @mouseenter="handleDropdownEnter" @mouseleave="handleDropdownLeave">
+      <li class="change-avatar" @click="handleAvatarChange">更换头像</li>
       <li @click="showLogoutConfirm = true" class="log-out">退出登录</li>
     </ul>
+    <input type="file" ref="avatarInput" accept="image/*" style="display: none" @change="handleFileUpload" />
 
     <div class="logout-confirm-dialog" v-if="showLogoutConfirm">
       <div class="logout-confirm-content">
@@ -35,6 +43,35 @@ const userStore = useUserStore();
 const codeStore = useCodeStore();
 const emit = defineEmits(['login']);
 const showLogoutConfirm = ref(false);
+const isLoading = ref(false);
+const uploadError = ref('');
+const isDropdownVisible = ref(false);
+const dropdownTimeout = ref<NodeJS.Timeout>();
+
+const handleAvatarEnter = () => {
+  console.log('鼠标进入头像');
+  clearTimeout(dropdownTimeout.value);
+  isDropdownVisible.value = true;
+};
+
+const handleAvatarLeave = () => {
+  console.log('鼠标离开头像');
+  if (!isDropdownVisible.value) return;
+  dropdownTimeout.value = setTimeout(() => {
+    isDropdownVisible.value = false;
+    console.log('隐藏下拉框');
+  }, 100);
+};
+
+const handleDropdownEnter = () => {
+  console.log('鼠标进入下拉框');
+  clearTimeout(dropdownTimeout.value);
+};
+
+const handleDropdownLeave = () => {
+  console.log('鼠标离开下拉框');
+  isDropdownVisible.value = false;
+};
 
 // // 控制下拉框显示状态
 // const isDropdownVisible = ref(false);
@@ -50,6 +87,79 @@ const showLogoutConfirm = ref(false);
 //     isDropdownVisible.value = false;
 //   }, 1000);
 // };
+
+const handleAvatarChange = () => {
+  (document.querySelector('input[type="file"]') as HTMLInputElement).click();
+};
+
+const handleFileUpload = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  if (input.files && input.files[0]) {
+    isLoading.value = true;
+    uploadError.value = '';
+    try {
+      const file = input.files[0];
+      console.log('开始处理头像文件:', file.name, file.size);
+
+      // 验证文件类型和大小
+      if (!file.type.startsWith('image/')) {
+        throw new Error('请选择有效的图片文件');
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        throw new Error('图片大小不能超过2MB');
+      }
+
+      // 将头像转为base64并验证
+      const avatarData = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          if (result && result.startsWith('data:image')) {
+            console.log('头像转换成功，大小:', result.length);
+            resolve(result);
+          } else {
+            reject(new Error('头像转换失败: 无效的数据格式'));
+          }
+        };
+        reader.onerror = () => reject(new Error('头像读取失败'));
+        reader.readAsDataURL(file);
+      });
+
+      // 持久化存储
+      console.log('存储头像到localStorage');
+      localStorage.setItem('userAvatar', avatarData);
+      userStore.setAvatar(avatarData);
+
+      // 更新后端
+      const profileResponse = await api.getUserProfile();
+      if (profileResponse.code !== 200) {
+        throw new Error('获取用户信息失败');
+      }
+
+      const userId = profileResponse.data.user.id;
+      const response = await api.updateUserProfile({
+        user: {
+          id: userId,
+          username: userStore.username,
+          account: userStore.account,
+          avatar: avatarData,
+          status: userStore.status,
+        },
+      });
+
+      if (response.code !== 200) {
+        throw new Error(response.message || '头像更新失败');
+      }
+
+      console.log('头像更新成功');
+      input.value = '';
+    } catch (error) {
+      console.error('头像上传失败:', error);
+      uploadError.value = error.message || '头像上传失败';
+      alert(`头像更新失败: ${uploadError.value}`);
+    }
+  }
+};
 
 const confirmLogout = async () => {
   try {
@@ -150,12 +260,42 @@ const saveRedisToDatabase = async () => {
   }
 };
 
+const handleImageError = (event: Event) => {
+  const img = event.target as HTMLImageElement;
+  console.warn('头像加载失败，尝试恢复...');
+
+  // 尝试从多个来源恢复头像
+  const sources = [localStorage.getItem('userAvatar'), userStore.avatar, '../../public/avatar/doro.png'];
+
+  for (const source of sources) {
+    if (source) {
+      img.src = source;
+      console.log(
+        '从',
+        source === sources[0] ? 'localStorage' : source === sources[1] ? 'userStore' : '默认路径',
+        '恢复头像'
+      );
+      uploadError.value = '头像恢复成功';
+      return;
+    }
+  }
+
+  console.error('所有头像恢复尝试失败');
+  uploadError.value = '头像加载失败';
+};
+
 const logout = async () => {
   try {
+    console.log('开始退出登录流程');
     const response = await api.logout();
     if (response.code === 200) {
+      console.log('退出登录成功，清理缓存');
+      // 保留头像缓存以便重新登录后恢复
+      // localStorage.removeItem('userAvatar'); // 注释掉这行以保留缓存
       userStore.logout();
-      window.location.reload(); // 退出登录后刷新页面
+      setTimeout(() => {
+        window.location.reload(); // 延迟刷新以确保清理完成
+      }, 100);
     }
   } catch (error) {
     console.error('退出登录失败:', error);
@@ -193,7 +333,7 @@ const logout = async () => {
 
 .droplist {
   background-color: #1a1a1a;
-  /* display: none; */
+  display: block;
   position: absolute;
   top: 56px;
   right: 8px;
@@ -207,8 +347,8 @@ const logout = async () => {
   transition: all 0.3s ease;
 }
 
-#box:hover .droplist {
-  display: block;
+#box .img:hover ~ .droplist,
+.droplist:hover {
   opacity: 1;
   transform: translateY(0);
 }
