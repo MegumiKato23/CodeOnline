@@ -416,7 +416,6 @@ onMounted(() => {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
-  z-index: 10000;
 }
 
 .project-list-header {
