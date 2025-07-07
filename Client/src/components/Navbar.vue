@@ -66,7 +66,7 @@ const emit = defineEmits(['login']);
 
 const userStore = useUserStore();
 const codeStore = useCodeStore();
-const { username, userid, account, avatar, isLoggedIn, status } = storeToRefs(userStore);
+const { username, account, avatar, isLoggedIn, status } = storeToRefs(userStore);
 const { saved } = storeToRefs(codeStore);
 
 const handleCommand = (command: string) => {
