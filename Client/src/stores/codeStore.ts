@@ -114,19 +114,19 @@ export const useCodeStore = defineStore('code', () => {
         {
           name: 'index.html',
           path: '/index.html',
-          content: htmlCode.value,
+          content: '',
           type: FileType.HTML,
         },
         {
           name: 'styles.css',
           path: '/styles.css',
-          content: cssCode.value,
+          content: '',
           type: FileType.CSS,
         },
         {
           name: 'script.js',
           path: '/script.js',
-          content: jsCode.value,
+          content: '',
           type: FileType.JS,
         },
       ];
