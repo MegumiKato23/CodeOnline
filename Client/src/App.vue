@@ -29,7 +29,6 @@
       @login="showLoginDialog = true"
       @runtime-error="handleRuntimeError"
       @goto-line="handleGotoLine"
-      @performance-test="showPerformanceTest = true"
     />
     <SettingDialog
       :dialogFormVisible="showSettings"
@@ -75,7 +74,6 @@ const codeEditorRef = ref<any>(null);
 const showSettings = ref(false);
 const showLoginDialog = ref(false);
 const showRegisterDialog = ref(false);
-const showPerformanceTest = ref(false);
 const isResizing = ref(false);
 // 存储鼠标按下时的 X 坐标
 const startX = ref(0);
