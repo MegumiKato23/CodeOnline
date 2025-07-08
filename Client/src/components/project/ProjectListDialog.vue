@@ -199,6 +199,9 @@ const selectProject = async (projectId: string) => {
   if (projectId === userStore.currentProjectId) return;
 
   try {
+    // 切换项目前，先保存当前项目的代码
+    await codeStore.saveProject();
+
     const { data } = await api.getProject(projectId);
     const projectData = data.project;
 
@@ -214,13 +217,33 @@ const selectProject = async (projectId: string) => {
         }
       });
 
-      // 批量更新代码内容
-      codeStore.htmlCode = fileMap.get('HTML') || '';
-      codeStore.cssCode = fileMap.get('CSS') || '';
-      codeStore.jsCode = fileMap.get('JS') || fileMap.get('JAVASCRIPT') || '';
+      // 强制更新代码内容，先清空再设置新内容
+      const htmlContent = fileMap.get('HTML') || '';
+      const cssContent = fileMap.get('CSS') || '';
+      const jsContent = fileMap.get('JS') || fileMap.get('JAVASCRIPT') || '';
+      
+      // 直接更新 store 中的值
+      codeStore.htmlCode = htmlContent;
+      codeStore.cssCode = cssContent;
+      codeStore.jsCode = jsContent;
+      
+      // 设置为已保存状态（因为是从服务器加载的）
+      codeStore.saved = true;
 
     // 关闭对话框
     close();
+    
+    // 等待对话框关闭后强制重新初始化编辑器和预览
+    await nextTick();
+    // 发送编辑器重新初始化事件
+    window.dispatchEvent(new CustomEvent('project-switched', {
+      detail: { htmlContent, cssContent, jsContent }
+    }));
+    
+    // 延迟触发预览更新
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('force-preview-update'));
+    }, 200);
   } catch (error) {
     console.error('加载项目失败:', error);
     alert('加载项目失败，请稍后重试');
@@ -272,9 +295,6 @@ const createNewProject = async () => {
     alert('创建项目失败，请稍后重试');
   } finally {
     isCreating.value = false;
-// 在页面刷新前清除beforeunload事件监听器
-window.onbeforeunload = null;
-window.location.reload();
   }
 };
 

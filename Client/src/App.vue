@@ -643,6 +643,9 @@ watch(status, () => {
   debouncedUpdatePreview();
 });
 
+// 监听强制预览更新事件
+window.addEventListener('force-preview-update', debouncedUpdatePreview);
+
 // 切换到注册界面
 const switchToRegister = () => {
   showLoginDialog.value = false;
@@ -906,6 +909,7 @@ onBeforeUnmount(() => {
   debouncedUpdatePreview.cancel();
   window.removeEventListener('keydown', handleGlobalShortcut);
   window.removeEventListener('beforeunload', handleBeforeUnload);
+  window.removeEventListener('force-preview-update', debouncedUpdatePreview);
 });
 </script>
 
