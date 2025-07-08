@@ -448,9 +448,22 @@ const setActiveTab = (tab: 'html' | 'css' | 'js') => {
   codeStore.setActiveTab(tab);
 };
 
+// 监听项目切换事件
+const handleProjectSwitch = async () => {
+  console.log('项目切换，重新初始化编辑器');
+  // 销毁所有现有编辑器
+  destroyAllEditors();
+  // 等待一个tick后重新初始化
+  await nextTick();
+  initializeEditor();
+};
+
 onMounted(async () => {
   await nextTick();
   initializeEditor();
+  
+  // 监听项目切换事件
+  window.addEventListener('project-switched', handleProjectSwitch);
 });
 
 watch([activeTab, isReadOnly], () => {
@@ -487,6 +500,8 @@ watch(
 
 onBeforeUnmount(() => {
   destroyAllEditors();
+  // 移除项目切换事件监听器
+  window.removeEventListener('project-switched', handleProjectSwitch);
 });
 </script>
 

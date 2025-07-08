@@ -192,6 +192,35 @@ export const useCodeStore = defineStore('code', () => {
     }
   };
 
+  const saveProject = async () => {
+    try {
+      const { data } = await api.getProject(useUserStore().currentProjectId);
+      const projectData = data.project;
+      projectData.files.map(async (file: any) => {
+        let content = '';
+        switch (file.type) {
+          case FileType.HTML:
+            content = htmlCode.value;
+            break;
+          case FileType.CSS:
+            content = cssCode.value;
+            break;
+          case FileType.JS:
+            content = jsCode.value;
+            break;
+        }
+        await api.updateFile(useUserStore().currentProjectId, file.id, {
+          name: file.name,
+          path: file.path,
+          content: content,
+          type: file.type,
+        });
+      });
+    } catch (error) {
+      console.error('保存失败:', error);
+    }
+  };
+
   return {
     htmlCode,
     cssCode,
@@ -206,6 +235,7 @@ export const useCodeStore = defineStore('code', () => {
     initProject,
     initProjectFiles,
     loadProjectFromShare,
+    saveProject,
     promptFormat,
     cancelFormat,
     formatCurrentCode,
