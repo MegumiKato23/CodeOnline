@@ -282,7 +282,6 @@ const gotoLine = (lineNumber: number, errorType?: string) => {
       return;
     }
 
-    // 确保行号在有效范围内
     const view = currentView.value;
     if (!view) return;
 
@@ -390,6 +389,7 @@ const setupLinter = () => {
     }));
   });
 };
+
 const initializeEditor = () => {
   if (!editorElement.value) return;
   editorElement.value.innerHTML = '';
@@ -418,7 +418,6 @@ const initializeEditor = () => {
   const extensions = [...baseExtensions, getLanguageExtension(), setupLinter()]; // 这里加入了 setupLinter()
   if (isReadOnly?.value) {
     extensions.push(EditorState.readOnly.of(true));
-    console.log(isReadOnly?.value);
   }
 
   const state = EditorState.create({
