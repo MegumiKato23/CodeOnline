@@ -9,7 +9,6 @@
             :activeTab="activeTab"
             :isReadOnly="userStore.isReadOnlyMode"
             :cssSyntax="cssSyntax"
-            :framework="framework"
           />
         </div>
         <div class="resize-handle" @mousedown="startResize" @dblclick="resetSize"></div>
@@ -82,11 +81,9 @@ const startWidth = ref(0);
 const editorPanel = ref<HTMLElement | null>(null);
 const view = ref<HTMLElement | null>(null);
 const cssSyntax = ref<'css' | 'sass' | 'less'>('css');
-const framework = ref<'' | 'vue' | 'react'>('');
 
-const handleSettingsUpdate = (frameworkVal: '' | 'vue' | 'react', syntax: 'css' | 'sass' | 'less') => {
+const handleSettingsUpdate = (syntax: 'css' | 'sass' | 'less') => {
   cssSyntax.value = syntax;
-  framework.value = frameworkVal;
 };
 // 创建防抖的预览更新函数 (500ms)
 const debouncedUpdatePreview = debounce(async () => {
@@ -103,41 +100,6 @@ const debouncedUpdatePreview = debounce(async () => {
   // 使用不同的净化方法
   let safeHTML = SecurityService.sanitizeForWrite(htmlCode.value);
   let safeJS = jsCode.value;
-  console.log(safeHTML);
-  if (framework.value === 'vue') {
-    const result = `
-      <div id="app"><\/div>
-      <script src="https://unpkg.com/vue@3/dist/vue.global.js"><\/script>
-      <script>
-        const { createApp } = Vue;
-        const appConfig = { template: \`${safeHTML}\` };
-        const userConfig = (function() { ${safeJS} })();
-        Object.assign(appConfig, userConfig);
-        const app = createApp(appConfig);
-        app.mount('#app');
-      <\/script>
-    `;
-    safeHTML = result;
-    console.log(safeHTML);
-  } else if (framework.value === 'react') {
-    const result = `
-      <div id="root"></div>
-      <script src="https://unpkg.com/react@18/umd/react.development.js"><\/script>
-      <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"><\/script>
-      <script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>
-      <script type="text/babel">
-        ${safeJS};
-        const { createRoot } = ReactDOM;
-        const root = createRoot(document.getElementById('root'));
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = \`${safeHTML}\`;
-        // 转换为 React 元素
-        const renderContent = ReactDOM.createRoot(tempDiv)._internalRoot.current.child;
-        root.render(<React.StrictMode>{renderContent}<\/React.StrictMode>);
-      <\/script>
-    `;
-    safeHTML = result;
-  }
   let safeCSS = cssCode.value; // CSS不需要特殊处理
   if (cssSyntax.value === 'less') {
     try {
