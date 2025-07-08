@@ -46,10 +46,9 @@ const props = defineProps<{
   activeTab: 'html' | 'css' | 'js';
   isReadOnly?: boolean;
   cssSyntax?: 'css' | 'sass' | 'less';
-  framework: '' | 'vue' | 'react';
 }>();
 
-const { activeTab, isReadOnly, cssSyntax, framework } = toRefs(props);
+const { activeTab, isReadOnly, cssSyntax} = toRefs(props);
 const userStore = useUserStore();
 const codeStore = useCodeStore();
 const { htmlCode, cssCode, jsCode } = storeToRefs(codeStore);
@@ -338,11 +337,6 @@ defineExpose({
 const getLanguageExtension = () => {
   switch (activeTab.value) {
     case 'html':
-      if (framework.value === 'vue') {
-        return vue();
-      } else if (framework.value === 'react') {
-        return javascript({ jsx: true });
-      }
       return html();
     case 'css':
       switch (cssSyntax?.value) {
@@ -354,11 +348,6 @@ const getLanguageExtension = () => {
           return css();
       }
     case 'js':
-      if (framework.value === 'vue') {
-        return vue();
-      } else if (framework.value === 'react') {
-        return javascript({ jsx: true });
-      }
       return javascript();
     default:
       return javascript();
@@ -448,9 +437,22 @@ const setActiveTab = (tab: 'html' | 'css' | 'js') => {
   codeStore.setActiveTab(tab);
 };
 
+// 监听项目切换事件
+const handleProjectSwitch = async () => {
+  console.log('项目切换，重新初始化编辑器');
+  // 销毁所有现有编辑器
+  destroyAllEditors();
+  // 等待一个tick后重新初始化
+  await nextTick();
+  initializeEditor();
+};
+
 onMounted(async () => {
   await nextTick();
   initializeEditor();
+  
+  // 监听项目切换事件
+  window.addEventListener('project-switched', handleProjectSwitch);
 });
 
 watch([activeTab, isReadOnly], () => {
@@ -487,6 +489,8 @@ watch(
 
 onBeforeUnmount(() => {
   destroyAllEditors();
+  // 移除项目切换事件监听器
+  window.removeEventListener('project-switched', handleProjectSwitch);
 });
 </script>
 
