@@ -7,15 +7,8 @@
       </div>
       <div class="dialog-body">
         <div class="form-group">
-          <label for="region1">Framework</label>
-          <el-select v-model="form.framework" id="region1" placeholder="请选择">
-            <el-option label="Vue" value="vue" />
-            <el-option label="React" value="react" />
-          </el-select>
-        </div>
-        <div class="form-group">
           <label for="region2">Syntax in CSS</label>
-          <el-select v-model="form.syntax" id="region2" placeholder="请选择">
+          <el-select v-model="form.syntax" id="region2" placeholder="Please Choose">
             <el-option label="Sass" value="sass" />
             <el-option label="Less" value="less" />
           </el-select>
@@ -46,7 +39,6 @@ watch(
 
 const emit = defineEmits(['closeDialog', 'updateSettings']);
 const form = reactive({
-  framework: '',
   syntax: '',
 });
 
@@ -56,7 +48,7 @@ const cancel = () => {
 };
 
 const handleSettings = () => {
-  emit('updateSettings', form.framework, form.syntax);
+  emit('updateSettings', form.syntax);
   emit('closeDialog');
 };
 </script>
