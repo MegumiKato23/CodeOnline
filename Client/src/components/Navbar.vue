@@ -75,7 +75,7 @@ const handleCommand = (command: string) => {
 };
 const saveCode = async () => {
   if (!userStore.isLoggedIn) {
-    console.log('请先登录再保存');
+    emit('login');
     return;
   }
   try {
