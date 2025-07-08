@@ -1,124 +1,148 @@
 import { CodeError, ErrorChecker, ErrorCheckerOptions } from './typescript';
+import * as acorn from 'acorn';
+import * as walk from 'acorn-walk';
+import { base } from 'acorn-walk';
 
 export const jsChecker: ErrorChecker = async (code: string, options?: ErrorCheckerOptions) => {
   const errors: CodeError[] = [];
-  const ignorePatterns = options?.ignorePatterns || [];
 
-  // 1. 检查未闭合的括号
-  const bracketPairs: Record<string, string> = {
-    '(': ')',
-    '[': ']',
-    '{': '}',
-  };
-
-  const stack: { char: string; index: number }[] = [];
-
-  for (let i = 0; i < code.length; i++) {
-    const char = code[i];
-
-    // 检查开括号
-    if (bracketPairs[char]) {
-      stack.push({ char, index: i });
-    }
-    // 检查闭括号
-    else if (Object.values(bracketPairs).includes(char)) {
-      const last = stack.pop();
-      if (!last || bracketPairs[last.char] !== char) {
-        errors.push({
-          message: `Mismatched bracket: ${char}`,
-          severity: 'error',
-          from: i,
-          to: i + 1,
-          line: 0,
-        });
-      }
-    }
-  }
-
-  // 检查未闭合的括号
-  stack.forEach(({ char, index }) => {
+  let ast;
+  try {
+    ast = acorn.parse(code, { ecmaVersion: 2020, sourceType: 'module', locations: true });
+  } catch (e: any) {
     errors.push({
-      message: `Unclosed bracket: ${char}`,
+      message: e.message,
       severity: 'error',
-      from: index,
-      to: index + 1,
-      line: 0,
+      from: e.pos || 0,
+      to: e.pos ? e.pos + 1 : 1,
+      line: e.loc ? e.loc.line - 1 : 0,
+      column: e.loc ? e.loc.column : 0,
     });
-  });
-
-  // 过滤掉字符串内容
-  const codeWithoutStrings = code.replace(/(["'`])(?:\\.|[^\\])*?\1/g, '');
-
-  // 2. 检查未声明的变量
-  const variableRegex = /(?:^|[^\w.])(var|let|const)\s+([a-zA-Z_$][\w$]*)/g;
-  const declaredVars = new Set<string>();
-  let varMatch: RegExpExecArray | null;
-
-  while ((varMatch = variableRegex.exec(codeWithoutStrings)) !== null) {
-    declaredVars.add(varMatch[2]);
+    return {
+      errors,
+      diagnostics: errors,
+      stats: {
+        errorCount: errors.length,
+        warningCount: 0,
+        suggestionCount: 0,
+      },
+      map: (fn: (error: any) => any) => errors.map(fn),
+    };
   }
 
-  const usageRegex = /(?:^|[^\w.])([a-zA-Z_$][\w$]*)(?=\s*[^\w])/g;
-  let usageMatch: RegExpExecArray | null;
+  const scopeStack: Array<Set<string>> = [new Set()];
+  const declaredVars = new Map<string, any>(); // 变量名 -> 声明节点
+  const usedVars = new Map<string, any>(); // 变量名 -> 使用节点
 
-  while ((usageMatch = usageRegex.exec(codeWithoutStrings)) !== null) {
-    const varName = usageMatch[1];
-    if (
-      !declaredVars.has(varName) &&
-      !['true', 'false', 'null', 'undefined', 'this', 'super', 'console'].includes(varName)
-    ) {
+  function enterScope() {
+    scopeStack.push(new Set());
+  }
+  function exitScope() {
+    scopeStack.pop();
+  }
+  function declareVar(name: string, node: any) {
+    const currentScope = scopeStack[scopeStack.length - 1];
+    if (currentScope.has(name)) {
       errors.push({
-        message: `Undeclared variable: ${varName}`,
+        message: `Variable '${name}' is already declared in the current scope.`,
         severity: 'error',
-        from: usageMatch.index,
-        to: usageMatch.index + varName.length,
-        line: 0,
+        from: node.start,
+        to: node.end,
+        line: node.loc.start.line - 1,
+        column: node.loc.start.column,
       });
+    } else {
+      currentScope.add(name);
+      declaredVars.set(name, node);
     }
   }
 
-  // 3. 检查未使用的变量
-  const usedVars = new Set<string>();
-  const varUsageRegex = /(?:^|[^\w.])([a-zA-Z_$][\w$]*)(?=\s*[^\w])/g;
-  let varUsageMatch: RegExpExecArray | null;
-
-  while ((varUsageMatch = varUsageRegex.exec(codeWithoutStrings)) !== null) {
-    usedVars.add(varUsageMatch[1]);
-  }
-
-  declaredVars.forEach((varName) => {
-    if (!usedVars.has(varName)) {
+  walk.recursive(ast, null, {
+    VariableDeclaration(node: any, state: any, c: any) {
+      if (node.kind === 'let' || node.kind === 'const') {
+        enterScope();
+      }
+      node.declarations.forEach((decl: any) => {
+        if (decl.id.type === 'Identifier') {
+          declareVar(decl.id.name, decl);
+        }
+      });
+      for (const decl of node.declarations) {
+        c(decl, state);
+      }
+      if (node.kind === 'let' || node.kind === 'const') {
+        exitScope();
+      }
+    },
+    FunctionDeclaration(node: any, state: any, c: any) {
+      declareVar(node.id.name, node);
+      enterScope();
+      node.params.forEach((param: any) => {
+        if (param.type === 'Identifier') {
+          declareVar(param.name, param);
+        }
+      });
+      for (const param of node.params) {
+        c(param, state);
+      }
+      c(node.body, state);
+      exitScope();
+    },
+    BlockStatement(node: any, state: any, c: any) {
+      enterScope();
+      for (const stmt of node.body) {
+        c(stmt, state);
+      }
+      exitScope();
+    },
+    Identifier(node: any, state: any, c: any) {
+      // 过滤掉声明时的 Identifier，避免重复计数
+      if (state !== 'declaration') {
+        usedVars.set(node.name, node);
+      }
+    },
+    DebuggerStatement(node: any, state: any, c: any) {
       errors.push({
-        message: `Unused variable: ${varName}`,
-        severity: 'warning',
-        from: 0,
-        to: 0,
-        line: 0,
+        message: `Unexpected 'debugger' statement.`,
+        severity: 'error',
+        from: node.start,
+        to: node.end,
+        line: node.loc.start.line - 1,
+        column: node.loc.start.column,
+      });
+    },
+    ...base,
+  });
+
+  // 检测未定义变量
+  usedVars.forEach((node, name) => {
+    if (!declaredVars.has(name) && name !== 'console' && name !== 'window' && name !== 'document') {
+      errors.push({
+        message: `Variable '${name}' is not defined.`,
+        severity: 'error',
+        from: node.start,
+        to: node.end,
+        line: node.loc.start.line - 1,
+        column: node.loc.start.column,
       });
     }
   });
 
-  // 4. 检查重复的变量声明
-  const duplicateVarRegex = /(?:^|[^\w.])(var|let|const)\s+([a-zA-Z_$][\w$]*)/g;
-  const varCounts: Record<string, number> = {};
-  let dupVarMatch: RegExpExecArray | null;
-
-  while ((dupVarMatch = duplicateVarRegex.exec(codeWithoutStrings)) !== null) {
-    const varName = dupVarMatch[2];
-    varCounts[varName] = (varCounts[varName] || 0) + 1;
-
-    if (varCounts[varName] > 1) {
+  // 检测未使用变量
+  declaredVars.forEach((node, name) => {
+    if (!usedVars.has(name)) {
       errors.push({
-        message: `Duplicate variable declaration: ${varName}`,
+        message: `Variable '${name}' is declared but its value is never read.`,
         severity: 'warning',
-        from: dupVarMatch.index,
-        to: dupVarMatch.index + dupVarMatch[0].length,
-        line: 0,
+        from: node.start,
+        to: node.end,
+        line: node.loc.start.line - 1,
+        column: node.loc.start.column,
       });
     }
-  }
+  });
 
-  // 过滤掉用户指定忽略的错误模式
+  const ignorePatterns = options?.ignorePatterns || [];
   const filteredErrors = errors.filter((error) => !ignorePatterns.some((pattern) => error.message.includes(pattern)));
 
   return {

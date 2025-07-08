@@ -10,6 +10,7 @@ export interface ProjectPermissions {
 
 export const useUserStore = defineStore('user', () => {
   // 用户信息
+  const userid = ref('');
   const username = ref('');
   const account = ref('');
   const avatar = ref('');
@@ -116,6 +117,7 @@ export const useUserStore = defineStore('user', () => {
   };
   return {
     username,
+    userid,
     account,
     avatar,
     status,

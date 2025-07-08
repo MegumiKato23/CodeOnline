@@ -66,7 +66,7 @@ const emit = defineEmits(['login', 'openSettings']);
 
 const userStore = useUserStore();
 const codeStore = useCodeStore();
-const { username, account, avatar, isLoggedIn, status } = storeToRefs(userStore);
+const { username,  account, avatar, isLoggedIn, status } = storeToRefs(userStore);
 const { saved } = storeToRefs(codeStore);
 
 const handleCommand = (command: string) => {
@@ -227,9 +227,8 @@ const login = () => {
 
 /* 下拉菜单项样式 */
 .custom-dropdown-menu .el-dropdown-item {
-  font-size: 16px;
+  font-size: 14px;
   color: white;
-
 }
 
 .custom-dropdown-menu .el-dropdown-item:hover {
