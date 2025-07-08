@@ -100,7 +100,14 @@ const debouncedUpdatePreview = debounce(async () => {
     SecurityService.showSecurityAlert('xss', '检测到潜在的跨站脚本(XSS)攻击，已阻止代码执行');
     return;
   }
-
+  if (SecurityService.hasPotentialSQLInjectionInCode(jsCode.value)) {
+    console.warn('代码中检测到潜在SQL注入风险');
+    SecurityService.showSecurityAlert('sql', 
+      '代码中包含疑似SQL注入模式的字符串，请确认是否安全:\n' +
+      jsCode.value.match(/['"`].*?(OR|AND|\bUNION\b|;|--).*?['"`]/)?.[0] || '可疑代码片段'
+    );
+    return;
+  }
   // 使用不同的净化方法
   let safeHTML = SecurityService.sanitizeForWrite(htmlCode.value);
   let safeJS = jsCode.value;

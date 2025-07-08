@@ -20,7 +20,7 @@ import { ref, onMounted, watch, toRefs, onBeforeUnmount, nextTick } from 'vue';
 import { debounce } from 'lodash-es'; // 导入防抖函数
 import { EditorState, StateEffect, EditorSelection } from '@codemirror/state';
 import { EditorView, keymap, Decoration, DecorationSet } from '@codemirror/view';
-import { StateField } from '@codemirror/state';
+import { StateField,ChangeSpec,Line }from '@codemirror/state';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
@@ -124,62 +124,81 @@ const handleTab = (view: EditorView) => {
 
 const handleShiftTab = (view: EditorView) => {
   const selection = view.state.selection;
-  const changes = [];
+  const changes: ChangeSpec[] = [];
   const newRanges: { anchor: number; head: number }[] = [];
 
   // 处理每个选区
   for (const range of selection.ranges) {
-    const lines = [];
+    const lines: { line: Line; from: number; to: number }[] = [];
     let pos = range.from;
 
     // 收集所有受影响的行
     while (pos <= range.to) {
       const line = view.state.doc.lineAt(pos);
-      lines.push(line);
+      lines.push({
+        line,
+        from: Math.max(line.from, range.from),
+        to: Math.min(line.to, range.to)
+      });
       pos = line.to + 1;
     }
 
-    let anchorShift = 0;
-    let headShift = 0;
+    // 记录原始选区位置
+    const originalAnchor = range.anchor;
+    const originalHead = range.head;
+    let totalRemoved = 0;
 
     // 处理每行的缩进
-    for (const line of lines) {
+    for (const { line, from, to } of lines) {
       const lineText = view.state.sliceDoc(line.from, line.to);
       const leadingSpaces = lineText.match(/^[ ]{1,4}/)?.[0] || '';
 
       if (leadingSpaces.length > 0) {
         const removeCount = Math.min(leadingSpaces.length, 4);
+        const removeFrom = line.from;
+        const removeTo = line.from + removeCount;
+
         changes.push({
-          from: line.from,
-          to: line.from + removeCount,
-          insert: '',
+          from: removeFrom,
+          to: removeTo,
+          insert: ''
         });
 
-        // 计算光标偏移
-        if (range.anchor >= line.from && range.anchor <= line.to) {
-          anchorShift = removeCount;
-        }
-        if (range.head >= line.from && range.head <= line.to) {
-          headShift = removeCount;
+        // 计算当前行移除的字符数
+        const lineRemoved = Math.min(removeCount, to - from);
+        totalRemoved += lineRemoved;
+
+        // 调整当前行的选区范围
+        if (originalAnchor >= removeFrom && originalAnchor <= removeTo) {
+          // 如果锚点在移除的空白区域内，则移动到行首
+          newRanges.push({
+            anchor: line.from,
+            head: line.from
+          });
+          continue;
         }
       }
     }
 
-    // 计算新的选区范围
-    const newAnchor = Math.max(0, range.anchor - anchorShift);
-    const newHead = Math.max(0, range.head - headShift);
-
-    newRanges.push({
-      anchor: newAnchor,
-      head: newHead,
-    });
+    // 计算新的选区范围（仅当没有特殊处理时）
+    if (newRanges.length < selection.ranges.length) {
+      const newAnchor = Math.max(0, originalAnchor - totalRemoved);
+      const newHead = Math.max(0, originalHead - totalRemoved);
+      newRanges.push({
+        anchor: newAnchor,
+        head: newHead
+      });
+    }
   }
 
   if (changes.length > 0) {
     view.dispatch({
       changes,
-      selection: EditorSelection.create(newRanges.map((r) => EditorSelection.range(r.anchor, r.head))),
-      scrollIntoView: true,
+      selection: EditorSelection.create(
+        newRanges.map(r => EditorSelection.range(r.anchor, r.head)),
+        selection.mainIndex
+      ),
+      scrollIntoView: true
     });
     return true;
   }

@@ -30,50 +30,54 @@ export const SecurityService = {
     ];
     return xssPatterns.some((pattern) => pattern.test(code));
   },
-  // 新增SQL注入检测（基于SQLMap测试模式）
   hasSQLInjection: (input: string): boolean => {
     if (!input || typeof input !== 'string') return false;
 
-    // 排除常见合法字符组合的误报
-    const falsePositives = [
-      /^[\w\s.,!?@#$%^&*()\-+=]+$/i, // 仅包含常规字符
-      /^https?:\/\/\S+$/i, // URL
-      /^[\w.%+-]+@[\w.-]+\.[a-z]{2,}$/i, // 邮箱
-      /^\d{4}-\d{2}-\d{2}$/, // 日期
-    ];
-
-    // 如果匹配任何合法模式，直接返回false
-    if (falsePositives.some(pattern => pattern.test(input))) {
-      return false;
-    }
-
-    // 严格检测SQL注入模式
+    // 增强的SQL注入模式检测
     const patterns = [
-      // 注释检测
-      /(--|\/\*|\*\/|\#)/,
+      // 经典注入
+      /(['"`]\s*)(OR|AND)\s*\1?\d+\s*=\s*\d+/i,
+      /(['"`]\s*)(OR|AND)\s*\1?['"`]\s*=\s*['"`]/i,
       
-      // 语句分隔符
-      /;/,
+      // 语句分隔
+      /;\s*(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER)/i,
       
       // 联合查询
-      /\bunion\b.*\bselect\b/i,
+      /\bUNION\b.*\bSELECT\b.*\bFROM\b/i,
       
       // 数据库函数
-      /(sleep|benchmark|waitfor|delay|if|case|procedure\s+analyse|extractvalue|make_set|elt)\s*\(/i,
+      /\b(sleep|benchmark|waitfor|delay)\s*\(\s*\d+\s*\)/i,
       
       // 系统函数
-      /(system|exec|xp_cmdshell|sp_oacreate)\s*\(/i,
+      /\b(xp_cmdshell|sp_oacreate)\s*\(/i,
       
-      // 特殊字符
-      /['"`]\s*or\s*['"`]?[0-9]+\s*=\s*[0-9]+/i,
-      
-      // 条件语句
+      // 特殊条件
       /\b(1=1|0=0|true|false)\b/i,
+      
+      // 注释
+      /--\s+\S+/,
+      /\/\*.*\*\//
     ];
 
     return patterns.some(pattern => pattern.test(input));
   },
-
+  hasPotentialSQLInjectionInCode: (code: string): boolean => {
+    if (!code) return false;
+    
+    // 提取代码中的所有字符串内容
+    const stringContents = [];
+    const stringRegex = /(['"`])(?:\\.|.)*?\1/g;
+    let match;
+    
+    while ((match = stringRegex.exec(code)) !== null) {
+      stringContents.push(match[0]);
+    }
+    
+    // 检查每个字符串内容
+    return stringContents.some(str => 
+      SecurityService.hasSQLInjection(str.slice(1, -1)) // 去除引号
+    );
+  },
   // 新增SQL净化方法
   sanitizeForSQL: (input: string): string => {
     if (!input) return '';
