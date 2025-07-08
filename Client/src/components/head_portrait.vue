@@ -109,26 +109,20 @@ const handleFileUpload = async (event: Event) => {
         throw new Error('图片大小不能超过2MB');
       }
 
-      // 将头像转为base64并验证
-      const avatarData = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const result = e.target?.result as string;
-          if (result && result.startsWith('data:image')) {
-            console.log('头像转换成功，大小:', result.length);
-            resolve(result);
-          } else {
-            reject(new Error('头像转换失败: 无效的数据格式'));
-          }
-        };
-        reader.onerror = () => reject(new Error('头像读取失败'));
-        reader.readAsDataURL(file);
-      });
+      // 创建临时对象URL
+      const avatarUrl = URL.createObjectURL(file);
+      console.log('创建临时头像URL:', avatarUrl);
 
-      // 持久化存储
-      console.log('存储头像到localStorage');
-      localStorage.setItem('userAvatar', avatarData);
-      userStore.setAvatar(avatarData);
+      // 存储文件信息到localStorage
+      const fileData = {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        lastModified: file.lastModified,
+        url: avatarUrl
+      };
+      localStorage.setItem('userAvatar', JSON.stringify(fileData));
+      userStore.setAvatar(avatarUrl);
 
       // 更新后端
       const profileResponse = await api.getUserProfile();
@@ -142,7 +136,7 @@ const handleFileUpload = async (event: Event) => {
           id: userId,
           username: userStore.username,
           account: userStore.account,
-          avatar: avatarData,
+          avatar: avatarUrl,
           status: userStore.status,
         },
       });
