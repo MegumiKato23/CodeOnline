@@ -24,7 +24,7 @@
     background: #1a1a1a;
     cursor: col-resize;
     position: relative;
-    z-index: 10;
+    /* z-index: 10; */
     transition: background 0.1s;
     -webkit-user-select: none;
     user-select: none;
@@ -90,7 +90,7 @@
     background: #1a1a1a;
     cursor: col-resize;
     position: relative;
-    z-index: 10;
+    /* z-index: 10; */
     transition: background 0.1s;
     -webkit-user-select: none;
     user-select: none;
@@ -157,7 +157,7 @@
     background: #1a1a1a;
     cursor: row-resize; /* 改为纵向调整大小 */
     position: relative;
-    z-index: 10;
+    /* z-index: 10; */
     transition: background 0.1s;
     -webkit-user-select: none;
     user-select: none;

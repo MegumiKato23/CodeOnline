@@ -5,6 +5,7 @@
       <div class="main-content">
         <div class="editor-panel" ref="editorPanel">
           <CodeEditor
+            ref="codeEditorRef"
             :activeTab="activeTab"
             :isReadOnly="userStore.isReadOnlyMode"
             :cssSyntax="cssSyntax"
@@ -117,7 +118,7 @@ const debouncedUpdatePreview = debounce(async () => {
       <\/script>
     `;
     safeHTML = result;
-    console.log(safeHTML)
+    console.log(safeHTML);
   } else if (framework.value === 'react') {
     const result = `
       <div id="root"></div>
@@ -161,20 +162,11 @@ const debouncedUpdatePreview = debounce(async () => {
     <!DOCTYPE html>
     <html>
       <head>
-<<<<<<< HEAD
-       <meta http-equiv="Content-Security-Policy" content="
->>>>>>> 145273174db8d22ffea69dbd364be0660969268d
-            default-src 'none';
-            script-src 'self' 'unsafe-inline';
-            style-src 'self' 'unsafe-inline';
-          ">
-=======
       <meta http-equiv="Content-Security-Policy" content="
         default-src 'none';
         script-src 'self' 'unsafe-inline' 'unsafe-eval' *;
         style-src 'self' 'unsafe-inline';
       ">
->>>>>>> 615ced219e23d3b44271dc001dfc5a14c76e890e
         <style>${safeCSS}</style>
       </head>
       <body>
@@ -289,7 +281,6 @@ const debouncedUpdatePreview = debounce(async () => {
               }
             };
           }
-
 
           // 重写window.onerror来捕获更详细的错误信息
          window.onerror = function(message, source, lineno, colno, error) {
